@@ -50,7 +50,8 @@ TORQUE_LIMIT = 1e-6     # N·m，condim=3 的点接触无力矩
 FLAT_XML = """
 <mujoco model="contact-force-flat">
   <option timestep="{timestep}" gravity="0 0 -{gravity}" cone="{cone}"
-          solver="Newton" iterations="200" tolerance="1e-10"/>
+          solver="Newton" iterations="200" tolerance="1e-10"
+          noslip_iterations="10" noslip_tolerance="1e-8"/>
   <worldbody>
     <geom name="floor" type="plane" size="0 0 0.1"
           friction="{mu} 0.01 0.01" condim="3"/>
@@ -66,7 +67,8 @@ FLAT_XML = """
 INCLINE_XML = """
 <mujoco model="contact-force-incline">
   <option timestep="{timestep}" gravity="0 0 -{gravity}" cone="{cone}"
-          solver="Newton" iterations="200" tolerance="1e-10"/>
+          solver="Newton" iterations="200" tolerance="1e-10"
+          noslip_iterations="10" noslip_tolerance="1e-8"/>
   <worldbody>
     <geom name="incline" type="plane" size="0 0 0.1" euler="0 {angle} 0"
           friction="{mu} 0.01 0.01" condim="3"/>
