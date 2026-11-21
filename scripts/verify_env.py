@@ -21,6 +21,11 @@
 两种摩擦锥各跑一遍（mjCONE_PYRAMIDAL / mjCONE_ELLIPTIC）。平地静置没有切向
 需求，两锥应只差求解器容差：法向差 ≤0.5% 直接通过，0.5%~1% 通过但记录，
 >1% 判实现错误。输出全部为 ASCII，便于 Windows 重定向保存。
+
+数值设置：全部工况用 timestep=0.5 ms、solref=0.005 s、solimp=0.999/0.9999。
+斜面持续受切向重力分量，MuJoCo 的软接触约束会产生与刚度成反比的蠕滑；提高
+阻抗并减小时间步后，斜面残余速度约 1e-5 m/s、抽样窗口漂移约 1e-3 mm。该设置
+只用于静置读数校验，不代表整机模型的时间步或接触柔度。
 """
 
 import sys
@@ -32,7 +37,9 @@ RADIUS = 0.1            # m
 HALF_EXTENT = 0.1       # m，斜面方块的半边长
 DENSITY = 1000.0        # kg/m^3（MuJoCo 默认值，这里显式写出）
 GRAVITY = 9.81          # m/s^2
-TIMESTEP = 0.002        # s
+TIMESTEP = 0.0005       # s（高阻抗接触下的稳定性要求，见文档）
+SOLREF = "0.005 1"
+SOLIMP = "0.999 0.9999 0.0001"
 DROP_HEIGHT = 0.4       # m，球心初始高度
 INCLINE_DEG = 30.0      # deg
 SLIDE_FRICTION = 1.0    # ≥0.6，且 > tan30
@@ -45,19 +52,20 @@ ERROR_TANGENT = 0.02    # 2%
 CONE_EQUIV_PASS = 0.005  # 0.5%
 CONE_EQUIV_RECORD = 0.01  # 1%
 PENETRATION_LIMIT = 0.05  # 5% of radius / half extent
+DRIFT_LIMIT = 1e-3        # 抽样窗口内质心漂移 < 0.1% of reference length
 TORQUE_LIMIT = 1e-6     # N·m，condim=3 的点接触无力矩
 
 FLAT_XML = """
 <mujoco model="contact-force-flat">
   <option timestep="{timestep}" gravity="0 0 -{gravity}" cone="{cone}"
-          solver="Newton" iterations="200" tolerance="1e-10"
-          noslip_iterations="10" noslip_tolerance="1e-8"/>
+          solver="Newton" iterations="200" tolerance="1e-10" integrator="Euler"/>
   <worldbody>
-    <geom name="floor" type="plane" size="0 0 0.1"
+    <geom name="floor" type="plane" size="0 0 0.1" solref="{solref}" solimp="{solimp}"
           friction="{mu} 0.01 0.01" condim="3"/>
     <body name="ball" pos="0 0 {drop}">
       <joint type="free"/>
       <geom name="ball" type="sphere" size="{radius}" density="{density}"
+            solref="{solref}" solimp="{solimp}"
             friction="{mu} 0.01 0.01" condim="3"/>
     </body>
   </worldbody>
@@ -67,14 +75,15 @@ FLAT_XML = """
 INCLINE_XML = """
 <mujoco model="contact-force-incline">
   <option timestep="{timestep}" gravity="0 0 -{gravity}" cone="{cone}"
-          solver="Newton" iterations="200" tolerance="1e-10"
-          noslip_iterations="10" noslip_tolerance="1e-8"/>
+          solver="Newton" iterations="200" tolerance="1e-10" integrator="Euler"/>
   <worldbody>
     <geom name="incline" type="plane" size="0 0 0.1" euler="0 {angle} 0"
+          solref="{solref}" solimp="{solimp}"
           friction="{mu} 0.01 0.01" condim="3"/>
     <body name="block" pos="{px} 0 {pz}" quat="{qw} 0 {qy} 0">
       <joint type="free"/>
       <geom name="block" type="box" size="{half} {half} {half}" density="{density}"
+            solref="{solref}" solimp="{solimp}"
             friction="{mu} 0.01 0.01" condim="3"/>
     </body>
   </worldbody>
@@ -97,6 +106,8 @@ def build_flat_model(cone_name: str, density: float) -> mujoco.MjModel:
             drop=DROP_HEIGHT,
             radius=RADIUS,
             density=density,
+            solref=SOLREF,
+            solimp=SOLIMP,
         )
     )
 
@@ -119,6 +130,8 @@ def build_incline_model(cone_name: str) -> mujoco.MjModel:
             pz=float(np.cos(angle) * standoff),
             qw=float(np.cos(half_angle)),
             qy=float(np.sin(half_angle)),
+            solref=SOLREF,
+            solimp=SOLIMP,
         )
     )
 
@@ -210,12 +223,14 @@ def run_case(case: dict, cone_name: str, expected_cone: int) -> dict:
     ft_vec = f_world - np.outer(fn_world, normal_vec)
     ft_world = np.linalg.norm(ft_vec, axis=1)
 
-    # 3) 穿透：球用球心到平面距离，方块用中心沿法向到平面距离减去半边长。
+    # 3) 静置漂移与穿透。
     if case["kind"] == "incline":
         penetration = float(HALF_EXTENT - np.mean(centers @ normal_vec))
     else:
         penetration = float(RADIUS - np.mean(centers[:, 2]))
     penetration_ratio = penetration / case["penetration_ref"]
+    center_drift = float(np.linalg.norm(centers[-1] - centers[0]))
+    drift_ratio = center_drift / case["penetration_ref"]
 
     warnings = np.asarray(data.warning.number)
     warning_count = int(np.count_nonzero(warnings))
@@ -246,6 +261,7 @@ def run_case(case: dict, cone_name: str, expected_cone: int) -> dict:
         "tangential": (abs(err_ft) <= ERROR_TANGENT) if expected_ft else flat_tangent_ok,
         "vertical": abs(err_fz) <= ERROR_NORMAL,
         "penetration": penetration_ratio <= PENETRATION_LIMIT,
+        "static drift": drift_ratio <= DRIFT_LIMIT,
         "warnings": warning_count == 0,
         "finite": finite,
         "torque": max_torque <= TORQUE_LIMIT,
@@ -257,7 +273,9 @@ def run_case(case: dict, cone_name: str, expected_cone: int) -> dict:
     print(f"model.opt.cone:            {int(model.opt.cone)} (expected {int(expected_cone)})")
     print(f"model.opt.solver:          {mujoco.mjtSolver(model.opt.solver).name} "
           f"({int(model.opt.solver)})")
-    print(f"model.opt.timestep:        {model.opt.timestep} s")
+    print(f"model.opt.timestep:        {model.opt.timestep} s, "
+          f"iterations={int(model.opt.iterations)}, tolerance={model.opt.tolerance:g}")
+    print(f"contact solref/solimp:     {SOLREF} / {SOLIMP}")
     print(f"geom1/geom2:               {geom_order}  (force positive on geom2)")
     print(f"condim ground/object:      {int(model.geom_condim[ground_id])}/"
           f"{int(model.geom_condim[object_id])}")
@@ -268,8 +286,8 @@ def run_case(case: dict, cone_name: str, expected_cone: int) -> dict:
     print(f"m*g:                       {weight:.6f} N")
     print(f"settle steps:              {settle_steps} (settled={settled})")
     print(f"residual |v|, |w|:         {final_lin_vel:.3e} m/s, {final_ang_vel:.3e} rad/s")
-    print(f"center drift (sample):     "
-          f"{float(np.linalg.norm(centers[-1] - centers[0])) * 1000:.6f} mm")
+    print(f"center drift (sample):     {center_drift * 1000:.6f} mm "
+          f"({drift_ratio * 100:.6f} % of reference)")
     print(f"sample steps:              {SAMPLE_STEPS}, contacts per sample "
           f"{min(contact_counts)}..{max(contact_counts)}")
     print(f"contact normal (world):    [{normal_vec[0]: .6f} {normal_vec[1]: .6f} "
