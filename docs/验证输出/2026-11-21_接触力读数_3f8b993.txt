@@ -1,0 +1,255 @@
+3f8b9930e1fa9b389fc99bb74b1e7b388b328482
+=== MuJoCo contact force readout check ===
+Python:                    3.13.1
+MuJoCo:                    4.0.1
+NumPy:                     2.5.5
+Executable:                E:\mujoco-robot-vacuum\.venv\Scripts\python.exe
+gravity:                   9.81 m/s^2, timestep=0.0005 s
+error limits:              normal 1%, tangential 2%, cone equivalence 0.5%/record 1.0%
+force source:              mujoco.mj_contactForce only (contact frame; 0=normal, 1-2=tangential, 3-5=torque)
+
+--- case=flat_sphere  cone=pyramidal (mjCONE_PYRAMIDAL=0) ---
+model.opt.cone:            0 (expected 0)
+model.opt.solver:          mjSOL_NEWTON (2)
+model.opt.timestep:        0.0005 s, iterations=200, tolerance=1e-10
+contact solref/solimp:     0.005 1 / 0.999 0.9999 0.0001
+geom1/geom2:               floor/ball  (force positive on geom2)
+condim ground/object:      3/3
+friction ground/object:    [1.0, 0.01, 0.01]/[1.0, 0.01, 0.01]
+mass (model.body_mass):    4.188790 kg
+m*g:                       41.092032 N
+settle steps:              777 (settled=True)
+residual |v|, |w|:         2.297e-06 m/s, 0.000e+00 rad/s
+center drift (sample):     0.000014 mm (0.000014 % of reference)
+sample steps:              100, contacts per sample 1..1
+contact normal (world):    [ 0.000000  0.000000  1.000000]
+Fn  expected (m*g*1.0000): 41.092032 N
+Fn  measured (sum res[0]): 41.091839602 N (min 41.090628666, max 41.092031131)
+Fn  measured (R^T sum):    41.091839602 N
+Fn  error:                 -0.000468 %
+Ft  measured (expect 0):   0.000000000e+00 N
+Fz  world (expect m*g):    41.091839602 N (-0.000468 %)
+max |torque|:              0.000e+00 N*m
+penetration:               0.000248 mm (0.0002 % of reference)
+warning.number nonzero:    0 [0, 0, 0, 0, 0, 0, 0]
+finite:                    True
+check cone           PASS
+check geom order     PASS
+check settled        PASS
+check normal         PASS
+check tangential     PASS
+check vertical       PASS
+check penetration    PASS
+check static drift   PASS
+check warnings       PASS
+check finite         PASS
+check torque         PASS
+RESULT:                    PASS
+
+--- case=flat_sphere  cone=elliptic (mjCONE_ELLIPTIC=1) ---
+model.opt.cone:            1 (expected 1)
+model.opt.solver:          mjSOL_NEWTON (2)
+model.opt.timestep:        0.0005 s, iterations=200, tolerance=1e-10
+contact solref/solimp:     0.005 1 / 0.999 0.9999 0.0001
+geom1/geom2:               floor/ball  (force positive on geom2)
+condim ground/object:      3/3
+friction ground/object:    [1.0, 0.01, 0.01]/[1.0, 0.01, 0.01]
+mass (model.body_mass):    4.188790 kg
+m*g:                       41.092032 N
+settle steps:              777 (settled=True)
+residual |v|, |w|:         2.297e-06 m/s, 0.000e+00 rad/s
+center drift (sample):     0.000014 mm (0.000014 % of reference)
+sample steps:              100, contacts per sample 1..1
+contact normal (world):    [ 0.000000  0.000000  1.000000]
+Fn  expected (m*g*1.0000): 41.092032 N
+Fn  measured (sum res[0]): 41.091839602 N (min 41.090628666, max 41.092031131)
+Fn  measured (R^T sum):    41.091839602 N
+Fn  error:                 -0.000468 %
+Ft  measured (expect 0):   0.000000000e+00 N
+Fz  world (expect m*g):    41.091839602 N (-0.000468 %)
+max |torque|:              0.000e+00 N*m
+penetration:               0.000248 mm (0.0002 % of reference)
+warning.number nonzero:    0 [0, 0, 0, 0, 0, 0, 0]
+finite:                    True
+check cone           PASS
+check geom order     PASS
+check settled        PASS
+check normal         PASS
+check tangential     PASS
+check vertical       PASS
+check penetration    PASS
+check static drift   PASS
+check warnings       PASS
+check finite         PASS
+check torque         PASS
+RESULT:                    PASS
+
+--- case=incline_box  cone=pyramidal (mjCONE_PYRAMIDAL=0) ---
+model.opt.cone:            0 (expected 0)
+model.opt.solver:          mjSOL_NEWTON (2)
+model.opt.timestep:        0.0005 s, iterations=200, tolerance=1e-10
+contact solref/solimp:     0.005 1 / 0.999 0.9999 0.0001
+geom1/geom2:               incline/block  (force positive on geom2)
+condim ground/object:      3/3
+friction ground/object:    [1.0, 0.01, 0.01]/[1.0, 0.01, 0.01]
+mass (model.body_mass):    8.000000 kg
+m*g:                       78.480000 N
+settle steps:              192 (settled=True)
+residual |v|, |w|:         8.403e-06 m/s, 2.197e-08 rad/s
+center drift (sample):     0.000400 mm (0.000400 % of reference)
+sample steps:              100, contacts per sample 4..4
+contact normal (world):    [ 0.500000  0.000000  0.866025]
+Fn  expected (m*g*0.8660): 67.965674 N
+Fn  measured (sum res[0]): 67.965307241 N (min 67.963002011, max 67.965672197)
+Fn  measured (R^T sum):    67.965307241 N
+Fn  error:                 -0.000539 %
+Ft  expected (m*g*0.5000): 39.240000 N
+Ft  measured:              39.240000377 N
+Ft  error:                 +0.000001 %
+Fz  world (expect m*g):    78.479682835 N (-0.000404 %)
+max |torque|:              0.000e+00 N*m
+penetration:               0.000045 mm (0.0000 % of reference)
+warning.number nonzero:    0 [0, 0, 0, 0, 0, 0, 0]
+finite:                    True
+check cone           PASS
+check geom order     PASS
+check settled        PASS
+check normal         PASS
+check tangential     PASS
+check vertical       PASS
+check penetration    PASS
+check static drift   PASS
+check warnings       PASS
+check finite         PASS
+check torque         PASS
+RESULT:                    PASS
+
+--- case=incline_box  cone=elliptic (mjCONE_ELLIPTIC=1) ---
+model.opt.cone:            1 (expected 1)
+model.opt.solver:          mjSOL_NEWTON (2)
+model.opt.timestep:        0.0005 s, iterations=200, tolerance=1e-10
+contact solref/solimp:     0.005 1 / 0.999 0.9999 0.0001
+geom1/geom2:               incline/block  (force positive on geom2)
+condim ground/object:      3/3
+friction ground/object:    [1.0, 0.01, 0.01]/[1.0, 0.01, 0.01]
+mass (model.body_mass):    8.000000 kg
+m*g:                       78.480000 N
+settle steps:              192 (settled=True)
+residual |v|, |w|:         4.515e-06 m/s, 3.106e-09 rad/s
+center drift (sample):     0.000193 mm (0.000193 % of reference)
+sample steps:              100, contacts per sample 4..4
+contact normal (world):    [ 0.500000  0.000000  0.866025]
+Fn  expected (m*g*0.8660): 67.965674 N
+Fn  measured (sum res[0]): 67.965307381 N (min 67.963002472, max 67.965672200)
+Fn  measured (R^T sum):    67.965307381 N
+Fn  error:                 -0.000539 %
+Ft  expected (m*g*0.5000): 39.240000 N
+Ft  measured:              39.240000102 N
+Ft  error:                 +0.000000 %
+Fz  world (expect m*g):    78.479682819 N (-0.000404 %)
+max |torque|:              0.000e+00 N*m
+penetration:               0.000047 mm (0.0000 % of reference)
+warning.number nonzero:    0 [0, 0, 0, 0, 0, 0, 0]
+finite:                    True
+check cone           PASS
+check geom order     PASS
+check settled        PASS
+check normal         PASS
+check tangential     PASS
+check vertical       PASS
+check penetration    PASS
+check static drift   PASS
+check warnings       PASS
+check finite         PASS
+check torque         PASS
+RESULT:                    PASS
+
+--- case=double_mass  cone=pyramidal (mjCONE_PYRAMIDAL=0) ---
+model.opt.cone:            0 (expected 0)
+model.opt.solver:          mjSOL_NEWTON (2)
+model.opt.timestep:        0.0005 s, iterations=200, tolerance=1e-10
+contact solref/solimp:     0.005 1 / 0.999 0.9999 0.0001
+geom1/geom2:               floor/ball  (force positive on geom2)
+condim ground/object:      3/3
+friction ground/object:    [1.0, 0.01, 0.01]/[1.0, 0.01, 0.01]
+mass (model.body_mass):    8.377580 kg
+m*g:                       82.184064 N
+settle steps:              777 (settled=True)
+residual |v|, |w|:         2.297e-06 m/s, 0.000e+00 rad/s
+center drift (sample):     0.000014 mm (0.000014 % of reference)
+sample steps:              100, contacts per sample 1..1
+contact normal (world):    [ 0.000000  0.000000  1.000000]
+Fn  expected (m*g*1.0000): 82.184064 N
+Fn  measured (sum res[0]): 82.183679204 N (min 82.181257333, max 82.184062261)
+Fn  measured (R^T sum):    82.183679204 N
+Fn  error:                 -0.000468 %
+Ft  measured (expect 0):   0.000000000e+00 N
+Fz  world (expect m*g):    82.183679204 N (-0.000468 %)
+max |torque|:              0.000e+00 N*m
+penetration:               0.000248 mm (0.0002 % of reference)
+warning.number nonzero:    0 [0, 0, 0, 0, 0, 0, 0]
+finite:                    True
+check cone           PASS
+check geom order     PASS
+check settled        PASS
+check normal         PASS
+check tangential     PASS
+check vertical       PASS
+check penetration    PASS
+check static drift   PASS
+check warnings       PASS
+check finite         PASS
+check torque         PASS
+RESULT:                    PASS
+
+--- case=double_mass  cone=elliptic (mjCONE_ELLIPTIC=1) ---
+model.opt.cone:            1 (expected 1)
+model.opt.solver:          mjSOL_NEWTON (2)
+model.opt.timestep:        0.0005 s, iterations=200, tolerance=1e-10
+contact solref/solimp:     0.005 1 / 0.999 0.9999 0.0001
+geom1/geom2:               floor/ball  (force positive on geom2)
+condim ground/object:      3/3
+friction ground/object:    [1.0, 0.01, 0.01]/[1.0, 0.01, 0.01]
+mass (model.body_mass):    8.377580 kg
+m*g:                       82.184064 N
+settle steps:              777 (settled=True)
+residual |v|, |w|:         2.297e-06 m/s, 0.000e+00 rad/s
+center drift (sample):     0.000014 mm (0.000014 % of reference)
+sample steps:              100, contacts per sample 1..1
+contact normal (world):    [ 0.000000  0.000000  1.000000]
+Fn  expected (m*g*1.0000): 82.184064 N
+Fn  measured (sum res[0]): 82.183679204 N (min 82.181257333, max 82.184062261)
+Fn  measured (R^T sum):    82.183679204 N
+Fn  error:                 -0.000468 %
+Ft  measured (expect 0):   0.000000000e+00 N
+Fz  world (expect m*g):    82.183679204 N (-0.000468 %)
+max |torque|:              0.000e+00 N*m
+penetration:               0.000248 mm (0.0002 % of reference)
+warning.number nonzero:    0 [0, 0, 0, 0, 0, 0, 0]
+finite:                    True
+check cone           PASS
+check geom order     PASS
+check settled        PASS
+check normal         PASS
+check tangential     PASS
+check vertical       PASS
+check penetration    PASS
+check static drift   PASS
+check warnings       PASS
+check finite         PASS
+check torque         PASS
+RESULT:                    PASS
+
+=== SUMMARY (mean over 100 samples after settling) ===
+case          cone             Fn_exp       Fn_meas     err_%     Ft_exp     Ft_meas     err_%  Fz_err_%  result
+flat_sphere   pyramidal     41.092032  41.091839602 -0.000468   0.000000 0.000000000         - -0.000468  PASS
+flat_sphere   elliptic      41.092032  41.091839602 -0.000468   0.000000 0.000000000         - -0.000468  PASS
+incline_box   pyramidal     67.965674  67.965307241 -0.000539  39.24000039.240000377 +0.000001 -0.000404  PASS
+incline_box   elliptic      67.965674  67.965307381 -0.000539  39.24000039.240000102 +0.000000 -0.000404  PASS
+double_mass   pyramidal     82.184064  82.183679204 -0.000468   0.000000 0.000000000         - -0.000468  PASS
+double_mass   elliptic      82.184064  82.183679204 -0.000468   0.000000 0.000000000         - -0.000468  PASS
+
+flat_sphere cone equivalence (normal force): 0.000000 % -> PASS
+double_mass / flat_sphere Fn ratio (pyramidal): 2.000000000 (expected 2.000000000, error -0.000000 %)
+
+CONTACT FORCE CHECK: PASS
