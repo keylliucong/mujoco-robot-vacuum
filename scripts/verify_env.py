@@ -163,6 +163,8 @@ def run_case(case: dict, cone_name: str, expected_cone: int) -> dict:
         if quiet >= SETTLE_QUIET_STEPS:
             break
     settled = quiet >= SETTLE_QUIET_STEPS
+    final_lin_vel = float(np.linalg.norm(data.qvel[0:3]))
+    final_ang_vel = float(np.linalg.norm(data.qvel[3:6]))
 
     # 2) 采样：每步 mj_step 之后立即读取当前帧接触力，不用上一帧。
     fn_local = np.zeros(SAMPLE_STEPS)
@@ -263,6 +265,9 @@ def run_case(case: dict, cone_name: str, expected_cone: int) -> dict:
     print(f"mass (model.body_mass):    {mass:.6f} kg")
     print(f"m*g:                       {weight:.6f} N")
     print(f"settle steps:              {settle_steps} (settled={settled})")
+    print(f"residual |v|, |w|:         {final_lin_vel:.3e} m/s, {final_ang_vel:.3e} rad/s")
+    print(f"center drift (sample):     "
+          f"{float(np.linalg.norm(centers[-1] - centers[0])) * 1000:.6f} mm")
     print(f"sample steps:              {SAMPLE_STEPS}, contacts per sample "
           f"{min(contact_counts)}..{max(contact_counts)}")
     print(f"contact normal (world):    [{normal_vec[0]: .6f} {normal_vec[1]: .6f} "
