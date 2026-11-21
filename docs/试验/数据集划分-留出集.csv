@@ -1,2 +1,2 @@
-case_id,heading_deg,group,group_use,source,note
-TODO(仿真侧),TODO(仿真侧),,列分组不派等级,TODO(仿真侧),占位行；group 由 heading_deg 推出（0→正对；±15/±30→斜向）
+case_id,heading_deg,group,group_use,source,note,cfg_path,cfg_sha256
+TODO(仿真侧),TODO(仿真侧),,列分组不派等级,TODO(仿真侧),占位行；group 由 |heading_deg| 推出（0→正对；15/30→斜向）,TODO(仿真侧),TODO(仿真侧)
