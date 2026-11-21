@@ -2,17 +2,16 @@
 # 生成日期: 2026-11-21
 # 平台: Windows 11 Pro (build 26200), win_amd64
 # 基础解释器: standalone CPython 3.13.1 (py -3.13)
-# 固定主包: mujoco==3.17.0 (4.0.x 在 PyPI 无 win_amd64 wheel)
+# 固定主包: mujoco==4.0.1（原生引擎在 mujoco-core / mujoco-studio 子包中，
+#           这两个子包都提供 cp313 win_amd64 wheel，顶层 mujoco 是 py3-none-any 元包）
 # 重建: py -3.13 -m venv .venv ; .venv\Scripts\python.exe -m pip install -r requirements.lock.txt
 # 注意: 升级版本必须同时更新本文件、安装说明和验证记录，并一起提交。
 
-absl-py==2.5.1
-etils==1.15.0
-fsspec==2026.9.0
 glfw==2.11.0
-mujoco==3.17.0
+mujoco==4.0.1
+mujoco-core==4.0.1
+mujoco-studio==4.0.1
+mujoco-studio-wasm==4.0.1
 numpy==2.5.5
 PyOpenGL==3.1.10
-typing_extensions==4.16.0
 websockets==17.4
-zipp==4.1.2
