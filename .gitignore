@@ -1,0 +1,18 @@
+# Project-local dependencies and generated files
+.venv/
+.tools/
+.cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+outputs/
+logs/
+data/private/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
