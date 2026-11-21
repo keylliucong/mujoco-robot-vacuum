@@ -42,14 +42,14 @@ def run(tag, dt, solref="0.02 1", solimp="0.9 0.95 0.001", integrator="Euler"):
 
 
 for tag, args in [
-    ("G solref5m Euler", dict(dt=0.0005, solref="0.005 1")),
-    ("H solref2m Euler", dict(dt=0.0002, solref="0.002 1")),
-    ("I solref1m Euler", dict(dt=0.0001, solref="0.001 1")),
-    ("J solref0.5m Euler", dict(dt=0.00005, solref="0.0005 1")),
     ("K solref5m solimp.99", dict(dt=0.0005, solref="0.005 1",
                                  solimp="0.99 0.999 0.0001")),
-    ("L solref2m implfast", dict(dt=0.0002, solref="0.002 1",
-                                 integrator="implicitfast")),
+    ("M solref2m solimp.99", dict(dt=0.0002, solref="0.002 1",
+                                 solimp="0.99 0.999 0.0001")),
+    ("N solref5m solimp.999", dict(dt=0.0005, solref="0.005 1",
+                                  solimp="0.999 0.9999 0.0001")),
+    ("O solref2m solimp.999", dict(dt=0.0002, solref="0.002 1",
+                                  solimp="0.999 0.9999 0.0001")),
 ]:
     try:
         run(tag, **args)
