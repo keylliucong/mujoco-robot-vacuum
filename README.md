@@ -10,11 +10,13 @@
 
 | 项目 | 约定 |
 | --- | --- |
-| Windows 执行入口 | 通过 SSH 连接 Windows。候选本地别名为 `win` |
+| Windows 执行入口 | 从当前 Mac 执行 `ssh win` |
 | Windows 项目目录 | `E:\mujoco-robot-vacuum` |
 | Python 与 MuJoCo | 在项目目录下安装并锁定版本。Python 环境使用 `.venv/` |
 | 项目专用 Skill | 放在 `.agents/skills/`，与仓库一起维护 |
-| GitHub 同步 | 按完成并检查过的增量及时提交和推送。Windows 拉取或检出相应提交后执行 |
+| GitHub 同步 | 从 Mac 按检查过的工作增量及时提交和推送。Windows 通过仓库专用的只读部署密钥拉取并检出相应提交 |
+
+[GitHub 私有仓库](https://github.com/keylliucong/mujoco-robot-vacuum)
 
 ## 协作流程
 
@@ -24,3 +26,16 @@
 4. 将可共享的变更提交并推送到对应分支，交接分支、SHA 和验证结果。
 
 各 Agent 开工前先读 [AGENTS.md](AGENTS.md)，其中定义了项目级隔离、同步和交接要求。
+
+Windows 运行前，在 PowerShell 中同步主分支。验证任务分支时，将下面的 `main` 换成已推送的待测分支，或在获取后检出交接指定的提交。
+
+```powershell
+Set-Location -LiteralPath 'E:\mujoco-robot-vacuum'
+git status --short
+git fetch origin
+git switch main
+git merge --ff-only origin/main
+git rev-parse HEAD
+```
+
+发现已有未提交改动时，先查明归属，再更新工作区。
