@@ -36,3 +36,6 @@ torque_wheel,TODO(试验标定),TODO(试验标定),N·m,待标定,uB: 无对应�
 omega_wheel,TODO(试验标定),TODO(试验标定),rad/s,待标定,uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测；本轮不出数,TODO(试验标定),TODO(试验标定),TODO(试验标定)
 I,TODO(试验标定),TODO(试验标定),A,待标定,uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测；本轮不出数,TODO(试验标定),TODO(试验标定),TODO(试验标定)
 U,TODO(试验标定),TODO(试验标定),V,待标定,uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测；本轮不出数,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I_att_full_witness,TODO(试验标定),【缺失】,kg·mm²,缺失,载荷附加惯量 I_att_xx/yy/zz/xy/xz/yz；原因: 配重集中、真实尘水摊开、转动惯量未复现；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I_att_equiv_ballast,TODO(试验标定),【缺失】,kg·mm²,缺失,载荷附加惯量 I_att_xx/yy/zz/xy/xz/yz；原因: 见 docs/试验/记录表模板-2026-11-21.md §5.3 提案；裁定前同样标【缺失】；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I_att_sealed_full_water,TODO(试验标定),【缺失】,kg·mm²,缺失,载荷附加惯量 I_att_xx/yy/zz/xy/xz/yz；原因: 见 docs/试验/记录表模板-2026-11-21.md §5.3 提案；裁定前标【缺失】；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
