@@ -29,6 +29,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
 PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
 LEDGER_PATH = REPO_ROOT / "docs" / "参数溯源.csv"
+BUDGET_PATH = REPO_ROOT / "docs" / "不确定度预算.csv"
 CASES_DIR = REPO_ROOT / "cases"
 OUTPUTS_DIR = REPO_ROOT / "outputs"
 SCRIPTS_DIR = REPO_ROOT / "scripts"
@@ -113,6 +114,24 @@ FAILURE_ENUM = {
     "no_contact",
     "data_invalid",
 }
+
+BUDGET_FIELDS = [
+    "unc_id",
+    "param_id",
+    "kind",
+    "component",
+    "dist",
+    "value",
+    "unit",
+    "nu",
+    "status",
+    "source",
+    "method",
+    "condition",
+    "invalidate",
+    "ref",
+    "note",
+]
 
 CASE_KEYS = {
     "schema_version",
@@ -618,10 +637,44 @@ def check_s18():
 def check_s19():
     _, rows = load_ledger()
     tol_rows = [row["param_id"] for row in rows if row["verified_tol"].strip()]
+    if not BUDGET_PATH.exists():
+        add(
+            "S19",
+            None,
+            "SKIP：docs/不确定度预算.csv 不存在（预算表未交付）；"
+            "因缺预算表未覆盖抽查 10–15",
+        )
+        return
+    with open(BUDGET_PATH, newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        fields = reader.fieldnames
+        budget_rows = list(reader)
+    if fields != BUDGET_FIELDS:
+        add("S19", False, f"预算表列不是契约 15 列：{fields}")
+        return
+    if not budget_rows:
+        add("S19", False, "预算表存在但没有分量行")
+        return
+    params_with_rows = {row["param_id"] for row in budget_rows if row["param_id"]}
+    missing_rows = [param_id for param_id in tol_rows if param_id not in params_with_rows]
+    if missing_rows:
+        add("S19", False, f"verified_tol 非空但预算表缺行：{missing_rows[:5]}")
+        return
+    pending = [
+        param_id
+        for param_id in tol_rows
+        if any(
+            row["param_id"] == param_id and row["status"] == "pending"
+            for row in budget_rows
+        )
+    ]
+    if pending:
+        add("S19", False, f"有 pending 分量的参数仍填了 verified_tol：{pending[:5]}")
+        return
     if tol_rows:
-        add("S19", False, f"存在 verified_tol 但本交付未建不确定度预算表：{tol_rows[:5]}")
+        add("S19", True, "verified_tol 均有预算表行，且无 pending 分量")
     else:
-        add("S19", True, "全部 verified_tol 为空，预算表约束空转（无实测数值）")
+        add("S19", True, "预算表存在且列为契约 15 列；当前无 verified_tol 行")
 
 
 def check_s20():
