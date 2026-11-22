@@ -1,0 +1,10 @@
+contacts_at_t0 5
+  floor_plane wheel_L_tire dim 3 friction [np.float64(0.8), np.float64(0.8), np.float64(0.005), np.float64(0.0001), np.float64(0.0001)]
+  floor_plane wheel_L_tire dim 3 friction [np.float64(0.8), np.float64(0.8), np.float64(0.005), np.float64(0.0001), np.float64(0.0001)]
+  floor_plane wheel_R_tire dim 3 friction [np.float64(0.8), np.float64(0.8), np.float64(0.005), np.float64(0.0001), np.float64(0.0001)]
+  floor_plane wheel_R_tire dim 3 friction [np.float64(0.8), np.float64(0.8), np.float64(0.005), np.float64(0.0001), np.float64(0.0001)]
+  floor_plane caster_ball dim 3 friction [np.float64(0.02), np.float64(0.02), np.float64(0.005), np.float64(0.0001), np.float64(0.0001)]
+baseline_assert=PASS
+mutated_assert=PASS_RAISED mutated: floor_plane/wheel_L_tire friction 非各向同性 slide1=0.7 slide2=0.8
+four_component_reject=PASS_RAISED wheel_L--floor.friction 必须是 5 分量 [slide1, slide2, spin, roll1, roll2]；实际 4 个。单值/3 分量会让其余分量回落默认，禁止
+anisotropic_reject=PASS_RAISED wheel_L--floor.friction 非各向同性：slide1=0.8 slide2=0.7（S24 要求相等）

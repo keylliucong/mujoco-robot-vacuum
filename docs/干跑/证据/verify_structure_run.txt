@@ -8,7 +8,7 @@
 [PASS] S08: 时程列名均带单位后缀或 flag/count/_ratio
 [PASS] S09: 配置无期望结果键，judge 不读 regression_expect
 [PASS] S10: 台账↔params↔渲染后 XML 数值一致
-[PASS] S11: oomwoo_repeatcheck/run.json 必备键齐全
+[PASS] S11: oomwoo_s24_final_b/run.json 必备键齐全
 [PASS] S12: 首次 rc=0，重复 rc=2（应非 0）
 [PASS] S13: 目录所有权正确
 [PASS] S14: run_cases=1.7.7 judge=1.7.7 契约文档=1.7.7（版本串相等；判据集冻结在 v1.7）

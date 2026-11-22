@@ -1,3 +1,3 @@
 case,rows,active0_with_force,active1_without_force,active0,active1
-flat_r1,4001,0,0,713,11290
-step_r1,13501,0,0,51918,42589
+flat_r1,4001,0,0,817,11186
+step_r1,13501,0,0,50404,44103

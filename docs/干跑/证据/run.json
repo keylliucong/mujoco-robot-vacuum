@@ -1,20 +1,22 @@
 {
   "contract_version": "1.7.7",
   "schema_version": "1.0",
-  "batch_id": "oomwoo_20261122T025556Z",
+  "batch_id": "oomwoo_s24_final",
   "command": [
     "/Users/liucong/orca/workspaces/mujoco_/dryrun-oomwoo/.venv/bin/python",
     "scripts/run_cases.py",
     "--cases",
     "cases/flat.json",
     "cases/step.json",
+    "--batch-id",
+    "oomwoo_s24_final",
     "--repeat",
     "2"
   ],
   "cwd": "/Users/liucong/orca/workspaces/mujoco_/dryrun-oomwoo",
   "host": "liucongdeMac-mini.local",
   "git": {
-    "commit": "d85592b8513ae631d98c2072e3555af612de67c1",
+    "commit": "d91741192e6c350137394938aa72f537a817068a",
     "branch": "dryrun/oomwoo",
     "dirty": false
   },
@@ -749,20 +751,20 @@
   ],
   "config": {
     "path": "cases/flat.json,cases/step.json",
-    "sha256": "37a09715bf595d469f74e3348c19ec8fcd950d61d3a9c3a8a0cbaa22e95a20d8",
+    "sha256": "f4e9b08b4ede0cac75e3cf5310fd9be748fa5d1f6c6dfc6cd9c477f78ad18920",
     "sha256_scope": "按 --cases 顺序对 'path:sha256' 连接串取 sha256",
     "items": [
       {
         "path": "cases/flat.json",
-        "sha256": "99a887970d3fd1f1b57535f1cc6538e0967e03f0661177e0dba6c85712eff773"
+        "sha256": "ed899ecd26efc5a1207699716f084c256b13590f0baa88953d3224f0b8d3b3fd"
       },
       {
         "path": "cases/step.json",
-        "sha256": "9b98dbfbb1a652bf982cfc43fe93e209f1e44ad4189d7c67a1b1e00244aa6408"
+        "sha256": "4f1aff592c71deda15b3cb66454b413548e20a9da15248961d3402f076b3047c"
       }
     ]
   },
-  "scenario_xml_sha256": "a32be74d1f3905aa29fe8c7fc9e04d680cf0acc1503d4189737e396de1c673b6",
+  "scenario_xml_sha256": "f957115bcd13bbf3c078e7e079d446d98f8cd38258039a90111109a1f10d2af9",
   "scenario_xml_sha256_scope": "按 --cases 顺序对每个 case 注入后 XML 的 sha256 连接串再取 sha256；逐 case 值见 cases[]",
   "com_offset_B_m": {
     "x": 0.002206896551724138,
@@ -834,14 +836,14 @@
     "consistent": true,
     "key_metrics_tol": 0.0
   },
-  "started_utc": "2026-11-22T02:55:56.608387+00:00",
-  "finished_utc": "2026-11-22T02:56:00.052067+00:00",
+  "started_utc": "2026-11-22T06:38:57.454803+00:00",
+  "finished_utc": "2026-11-22T06:39:01.371752+00:00",
   "cases": [
     {
       "case_id": "flat",
       "config": "cases/flat.json",
-      "config_sha256": "99a887970d3fd1f1b57535f1cc6538e0967e03f0661177e0dba6c85712eff773",
-      "scenario_xml_sha256": "38bdbeb63404484eceb22bd9e7ee86e60a55cf0a74878807259dd5ee18820bb0",
+      "config_sha256": "ed899ecd26efc5a1207699716f084c256b13590f0baa88953d3224f0b8d3b3fd",
+      "scenario_xml_sha256": "05a6ec0edfbd6bf425556ae9b4c969645ad612de816bb9cc6cc523a83fde9f41",
       "numerics": {
         "timestep_s": 0.002,
         "integrator": "implicitfast",
@@ -856,8 +858,8 @@
           "creep": {
             "settle_s": 1.0,
             "window_s": 10.0,
-            "drift_m": 5.680965867032462e-05,
-            "residual_speed_mps": 1.979220514050079e-05,
+            "drift_m": 8.169650156562496e-05,
+            "residual_speed_mps": 1.8187495298454178e-05,
             "max_residual_speed_mps": 0.001,
             "max_drift_m": 0.0005,
             "redline": false,
@@ -881,17 +883,17 @@
                   "t_trigger_s": 0.002,
                   "t_climb_s": null,
                   "t_recover_s": 0.041999999999999996,
-                  "advance_m": 0.7874159580000001,
-                  "v_recover_mps": 0.09580885473509933,
-                  "pitch_max_deg": 0.174431103,
+                  "advance_m": 0.7881188320000001,
+                  "v_recover_mps": 0.0958955339602649,
+                  "pitch_max_deg": 0.175841412,
                   "roll_max_deg": 0.0,
                   "slip_max_L": 0.9924352633533188,
                   "slip_max_R": 0.9924352633533188,
                   "torque_max_L_nm": 0.2001,
                   "torque_max_R_nm": 0.2001,
-                  "susp_travel_max_L_m": 0.003112439,
-                  "susp_travel_max_R_m": 0.003112439,
-                  "contact_normal_max_n": 16.880481088
+                  "susp_travel_max_L_m": 0.003108538,
+                  "susp_travel_max_R_m": 0.003108538,
+                  "contact_normal_max_n": 17.008704824
                 },
                 "conclusion_level_inputs": {
                   "fail_on": [
@@ -913,8 +915,8 @@
           "creep": {
             "settle_s": 1.0,
             "window_s": 10.0,
-            "drift_m": 5.680965867032462e-05,
-            "residual_speed_mps": 1.979220514050079e-05,
+            "drift_m": 8.169650156562496e-05,
+            "residual_speed_mps": 1.8187495298454178e-05,
             "max_residual_speed_mps": 0.001,
             "max_drift_m": 0.0005,
             "redline": false,
@@ -938,17 +940,17 @@
                   "t_trigger_s": 0.002,
                   "t_climb_s": null,
                   "t_recover_s": 0.041999999999999996,
-                  "advance_m": 0.7874159580000001,
-                  "v_recover_mps": 0.09580885473509933,
-                  "pitch_max_deg": 0.174431103,
+                  "advance_m": 0.7881188320000001,
+                  "v_recover_mps": 0.0958955339602649,
+                  "pitch_max_deg": 0.175841412,
                   "roll_max_deg": 0.0,
                   "slip_max_L": 0.9924352633533188,
                   "slip_max_R": 0.9924352633533188,
                   "torque_max_L_nm": 0.2001,
                   "torque_max_R_nm": 0.2001,
-                  "susp_travel_max_L_m": 0.003112439,
-                  "susp_travel_max_R_m": 0.003112439,
-                  "contact_normal_max_n": 16.880481088
+                  "susp_travel_max_L_m": 0.003108538,
+                  "susp_travel_max_R_m": 0.003108538,
+                  "contact_normal_max_n": 17.008704824
                 },
                 "conclusion_level_inputs": {
                   "fail_on": [
@@ -972,8 +974,8 @@
     {
       "case_id": "step",
       "config": "cases/step.json",
-      "config_sha256": "9b98dbfbb1a652bf982cfc43fe93e209f1e44ad4189d7c67a1b1e00244aa6408",
-      "scenario_xml_sha256": "712180bf70f248779cf9e0a16384bffc25b1c9c6f60561eccda91ad8c3b9ad77",
+      "config_sha256": "4f1aff592c71deda15b3cb66454b413548e20a9da15248961d3402f076b3047c",
+      "scenario_xml_sha256": "baf34bd56c29c8583369c34ca70c2652655234791d47b38352e0bda9631694c6",
       "numerics": {
         "timestep_s": 0.002,
         "integrator": "implicitfast",
@@ -988,8 +990,8 @@
           "creep": {
             "settle_s": 1.0,
             "window_s": 10.0,
-            "drift_m": 5.680965867032462e-05,
-            "residual_speed_mps": 1.979220514050079e-05,
+            "drift_m": 8.169650156562496e-05,
+            "residual_speed_mps": 1.8187495298454178e-05,
             "max_residual_speed_mps": 0.001,
             "max_drift_m": 0.0005,
             "redline": false,
@@ -1044,8 +1046,8 @@
           "creep": {
             "settle_s": 1.0,
             "window_s": 10.0,
-            "drift_m": 5.680965867032462e-05,
-            "residual_speed_mps": 1.979220514050079e-05,
+            "drift_m": 8.169650156562496e-05,
+            "residual_speed_mps": 1.8187495298454178e-05,
             "max_residual_speed_mps": 0.001,
             "max_drift_m": 0.0005,
             "redline": false,
