@@ -3,7 +3,7 @@
   "schema_version": "1.0",
   "batch_id": "baseline_elliptic",
   "git": {
-    "commit": "e08dc059a64ed995a6a1d5b6992dec2ede552928",
+    "commit": "f428c197dc2ca48062eb01ad331216824d552ab0",
     "branch": "HEAD",
     "dirty": false
   },
@@ -122,6 +122,10 @@
       "L": 2e-06,
       "R": 2e-06
     }
+  },
+  "cfg_sha256": "9c00c41af46243af9d0be004884021bc47ea2bc9b716aa7a639ad4ef8f692dd5",
+  "cases_sha256": {
+    "cases\\baseline.json": "9c00c41af46243af9d0be004884021bc47ea2bc9b716aa7a639ad4ef8f692dd5"
   },
   "config": {
     "path": "cases\\baseline.json",
@@ -1270,8 +1274,8 @@
     ],
     "differences": {}
   },
-  "started_utc": "2026-11-22T03:10:17.295248+00:00",
-  "finished_utc": "2026-11-22T03:10:26.890169+00:00",
+  "started_utc": "2026-11-22T03:11:58.149500+00:00",
+  "finished_utc": "2026-11-22T03:12:07.299430+00:00",
   "cases": [
     {
       "case_id": "flat_straight",
