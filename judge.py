@@ -11,7 +11,7 @@ from __future__ import annotations
 import math
 from bisect import bisect_left, bisect_right
 
-CONTRACT_VERSION = "1.7"
+CONTRACT_VERSION = "1.7.7"
 
 FAILURE_PRIORITY = (
     "data_invalid",
