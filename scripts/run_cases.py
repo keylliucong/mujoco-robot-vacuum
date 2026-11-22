@@ -867,8 +867,9 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     )
     max_steps = int(round(defaults["time"]["max_sim_s"] / step))
     ramp_s = approach["settle_s"]
-    # 控制更新固定成时间周期（默认 20 ms），步间 ctrl 保持不变；否则缩小时步
-    # 会把速度环更新率按 1/h 抬高，kp/yaw_damping 的等效增益随时步变。
+    # 控制更新固定成时间周期（周期取自 cases/_runner.json 的 drive.update_period_s，
+    # 可由 --control-period-s 显式覆盖），步间 ctrl 保持不变；否则缩小时步会把
+    # 速度环更新率按 1/h 抬高，kp/yaw_damping 的等效增益随时步变。
     control_period = float(defaults["drive"]["update_period_s"])
     next_control = 0.0
     for _ in range(max_steps):
@@ -1211,10 +1212,18 @@ def main(argv=None):
         default="",
         help="附加时步档（秒，逗号分隔），例如 0.001,0.0005；与 base 同批同报",
     )
+    parser.add_argument(
+        "--control-period-s",
+        type=float,
+        default=None,
+        help="显式覆盖速度环控制更新周期（秒）；不传则用 cases/_runner.json 的 drive.update_period_s",
+    )
     args = parser.parse_args(argv)
 
     if args.repeat < 1:
         raise ContractError("--repeat 必须 >= 1")
+    if args.control_period_s is not None and args.control_period_s <= 0:
+        raise ContractError("--control-period-s 必须 > 0")
     extra_tiers = []
     for token in args.tiers.split(","):
         token = token.strip()
@@ -1235,6 +1244,10 @@ def main(argv=None):
         config_path = REPO_ROOT / config_path
     config = load_case(config_path)
     defaults = load_runner_defaults()
+    control_period_source = "cases/_runner.json"
+    if args.control_period_s is not None:
+        defaults["drive"]["update_period_s"] = float(args.control_period_s)
+        control_period_source = "cli"
     config_sha = sha256_file(config_path)
 
     model_rel = config["model"]["path"]
@@ -1294,6 +1307,14 @@ def main(argv=None):
     repeat_results = []
     summary_rows = []
     run_overrides = []
+    if control_period_source == "cli":
+        run_overrides.append(
+            {
+                "path": "drive.update_period_s",
+                "requested": float(defaults["drive"]["update_period_s"]),
+                "source": "cli",
+            }
+        )
     effective_numerics = None
     actual_columns = None
     for repeat in range(1, args.repeat + 1):
