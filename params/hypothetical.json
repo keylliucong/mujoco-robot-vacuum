@@ -582,11 +582,11 @@
       "note": "力矩速率限幅"
     },
     "control.approach_accel_mps2": {
-      "value": 0.03,
+      "value": 0.05,
       "unit": "m/s^2",
       "label": "工程假设",
       "ref": "scripts/run_cases.py",
-      "note": "接近段速度斜坡 0.03 m/s^2，给 A3 留控制超调余量；未标定"
+      "note": "接近段速度斜坡 0.05 m/s^2（A3 阈值同量级）；未标定"
     }
   },
   "missing": [

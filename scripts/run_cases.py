@@ -1224,7 +1224,8 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
         if is_step:
             if trigger is None:
                 stop_after = (float(no_contact_timeout) if no_contact_timeout is not None
-                              else (float(approach["start_distance_m"]) + 0.3) / max(speed, 1e-6))
+                              else (float(approach["start_distance_m"]) + 0.5) / max(speed, 1e-6)
+                              + speed / max(approach_accel, 1e-6) + 1.0)
                 if float(data.time) - t_drive_start >= stop_after:
                     break
             else:
