@@ -91,3 +91,4 @@ contact.caster_floor_friction_s,cases/oomwoo_g25_step20.json:environment.pairs.c
 contact.caster_step_friction_s,cases/oomwoo_g25_step20.json:environment.pairs.caster--step.friction[0],0.3,-,工程假设,从动轮-台阶滑动摩擦；G2 v1.9.0 pair 判据取数行（本次补 caster 映射）,,,
 contact.chassis_floor_friction_s,cases/oomwoo_g25_step20.json:environment.pairs.chassis--floor.friction[0],0.5,-,工程假设,壳体-地面滑动摩擦；托底接触对,,,
 contact.chassis_step_friction_s,cases/oomwoo_g25_step20.json:environment.pairs.chassis--step.friction[0],0.5,-,工程假设,壳体-台阶滑动摩擦；托底接触对,,,
+runner.control_update_period_s,cases/_runner_oomwoo.json:drive.update_period_s,0.002,s,工程假设,速度/偏航控制固定 2 ms（500 Hz）绝对周期更新；与物理步长解耦，步间 ctrl 保持；同 G2 prototype runner,,,
