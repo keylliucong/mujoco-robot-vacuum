@@ -369,11 +369,16 @@ def contact_pair_attrs(params_document):
 
 
 def front_lip_pair_attrs(params_document):
-    """前下缘 pair 的 solref/solimp：soft 档由 params 的 front_lip.* 给出。
+    """前下缘 pair 的 solref/solimp。
 
-    静电/静置接触也用同一组值，保证 rigid/soft 的差异只来自前缘接触参数。
+    ``front_lip.compliance=0``（rigid）时与模型默认接触参数一致；
+    ``=1``（soft）时用 ``front_lip.solref/solimp``，使 rigid/soft 的差异只来自
+    前缘接触参数，而不是整个模型的接触刚度。
     """
     values = params_document["params"]
+    compliance = values.get("front_lip.compliance", {}).get("value", 0.0)
+    if float(compliance) < 0.5:
+        return contact_pair_attrs(params_document)
     keys = ("front_lip.solref_timeconst_s", "front_lip.solref_dampratio") + tuple(
         f"front_lip.solimp_d{i}" for i in range(5)
     )
