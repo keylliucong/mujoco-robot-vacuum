@@ -1,20 +1,29 @@
-<mujoco model="baseline-cases">
+<mujoco model="baseline-oomwoo">
   <!--
-    model=baseline-cases; machine=prototype; parameter_source=params/prototype.json
+    model=baseline-oomwoo; machine=oomwoo; parameter_source=params/oomwoo.json
 
-    术语（v1.7 交付补充）：
-      - "baseline" 指**基线工况模型**（本文件），不是基准机型 oomwoo。
-      - 本文件只描述结构与关节；所有物理数值以美元符加大括号的占位符给出，由
-        scripts/run_cases.py 按 params/<config_id>.json 注入并回读断言。
-      - machine=prototype：既不是本机实测机型，也不是 makerspet/oomwoo。
-        禁止把本文件的参数引用为二者任一；换机型 = 换 params/*.json，不重写本文件。
-      - z_cg（com.chassis.z）在台账标【缺失】：原型占位值只用于跑通流程，
-        不构成任何整机结论；本机型须三点称重/倾斜法实测（目标 2 mm）。
+    本文件只写结构：body 树、关节、geom 拓扑、名称表；所有物理数值以参数
+    占位符给出，由 scripts/run_cases.py 从 params/oomwoo.json 注入并回读断言（S02/S15）。
+    台阶几何由 scripts/obstacle.py 按 scenario.obstacle 注入，不在此出现（S03）。
 
-    机体系 B = world = chassis 局部系（契约 v1.7 §1.1）：B 原点 O 在左右驱动轮
-    轴心连线中点在地面的投影，+x 前向、+y 左向、+z 向上。
-    台阶几何由 scripts/run_cases.py 注入，不在此出现（S03）。
-    时间步、积分器、求解器、摩擦锥由 cases/*.json 的 numerics 注入（S02/S15）。
+    几何来源：makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c
+      - 筒身半径 0.172 m、高 0.0665 m、离地 0.0125 m；
+      - 驱动轮 r=0.034 m、宽 0.012 m、轮距 0.235 m、轮轴 x=0；
+      - 前从动球 r=0.0125 m、x=0.1445 m；
+      - LiDAR 塔 r=0.0415 m、h=0.018 m、x=0.0745 m、z=0.088 m。
+    结构简化（工程假设）：24 片保险杠碰撞面简化为一个圆柱底盘；URDF 固定
+    前从动球改为竖向弹簧行程；驱动轮模块被动悬挂按 slide + 弹簧 + 限位表示。
+
+    机体系 B = world = chassis 局部系（契约 §1.1）：
+      O 在左右驱动轮轴心连线中点在地面的投影；+x 前向、+y 左向、+z 向上。
+      chassis 在 world 中恒为 pos="0 0 0" quat="1 0 0 0"。
+
+    名称表（runner 只按 mj_name2id 取）：
+      body      chassis / wheel_L / wheel_R / caster / lidar
+      joint     chassis_free / wheel_L_spin / wheel_R_spin / susp_L / susp_R / caster_susp / caster_spin
+      actuator  wheel_L / wheel_R（gear=1，单位 N·m，轮端）
+      geom      chassis_body / wheel_L_tire / wheel_R_tire / caster_ball / lidar_body
+      material  floor / step（floor 在模型内，step 由注入器产生）
   -->
   <compiler angle="radian" autolimits="true"/>
   <option gravity="${gravity.x} ${gravity.y} ${gravity.z}"/>
@@ -27,60 +36,85 @@
   </default>
 
   <asset>
-    <material name="floor" rgba="0.75 0.75 0.75 1"/>
+    <material name="floor" rgba="0.55 0.55 0.55 1"/>
     <material name="step" rgba="0.85 0.70 0.30 1"/>
     <material name="shell" rgba="0.22 0.24 0.30 1"/>
     <material name="rubber" rgba="0.08 0.08 0.08 1"/>
   </asset>
 
   <worldbody>
+    <!-- 地面：材质名 floor 是名称表成员；几何只在模型里出现一次 -->
     <geom name="floor_plane" type="plane" size="0 0 0.05" material="floor"/>
 
     <body name="chassis" pos="0 0 0" quat="1 0 0 0">
       <freejoint name="chassis_free"/>
       <inertial pos="${com.chassis.x} ${com.chassis.y} ${com.chassis.z}"
                 mass="${mass.chassis}"
-                fullinertia="${inertia.chassis.xx} ${inertia.chassis.yy} ${inertia.chassis.zz} ${inertia.chassis.xy} ${inertia.chassis.xz} ${inertia.chassis.yz}"/>
-      <geom name="chassis_shell" type="box"
-            size="${geom.chassis.half_x} ${geom.chassis.half_y} ${geom.chassis.half_z}"
-            pos="0 0 ${geom.chassis.pos_z}" material="shell"/>
+                diaginertia="${inertia.chassis.xx} ${inertia.chassis.yy} ${inertia.chassis.zz}"/>
 
-      <!-- 前万向支撑（球代替滚轮，v1 不做滚动） -->
-      <body name="caster_front" pos="${pos.caster.x} ${pos.caster.y} ${pos.caster.z}">
+      <!-- 筒身碰撞面：圆柱；contype=2 只与门槛显式接触对生效，不蹭地面 -->
+      <geom name="chassis_body" type="cylinder"
+            size="${geom.chassis.radius} ${geom.chassis.half_height}"
+            pos="0 0 ${geom.chassis.pos_z}" material="shell"
+            contype="2" conaffinity="0"
+            friction="${contact.chassis_step_s} ${contact.chassis_step_t} ${contact.chassis_step_r}"/>
+
+      <!-- 左驱动轮：悬架压缩为正（+z），轮轴 +y -->
+      <body name="wheel_L" pos="${pos.wheel.x} ${pos.wheel.track_half} ${pos.wheel.z}">
+        <joint name="susp_L" type="slide" axis="0 0 1" limited="true"
+               range="${susp.travel_neg} ${susp.travel_pos}"
+               stiffness="${susp.stiffness}" springref="${susp.springref}"
+               damping="${susp.damping}"/>
+        <joint name="wheel_L_spin" type="hinge" axis="0 1 0"
+               damping="${joint.damping}" armature="${joint.armature}"/>
+        <inertial pos="0 0 0" mass="${mass.wheel}"
+                  diaginertia="${inertia.wheel.xx} ${inertia.wheel.yy} ${inertia.wheel.zz}"/>
+        <geom name="wheel_L_tire" type="cylinder"
+              size="${geom.wheel.radius} ${geom.wheel.half_width}"
+              zaxis="0 1 0" material="rubber"
+              contype="1" conaffinity="1"
+              friction="${contact.wheel_floor_s} ${contact.wheel_floor_t} ${contact.wheel_floor_r}"/>
+      </body>
+
+      <!-- 右驱动轮：镜像 -->
+      <body name="wheel_R" pos="${pos.wheel.x} -${pos.wheel.track_half} ${pos.wheel.z}">
+        <joint name="susp_R" type="slide" axis="0 0 1" limited="true"
+               range="${susp.travel_neg} ${susp.travel_pos}"
+               stiffness="${susp.stiffness}" springref="${susp.springref}"
+               damping="${susp.damping}"/>
+        <joint name="wheel_R_spin" type="hinge" axis="0 1 0"
+               damping="${joint.damping}" armature="${joint.armature}"/>
+        <inertial pos="0 0 0" mass="${mass.wheel}"
+                  diaginertia="${inertia.wheel.xx} ${inertia.wheel.yy} ${inertia.wheel.zz}"/>
+        <geom name="wheel_R_tire" type="cylinder"
+              size="${geom.wheel.radius} ${geom.wheel.half_width}"
+              zaxis="0 1 0" material="rubber"
+              contype="1" conaffinity="1"
+              friction="${contact.wheel_floor_s} ${contact.wheel_floor_t} ${contact.wheel_floor_r}"/>
+      </body>
+
+      <!-- 前从动支撑：URDF 为固定球；这里改为可自由滚动的球（工程假设），
+           否则固定球在 0.1 m/s 以上会拖地并把机身顶翻（干跑实测）。 -->
+      <body name="caster" pos="${pos.caster.x} 0 ${pos.caster.z}">
+        <joint name="caster_spin" type="ball"/>
+        <joint name="caster_susp" type="slide" axis="0 0 1" limited="true"
+               range="${caster.travel_neg} ${caster.travel_pos}"
+               stiffness="${caster.stiffness}" springref="${caster.springref}"
+               damping="${caster.damping}"/>
         <inertial pos="0 0 0" mass="${mass.caster}"
                   diaginertia="${inertia.caster.xx} ${inertia.caster.yy} ${inertia.caster.zz}"/>
-        <geom name="caster_ball" type="sphere" size="${geom.caster.radius}" material="rubber"/>
+        <geom name="caster_ball" type="sphere" size="${geom.caster.radius}"
+              material="rubber" contype="1" conaffinity="1"
+              friction="${contact.caster_floor_s} ${contact.caster_floor_t} ${contact.caster_floor_r}"/>
       </body>
 
-      <!-- 左驱动轮组：susp_L 为被动滑移悬挂（压缩为正），wheel_L_spin 绕 +y。
-           两个关节同体，避免无质量中间体（MuJoCo 要求运动体质量/惯量 > mjMINVAL）。 -->
-      <body name="wheel_L" pos="0 ${pos.susp.y} ${pos.susp.z}">
-        <joint name="susp_L" type="slide" axis="0 0 1" limited="true"
-               range="-${susp.travel_limit_m} ${susp.travel_limit_m}"
-               stiffness="${susp.stiffness_n_per_m}" damping="${susp.damping_ns_per_m}"/>
-        <joint name="wheel_L_spin" type="hinge" axis="0 1 0"
-               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
-        <inertial pos="0 0 0" mass="${mass.wheel_L}"
-                  diaginertia="${inertia.wheel_L.xx} ${inertia.wheel_L.yy} ${inertia.wheel_L.zz}"/>
-        <geom name="wheel_L_tire" type="cylinder"
-              size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
-              quat="0.7071067811865476 0.7071067811865476 0 0"
-              material="rubber"/>
-      </body>
-
-      <!-- 右驱动轮组：与左侧镜像，A4 断言两轮心对称且 z=R -->
-      <body name="wheel_R" pos="0 -${pos.susp.y} ${pos.susp.z}">
-        <joint name="susp_R" type="slide" axis="0 0 1" limited="true"
-               range="-${susp.travel_limit_m} ${susp.travel_limit_m}"
-               stiffness="${susp.stiffness_n_per_m}" damping="${susp.damping_ns_per_m}"/>
-        <joint name="wheel_R_spin" type="hinge" axis="0 1 0"
-               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
-        <inertial pos="0 0 0" mass="${mass.wheel_R}"
-                  diaginertia="${inertia.wheel_R.xx} ${inertia.wheel_R.yy} ${inertia.wheel_R.zz}"/>
-        <geom name="wheel_R_tire" type="cylinder"
-              size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
-              quat="0.7071067811865476 0.7071067811865476 0 0"
-              material="rubber"/>
+      <!-- LiDAR 塔：结构配重，不参与接触 -->
+      <body name="lidar" pos="${pos.lidar.x} 0 ${pos.lidar.z}">
+        <inertial pos="0 0 0" mass="${mass.lidar}"
+                  diaginertia="${inertia.lidar.xx} ${inertia.lidar.yy} ${inertia.lidar.zz}"/>
+        <geom name="lidar_body" type="cylinder"
+              size="${geom.lidar.radius} ${geom.lidar.half_height}"
+              material="shell" contype="0" conaffinity="0"/>
       </body>
     </body>
   </worldbody>
@@ -88,10 +122,10 @@
   <actuator>
     <!-- gear=1：执行器力即轮端 N·m；输出列取 -actuator_force（前进为正） -->
     <motor name="wheel_L" joint="wheel_L_spin" gear="1"
-           ctrlrange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"
-           forcerange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"/>
+           ctrlrange="-${drive.torque_limit} ${drive.torque_limit}"
+           forcerange="-${drive.torque_limit} ${drive.torque_limit}"/>
     <motor name="wheel_R" joint="wheel_R_spin" gear="1"
-           ctrlrange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"
-           forcerange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"/>
+           ctrlrange="-${drive.torque_limit} ${drive.torque_limit}"
+           forcerange="-${drive.torque_limit} ${drive.torque_limit}"/>
   </actuator>
 </mujoco>

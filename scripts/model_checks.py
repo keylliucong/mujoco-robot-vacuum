@@ -297,7 +297,11 @@ def declared_com_offset(ledger):
 
 
 def body_length(model):
-    """chassis_* 几何包围盒在 x 方向的长度（判据用的车身长）。"""
+    """chassis_* 几何沿 x 的包围盒长度（判据用的车身长）。
+
+    box: 2*half_x；cylinder（轴 +z）: 2*radius。两者都是 chassis_* 前缀，
+    不允许用未带前缀的几何充数。
+    """
     lengths = []
     for gid in range(model.ngeom):
         name = model.geom(gid).name
@@ -305,9 +309,11 @@ def body_length(model):
             continue
         size = model.geom_size[gid]
         if model.geom_type[gid] == mujoco.mjtGeom.mjGEOM_BOX:
-            lengths.append(2.0 * float(size[0]))  # arithmetic
+            lengths.append(2 * float(size[0]))
+        elif model.geom_type[gid] == mujoco.mjtGeom.mjGEOM_CYLINDER:
+            lengths.append(2 * float(size[0]))
     if not lengths:
-        raise ModelCheckError("chassis_* 中没有 box 几何，无法取车身长")
+        raise ModelCheckError("chassis_* 中没有 box/cylinder 几何，无法取车身长")
     return max(lengths)
 
 
@@ -326,7 +332,7 @@ def chassis_min_z(model, data):
 
 def euler_zyx(quat):
     w, x, y, z = quat
-    yaw = math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))  # arithmetic
-    pitch = math.asin(max(-1.0, min(1.0, 2.0 * (w * y - z * x))))  # arithmetic
-    roll = math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y))  # arithmetic
+    yaw = math.atan2(2 * (w * z + x * y), 1.0 - 2 * (y * y + z * z))  # arithmetic
+    pitch = math.asin(max(-1.0, min(1.0, 2 * (w * y - z * x))))  # arithmetic
+    roll = math.atan2(2 * (w * x + y * z), 1.0 - 2 * (x * x + y * y))  # arithmetic
     return pitch, roll, yaw

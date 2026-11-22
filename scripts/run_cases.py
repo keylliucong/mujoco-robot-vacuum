@@ -38,6 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import judge  # noqa: E402
 import model_checks  # noqa: E402
+import obstacle  # noqa: E402
 import params_io  # noqa: E402
 
 LEDGER_PATH = REPO_ROOT / "docs" / "参数溯源.csv"
@@ -56,14 +57,7 @@ FAILURE_ENUM = {
     "data_invalid",
 }
 
-PAIR_GEOMS = {
-    "wheel_L": ("wheel_L_tire",),
-    "wheel_R": ("wheel_R_tire",),
-    "chassis": ("chassis_shell",),
-    "caster": ("caster_ball",),
-    "floor": ("floor_plane",),
-    "step": ("step", "step_edge"),
-}
+PAIR_GEOMS = obstacle.PAIR_GEOMS
 
 CASE_KEYS = {
     "schema_version",
@@ -214,6 +208,14 @@ def sha256_text(text):
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def rel_to_repo(path):
+    """仓库内路径写相对路径；临时目录里的配置（负例/高度扫描）写绝对路径。"""
+    try:
+        return str(Path(path).resolve().relative_to(REPO_ROOT)).replace(os.sep, "/")
+    except ValueError:
+        return str(Path(path).resolve())
+
+
 def read_json(path):
     with open(path, encoding="utf-8") as handle:
         return json.load(handle)
@@ -342,100 +344,11 @@ def parse_config_id(config):
 
 
 def pair_geom_names(key, obstacle_shape):
-    a, _, b = key.partition("--")
-    names_a = list(PAIR_GEOMS[a])
-    names_b = list(PAIR_GEOMS[b])
-    if obstacle_shape != "step":
-        names_b = [n for n in names_b if not n.startswith("step")]
-    return names_a, names_b
+    return obstacle.pair_geom_names(key, obstacle_shape)
 
 
 def build_scenario_xml(model_text, config, chassis_front_m, defaults):
-    root = ET.fromstring(model_text)
-    kind = config["scenario"]["kind"]
-    if kind == "step":
-        obstacle = config["scenario"]["obstacle"]
-        half_width = defaults["obstacle_half_width_m"]
-        height = obstacle["height_m"]
-        radius = obstacle["edge_radius_m"]
-        width = obstacle["top_width_m"]
-        heading = math.radians(config["scenario"]["heading_deg"])
-        x_edge = chassis_front_m + config["scenario"]["approach"]["start_distance_m"]
-        worldbody = root.find("worldbody")
-        if worldbody is None:
-            raise ContractError("模型缺 worldbody")
-        quat = f"{math.cos(heading / 2.0)} 0 0 {math.sin(heading / 2.0)}"  # arithmetic
-        body = ET.SubElement(
-            worldbody, "body", {"name": "obstacle", "pos": f"{x_edge} 0 0", "quat": quat}
-        )
-        if obstacle["shape"] == "box":
-            box_h = height - radius
-            if box_h <= 0:
-                raise ContractError("edge_radius_m 必须小于 height_m")
-            ET.SubElement(
-                body,
-                "geom",
-                {
-                    "name": "step",
-                    "type": "box",
-                    "size": f"{width / 2.0} {half_width} {box_h / 2.0}",  # arithmetic
-                    "pos": f"{width / 2.0} 0 {box_h / 2.0}",  # arithmetic
-                    "material": "step",
-                },
-            )
-            if radius > 0:
-                ET.SubElement(
-                    body,
-                    "geom",
-                    {
-                        "name": "step_edge",
-                        "type": "cylinder",
-                        "size": f"{radius} {half_width}",
-                        "pos": f"{radius} 0 {height - radius}",
-                        "quat": "0.7071067811865476 0.7071067811865476 0 0",
-                        "material": "step",
-                    },
-                )
-        else:
-            ET.SubElement(
-                body,
-                "geom",
-                {
-                    "name": "step",
-                    "type": "cylinder",
-                    "size": f"{height / 2.0} {half_width}",  # arithmetic
-                    "pos": f"{height / 2.0} 0 {height / 2.0}",  # arithmetic
-                    "quat": "0.7071067811865476 0.7071067811865476 0 0",
-                    "material": "step",
-                },
-            )
-
-    geom_names = {geom.get("name") for geom in root.iter("geom")}
-    pair_elements = []
-    for key, spec in config["environment"]["pairs"].items():
-        names_a, names_b = pair_geom_names(key, kind)
-        if not any(name in geom_names for name in names_a):
-            raise ContractError(f"接触对 {key} 的侧 {names_a} 在模型里不存在")
-        for name_a in names_a:
-            for name_b in names_b:
-                if name_a not in geom_names or name_b not in geom_names:
-                    continue
-                friction = spec["friction"]
-                pair_elements.append(
-                    {
-                        "geom1": name_a,
-                        "geom2": name_b,
-                        "condim": str(spec["condim"]),
-                        "friction": " ".join(str(v) for v in friction + [friction[-1]]),
-                    }
-                )
-    if pair_elements:
-        contact = root.find("contact")
-        if contact is None:
-            contact = ET.SubElement(root, "contact")
-        for attrs in pair_elements:
-            ET.SubElement(contact, "pair", attrs)
-    return ET.tostring(root, encoding="unicode")
+    return obstacle.inject(model_text, config, chassis_front_m, defaults)
 
 
 def apply_numerics(model, numerics, timestep_s, overrides):
@@ -560,10 +473,13 @@ def sample_row(model, data, pair_lookup, ordered_pairs, geom_names):
     }
     spin_l = float(np.asarray(data.joint("wheel_L_spin").qvel).reshape(-1)[0])
     spin_r = float(np.asarray(data.joint("wheel_R_spin").qvel).reshape(-1)[0])
-    row["wheel_L_speed_radps"] = -spin_l
-    row["wheel_R_speed_radps"] = -spin_r
-    row["wheel_L_torque_nm"] = -float(np.asarray(data.actuator("wheel_L").force).reshape(-1)[0])
-    row["wheel_R_torque_nm"] = -float(np.asarray(data.actuator("wheel_R").force).reshape(-1)[0])
+    # 契约 §1.1 同时写了「前进为正」和 speed=-qvel；在 +y 轮轴、右手系下
+    # 前进 +x 对应 qvel 为正，二者不可同时成立。干跑按「前进为正」落列，
+    # 取 +qvel；该契约内部矛盾见 docs/干跑/抽查报告.md。
+    row["wheel_L_speed_radps"] = spin_l
+    row["wheel_R_speed_radps"] = spin_r
+    row["wheel_L_torque_nm"] = float(np.asarray(data.actuator("wheel_L").force).reshape(-1)[0])
+    row["wheel_R_torque_nm"] = float(np.asarray(data.actuator("wheel_R").force).reshape(-1)[0])
     row["susp_L_travel_m"] = float(np.asarray(data.joint("susp_L").qpos).reshape(-1)[0])
     row["susp_R_travel_m"] = float(np.asarray(data.joint("susp_R").qpos).reshape(-1)[0])
 
@@ -613,14 +529,22 @@ def zero_drive(data):
         data.actuator(name).ctrl[:] = 0.0
 
 
-def set_drive(model, data, limits, kp, speed_cmd, radius):
+def set_drive(model, data, limits, kp, ki, integral, speed_cmd, radius, dt):
+    """轮速 PI：P 项 + 积分项；积分限幅来自 cases/_runner.json（有台账行）。
+
+    只有 P 项时，关节阻尼 0.02 N·m·s/rad 会造成稳态转速跌落，
+    低速工况永远到不了指令速度；积分项补上这个跌落。
+    """
+    clamp = float(load_runner_defaults()["drive"]["integral_clamp_nm"])
     for name in ("wheel_L", "wheel_R"):
         speed_rad = float(np.asarray(data.joint(f"{name}_spin").qvel).reshape(-1)[0])
-        v_wheel = -speed_rad * radius
-        torque = kp * (speed_cmd - v_wheel)
+        v_wheel = speed_rad * radius
+        error = speed_cmd - v_wheel
+        integral[name] = max(-clamp, min(clamp, integral[name] + ki * error * dt))
+        torque = kp * error + integral[name]
         limit = limits[name]
         torque = max(-limit, min(limit, torque))
-        data.actuator(name).ctrl[:] = -torque
+        data.actuator(name).ctrl[:] = torque
 
 
 def run_creep(model, data, defaults, wheel_radius_m):
@@ -662,6 +586,8 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     window = config["judge"]["window_s"]
     step = float(model.opt.timestep)
     kp = defaults["drive"]["speed_kp_nm_per_mps"]
+    ki = defaults["drive"]["speed_ki_nm_per_mps_s"]
+    integral = {"wheel_L": 0.0, "wheel_R": 0.0}
     reset_state(model, data)
     columns = make_columns(ordered_pairs)
     rows = []
@@ -675,7 +601,7 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     )
     max_steps = int(round(defaults["time"]["max_sim_s"] / step))
     for _ in range(max_steps):
-        set_drive(model, data, limits, kp, speed, radius)
+        set_drive(model, data, limits, kp, ki, integral, speed, radius, step)
         step_once(model, data)
         row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names)
         rows.append(row)
@@ -706,6 +632,19 @@ def write_timeseries(path, columns, table):
         count = len(table[columns[0]])
         for i in range(count):
             writer.writerow([format_value(table[col][i]) for col in columns])
+
+
+def read_timeseries(path):
+    """把已落盘的 CSV 按字符串读回，交给 judge（保证判定吃的是输出契约本身）。"""
+    table = {}
+    with open(path, newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        for column in reader.fieldnames or []:
+            table[column] = []
+        for row in reader:
+            for column in table:
+                table[column].append(row[column])
+    return table
 
 
 def unit_for(column):
@@ -855,7 +794,7 @@ def write_summary(path, rows, config, model_sha, config_sha, level):
                     config["numerics"]["cone"],
                     config["seed"],
                     model_sha,
-                    config_sha,
+                    row.get("config_sha256", config_sha),
                     level,
                     row["output_dir"],
                 ]
@@ -937,36 +876,62 @@ def validate_run_json(run_json):
         raise ContractError("run.json.scenario_xml_sha256 为空")
 
 
+def _case_name(case_id, repeat, total_repeats):
+    return case_id if total_repeats == 1 else f"{case_id}_r{repeat}"
+
+
+def _combined_config_sha(config_paths):
+    payload = "\n".join(f"{path}:{sha256_file(path)}" for path in config_paths)
+    return sha256_text(payload)
+
+
 def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="G2 批运行入口")
-    parser.add_argument("--config", required=True, help="单次运行的 case JSON")
-    parser.add_argument("--out", required=True, help="批次输出目录")
-    parser.add_argument("--repeat", type=int, default=1, help="同配置重复次数")
+    parser.add_argument("--cases", nargs="+", required=True, help="一个或多个 case JSON")
+    parser.add_argument("--batch-id", default=None, help="批次目录名；缺省用时间戳")
+    parser.add_argument("--out", default=None, help="批次输出根目录（默认 outputs/<batch_id>）")
+    parser.add_argument("--repeat", type=int, default=1, help="每个 case 的重复次数")
     args = parser.parse_args(argv)
 
     if args.repeat < 1:
         raise ContractError("--repeat 必须 >= 1")
-    out_dir = Path(args.out)
+    if args.batch_id:
+        batch_id = args.batch_id
+    else:
+        batch_id = "oomwoo_" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", batch_id):
+        raise ContractError(f"batch_id 非法：{batch_id!r}")
+    out_dir = Path(args.out) if args.out else REPO_ROOT / "outputs" / batch_id
     if not out_dir.is_absolute():
         out_dir = REPO_ROOT / out_dir
     if out_dir.exists():
         raise ContractError(f"批次目录已存在，拒绝覆盖（S12）：{out_dir}")
 
     started = datetime.now(timezone.utc).isoformat()
-    config_path = Path(args.config)
-    if not config_path.is_absolute():
-        config_path = REPO_ROOT / config_path
-    config = load_case(config_path)
+    config_paths = []
+    for raw in args.cases:
+        path = Path(raw)
+        if not path.is_absolute():
+            path = REPO_ROOT / path
+        config_paths.append(path)
+    configs = [load_case(path) for path in config_paths]
+    case_ids = [config["case_id"] for config in configs]
+    if len(set(case_ids)) != len(case_ids):
+        raise ContractError(f"同批次 case_id 必须唯一：{case_ids}")
     defaults = load_runner_defaults()
-    config_sha = sha256_file(config_path)
 
-    model_rel = config["model"]["path"]
+    model_rel = configs[0]["model"]["path"]
     model_path = (REPO_ROOT / model_rel).resolve()
     model_sha = sha256_file(model_path)
-    if model_sha != config["model"]["sha256"]:
-        raise ContractError(f"模型 sha256 与配置不符：{model_sha} != {config['model']['sha256']}")
+    for config in configs:
+        if config["model"]["path"] != model_rel:
+            raise ContractError("同批次只允许一个模型路径（多机型请分批次）")
+        if config["model"]["sha256"] != model_sha:
+            raise ContractError(
+                f"模型 sha256 与配置不符：{model_sha} != {config['model']['sha256']}"
+            )
 
     ledger, labels = load_ledger_rows()
     radius = model_checks.ledger_value(ledger, "geom.wheel_radius_m")
@@ -977,10 +942,11 @@ def main(argv=None):
     rendered = params_io.load_and_render(model_path)
     params_document = rendered["params"]
     model_text = rendered["text"]
-    config_id = parse_config_id(config)
-    if params_document["config_id"] != config_id:
+    config_ids = {parse_config_id(config) for config in configs}
+    if config_ids != {params_document["config_id"]}:
         raise ContractError(
-            f"case 的 config_id={config_id} 与参数集 {params_document['config_id']} 不一致（v1.4/S21）"
+            f"case 的 config_id={sorted(config_ids)} 与参数集 "
+            f"{params_document['config_id']} 不一致（v1.4/S21）"
         )
     base_model = mujoco.MjModel.from_xml_string(model_text)
     base_data = mujoco.MjData(base_model)
@@ -990,98 +956,117 @@ def main(argv=None):
     body_length_m = model_checks.body_length(base_model)
     chassis_front_m = chassis_front(base_model)
 
-    scenario_xml = build_scenario_xml(model_text, config, chassis_front_m, defaults)
-    scenario_sha = sha256_text(scenario_xml)
     out_dir.mkdir(parents=True)
-
     print(f"batch_id: {out_dir.name}")
     print(f"contract_version: {CONTRACT_VERSION}")
     print(f"model: {model_rel} sha256={model_sha}")
-    print(f"params: {params_document['config_id']} machine={params_document['machine']} missing={params_io.missing_ids(params_document)}")
-    print(f"config: {config_path} sha256={config_sha}")
-    print(f"scenario_xml_sha256: {scenario_sha}")
+    print(
+        f"params: {params_document['config_id']} machine={params_document['machine']} "
+        f"missing={params_io.missing_ids(params_document)}"
+    )
     print(f"git: {git_info()}")
 
-    repeat_results = []
     summary_rows = []
+    case_entries = []
     run_overrides = []
-    effective_numerics = None
-    actual_columns = None
-    for repeat in range(1, args.repeat + 1):
-        case_name = config["case_id"] if args.repeat == 1 else f"{config['case_id']}_r{repeat}"
-        case_dir = out_dir / case_name
-        case_dir.mkdir(parents=True)
-        (case_dir / "scenario.xml").write_text(scenario_xml, encoding="utf-8")
+    all_columns = {}
+    scenario_shas = []
+    effective_numerics = []
 
-        model = mujoco.MjModel.from_xml_string(scenario_xml)
-        numerics = apply_numerics(
-            model, config["numerics"], config["numerics"]["timestep_s"], run_overrides
-        )
-        effective_numerics = numerics
-        limits = apply_torque_limits(model, config, run_overrides)
-        data = mujoco.MjData(model)
-        pair_lookup, ordered_pairs = build_pair_lookup(config, config["scenario"]["kind"])
-        geom_names = geom_name_table(model)
-        actual_columns = make_columns(ordered_pairs)
+    for config, config_path in zip(configs, config_paths):
+        config_sha = sha256_file(config_path)
+        scenario_xml = build_scenario_xml(model_text, config, chassis_front_m, defaults)
+        scenario_sha = sha256_text(scenario_xml)
+        scenario_shas.append(scenario_sha)
+        print(f"[{config['case_id']}] config: {config_path} sha256={config_sha}")
+        print(f"[{config['case_id']}] scenario_xml_sha256: {scenario_sha}")
 
-        creep = run_creep(model, data, defaults, radius)
-        print(
-            f"[{config['case_id']} r{repeat}] creep: drift={creep['drift_m'] * 1000:.4f} mm "
-            f"residual={creep['residual_speed_mps'] * 1000:.4f} mm/s redline={creep['redline']}"
-        )
+        repeat_results = []
+        case_summary = []
+        for repeat in range(1, args.repeat + 1):
+            case_name = _case_name(config["case_id"], repeat, args.repeat)
+            case_dir = out_dir / case_name
+            case_dir.mkdir(parents=True)
+            (case_dir / "scenario.xml").write_text(scenario_xml, encoding="utf-8")
 
-        tiers = [("base", float(config["numerics"]["timestep_s"]))]
-        if creep["redline"]:
-            tiers += [
-                (f"downgrade_{int(round(t * 1000))}ms", float(t))
-                for t in defaults["creep"]["downgrade_tiers_s"]
-            ]
-
-        tier_results = []
-        for tier_name, tier_step in tiers:
-            if tier_step == float(config["numerics"]["timestep_s"]):
-                tier_model, tier_data, tier_limits = model, data, limits
-            else:
-                tier_model = mujoco.MjModel.from_xml_string(scenario_xml)
-                apply_numerics(tier_model, config["numerics"], tier_step, run_overrides)
-                tier_limits = apply_torque_limits(tier_model, config, run_overrides)
-                tier_data = mujoco.MjData(tier_model)
-            tier_dir = case_dir if tier_name == "base" else case_dir / tier_name
-            tier_dir.mkdir(parents=True, exist_ok=True)
-            table, columns = run_case(
-                tier_model,
-                tier_data,
-                config,
-                defaults,
-                tier_limits,
-                ordered_pairs,
-                pair_lookup,
-                geom_names,
-                radius,
+            model = mujoco.MjModel.from_xml_string(scenario_xml)
+            numerics = apply_numerics(
+                model, config["numerics"], config["numerics"]["timestep_s"], run_overrides
             )
-            write_timeseries(tier_dir / "timeseries.csv", columns, table)
-            params = build_judge_params(
-                config, defaults, tier_model, tier_limits, ordered_pairs, body_length_m, radius
-            )
-            verdict = judge.judge_case(table, params)
-            verdict["timestep_s"] = float(tier_model.opt.timestep)
-            tier_results.append(
-                {
-                    "tier": tier_name,
-                    "timestep_s": float(tier_model.opt.timestep),
-                    "verdict": verdict,
-                    "dir": str(tier_dir.relative_to(out_dir)).replace(os.sep, "/"),
-                }
-            )
+            effective_numerics.append(numerics)
+            limits = apply_torque_limits(model, config, run_overrides)
+            data = mujoco.MjData(model)
+            pair_lookup, ordered_pairs = build_pair_lookup(config, config["scenario"]["kind"])
+            geom_names = geom_name_table(model)
+            actual_columns = make_columns(ordered_pairs)
+            for column in actual_columns:
+                all_columns.setdefault(column, column_metadata(actual_columns)[column])
+
+            creep = run_creep(model, data, defaults, radius)
             print(
-                f"[{config['case_id']} r{repeat} {tier_name}] status={verdict['status']} "
-                f"passed={verdict['passed']} primary={verdict['failure_primary']} "
-                f"flags={';'.join(verdict['failure_flags'])}"
+                f"[{config['case_id']} r{repeat}] creep: drift={creep['drift_m'] * 1000:.4f} mm "
+                f"residual={creep['residual_speed_mps'] * 1000:.4f} mm/s redline={creep['redline']}"
             )
 
-        base = tier_results[0]["verdict"]
-        summary_rows.append(
-            {
+            tiers = [("base", float(config["numerics"]["timestep_s"]))]
+            if creep["redline"]:
+                tiers += [
+                    (f"downgrade_{int(round(t * 1000))}ms", float(t))
+                    for t in defaults["creep"]["downgrade_tiers_s"]
+                ]
+
+            tier_results = []
+            for tier_name, tier_step in tiers:
+                if tier_step == float(config["numerics"]["timestep_s"]):
+                    tier_model, tier_data, tier_limits = model, data, limits
+                else:
+                    tier_model = mujoco.MjModel.from_xml_string(scenario_xml)
+                    apply_numerics(tier_model, config["numerics"], tier_step, run_overrides)
+                    tier_limits = apply_torque_limits(tier_model, config, run_overrides)
+                    tier_data = mujoco.MjData(tier_model)
+                tier_dir = case_dir if tier_name == "base" else case_dir / tier_name
+                tier_dir.mkdir(parents=True, exist_ok=True)
+                table, columns = run_case(
+                    tier_model,
+                    tier_data,
+                    config,
+                    defaults,
+                    tier_limits,
+                    ordered_pairs,
+                    pair_lookup,
+                    geom_names,
+                    radius,
+                )
+                write_timeseries(tier_dir / "timeseries.csv", columns, table)
+                params = build_judge_params(
+                    config,
+                    defaults,
+                    tier_model,
+                    tier_limits,
+                    ordered_pairs,
+                    body_length_m,
+                    radius,
+                )
+                verdict = judge.judge_case(
+                    read_timeseries(tier_dir / "timeseries.csv"), params
+                )
+                verdict["timestep_s"] = float(tier_model.opt.timestep)
+                tier_results.append(
+                    {
+                        "tier": tier_name,
+                        "timestep_s": float(tier_model.opt.timestep),
+                        "verdict": verdict,
+                        "dir": str(tier_dir.relative_to(out_dir)).replace(os.sep, "/"),
+                    }
+                )
+                print(
+                    f"[{config['case_id']} r{repeat} {tier_name}] status={verdict['status']} "
+                    f"passed={verdict['passed']} primary={verdict['failure_primary']} "
+                    f"flags={';'.join(verdict['failure_flags'])}"
+                )
+
+            base = tier_results[0]["verdict"]
+            row = {
                 "case_id": config["case_id"],
                 "repeat": repeat,
                 "status": base["status"],
@@ -1090,30 +1075,49 @@ def main(argv=None):
                 "failure_flags": ";".join(base["failure_flags"]),
                 "metrics": base["metrics"],
                 "timestep_s": float(config["numerics"]["timestep_s"]),
-                "output_dir": str(case_dir.relative_to(REPO_ROOT)).replace(os.sep, "/"),
-            }
-        )
-        repeat_results.append(
-            {
-                "repeat": repeat,
+                "config_sha256": config_sha,
                 "output_dir": case_name,
-                "creep": creep,
-                "tiers": [
-                    {
-                        "tier": item["tier"],
-                        "timestep_s": item["timestep_s"],
-                        "dir": item["dir"],
-                        "verdict": item["verdict"],
-                    }
-                    for item in tier_results
-                ],
+            }
+            summary_rows.append(row)
+            case_summary.append(row)
+            repeat_results.append(
+                {
+                    "repeat": repeat,
+                    "output_dir": case_name,
+                    "creep": creep,
+                    "tiers": [
+                        {
+                            "tier": item["tier"],
+                            "timestep_s": item["timestep_s"],
+                            "dir": item["dir"],
+                            "verdict": item["verdict"],
+                        }
+                        for item in tier_results
+                    ],
+                }
+            )
+
+        consistent = check_consistency(out_dir, repeat_results)
+        regression = check_regression(config, repeat_results)
+        case_entries.append(
+            {
+                "case_id": config["case_id"],
+                "config": rel_to_repo(config_path),
+                "config_sha256": config_sha,
+                "scenario_xml_sha256": scenario_sha,
+                "numerics": config["numerics"],
+                "repeats": repeat_results,
+                "regression": regression,
             }
         )
 
-    consistent = check_consistency(out_dir, repeat_results)
-    regression = check_regression(config, repeat_results)
-    level = conclusion_level(labels)
-
+    consistent = all(check_consistency(out_dir, entry["repeats"]) for entry in case_entries)
+    levels = conclusion_level(labels)
+    config_list = [
+        rel_to_repo(path) for path in config_paths
+    ]
+    combined_config_sha = _combined_config_sha(config_paths)
+    combined_scenario_sha = sha256_text("\n".join(scenario_shas))
     run_json = {
         "contract_version": CONTRACT_VERSION,
         "schema_version": SCHEMA_VERSION,
@@ -1130,16 +1134,25 @@ def main(argv=None):
         },
         "machine": params_document["machine"],
         "params": {
-            "path": str(rendered["params_path"].relative_to(REPO_ROOT)).replace(os.sep, "/"),
+            "path": rel_to_repo(rendered["params_path"]),
             "sha256": sha256_file(rendered["params_path"]),
             "config_id": params_document["config_id"],
             "missing": params_io.missing_ids(params_document),
         },
         "config": {
-            "path": str(config_path.relative_to(REPO_ROOT)).replace(os.sep, "/"),
-            "sha256": config_sha,
+            "path": ",".join(config_list),
+            "sha256": combined_config_sha,
+            "sha256_scope": "按 --cases 顺序对 'path:sha256' 连接串取 sha256",
+            "items": [
+                {
+                    "path": rel_to_repo(path),
+                    "sha256": sha256_file(path),
+                }
+                for path in config_paths
+            ],
         },
-        "scenario_xml_sha256": scenario_sha,
+        "scenario_xml_sha256": combined_scenario_sha,
+        "scenario_xml_sha256_scope": "按 --cases 顺序对每个 case 注入后 XML 的 sha256 连接串再取 sha256；逐 case 值见 cases[]",
         "com_offset_B_m": {
             "x": MODEL_CONSTANTS["com_offset_B_m"][0],
             "y": MODEL_CONSTANTS["com_offset_B_m"][1],
@@ -1161,15 +1174,18 @@ def main(argv=None):
         "os": os.name,
         "platform": platform.platform(),
         "numerics": {
-            "timestep_s": float(config["numerics"]["timestep_s"]),
-            "integrator": config["numerics"]["integrator"],
-            "solver": config["numerics"]["solver"],
-            "cone": config["numerics"]["cone"],
-            "iterations": config["numerics"]["iterations"],
-            "effective": effective_numerics,
+            "timestep_s": float(configs[0]["numerics"]["timestep_s"]),
+            "integrator": configs[0]["numerics"]["integrator"],
+            "solver": configs[0]["numerics"]["solver"],
+            "cone": configs[0]["numerics"]["cone"],
+            "iterations": configs[0]["numerics"]["iterations"],
+            "effective": effective_numerics[0],
+            "per_case": [
+                {"case_id": config["case_id"], **config["numerics"]} for config in configs
+            ],
         },
         "overrides": dedupe_overrides(run_overrides),
-        "seed": config["seed"],
+        "seed": configs[0]["seed"],
         "seed_used": False,
         "params": [
             {"id": param_id, "label": row["label"], "verified_by": row["verified_by"]}
@@ -1180,24 +1196,15 @@ def main(argv=None):
             "rule": "v1.7.6：只取绑定 xpath 的台账行；v1.7.4：本字段是结论等级，参数等级见 params[].label",
             "rows_bound_to_xpath": len(labels),
         },
-        "conclusion_level": level,
+        "conclusion_level": levels,
         "repeat": {
             "consistent": consistent,
             "key_metrics_tol": defaults["repeat"]["key_metrics_tol"],
         },
         "started_utc": started,
         "finished_utc": datetime.now(timezone.utc).isoformat(),
-        "cases": [
-            {
-                "case_id": config["case_id"],
-                "config": str(config_path.relative_to(REPO_ROOT)).replace(os.sep, "/"),
-                "config_sha256": config_sha,
-                "scenario_xml_sha256": scenario_sha,
-                "repeats": repeat_results,
-                "regression": regression,
-            }
-        ],
-        "columns": column_metadata(actual_columns),
+        "cases": case_entries,
+        "columns": all_columns,
         "data_quality": {
             "contact_force_readout": "mj_contactForce",
             "missing_representation": "empty_field",
@@ -1211,7 +1218,7 @@ def main(argv=None):
     (out_dir / "run.json").write_text(
         json.dumps(run_json, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    write_summary(out_dir / "summary.csv", summary_rows, config, model_sha, config_sha, level)
+    write_summary(out_dir / "summary.csv", summary_rows, configs[0], model_sha, combined_config_sha, levels)
     (out_dir / "stdout.log").write_text(
         "\n".join(
             [
@@ -1219,21 +1226,23 @@ def main(argv=None):
                 f"contract {CONTRACT_VERSION}",
                 f"git {git_info()}",
                 f"model {model_rel} {model_sha}",
-                f"config {config_path} {config_sha}",
-                f"scenario_xml_sha256 {scenario_sha}",
+                f"configs {config_list} {combined_config_sha}",
+                f"scenario_xml_sha256 {combined_scenario_sha}",
                 f"repeat_consistent {consistent}",
-                f"conclusion_level {level}",
+                f"conclusion_level {levels}",
             ]
         )
         + "\n",
         encoding="utf-8",
     )
 
-    if regression.get("checked") and not regression.get("matched"):
-        print(
-            f"回归断言不符：期望 {regression['expected']}，实际 {regression['actual']}",
-            file=sys.stderr,
-        )
+    mismatches = [
+        entry["case_id"]
+        for entry in case_entries
+        if entry["regression"].get("checked") and not entry["regression"].get("matched")
+    ]
+    if mismatches:
+        print(f"回归断言不符：{mismatches}", file=sys.stderr)
         return 3
     return 0
 

@@ -27,7 +27,7 @@ from pathlib import Path
 CONTRACT_VERSION = "1.7.7"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
-PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
+PARAMS_PATH = REPO_ROOT / "params" / "oomwoo.json"
 LEDGER_PATH = REPO_ROOT / "docs" / "参数溯源.csv"
 CASES_DIR = REPO_ROOT / "cases"
 OUTPUTS_DIR = REPO_ROOT / "outputs"
@@ -387,7 +387,11 @@ def check_s10():
         if param_id not in ledger:
             problems.append(f"params 有 {param_id} 但台账缺行")
             continue
-        if abs(float(ledger[param_id]["value"]) - float(entry["value"])) > 1e-12:  # arithmetic
+        try:
+            delta = abs(float(ledger[param_id]["value"]) - float(entry["value"]))
+        except ValueError:
+            delta = 0.0 if ledger[param_id]["value"] == str(entry["value"]) else 1.0
+        if delta > 1e-12:  # arithmetic
             problems.append(f"{param_id} 台账值与 params 不一致")
         if ledger[param_id]["label"] != entry["label"]:
             problems.append(f"{param_id} 标签与 params 不一致")
@@ -456,8 +460,10 @@ def check_s12(run_integration):
         command = [
             sys.executable,
             str(SCRIPTS_DIR / "run_cases.py"),
-            "--config",
+            "--cases",
             str(CASES_DIR / "flat.json"),
+            "--batch-id",
+            "s12_batch",
             "--out",
             str(target),
         ]
@@ -809,8 +815,11 @@ def integration_checks():
         command = [
             sys.executable,
             str(SCRIPTS_DIR / "run_cases.py"),
-            "--config",
-            str(CASES_DIR / "baseline.json"),
+            "--cases",
+            str(CASES_DIR / "flat.json"),
+            str(CASES_DIR / "step.json"),
+            "--batch-id",
+            "baseline",
             "--out",
             str(base_out),
             "--repeat",
@@ -825,7 +834,7 @@ def integration_checks():
             "--repeat 2 两次 timeseries 与判定逐位一致" if ok else f"baseline 运行失败 rc={result.returncode}: {result.stderr[-300:]}",
         )
 
-        height_config = json.loads(read_text(CASES_DIR / "baseline.json"))
+        height_config = json.loads(read_text(CASES_DIR / "step.json"))
         height_config["case_id"] = "step_forward_40mm"
         height_config["scenario"]["obstacle"]["height_m"] = 0.04
         height_config.pop("regression_expect", None)
@@ -836,8 +845,10 @@ def integration_checks():
             [
                 sys.executable,
                 str(SCRIPTS_DIR / "run_cases.py"),
-                "--config",
+                "--cases",
                 str(height_path),
+                "--batch-id",
+                "height40",
                 "--out",
                 str(height_out),
             ],

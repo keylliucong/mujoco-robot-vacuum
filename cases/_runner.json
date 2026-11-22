@@ -3,7 +3,9 @@
   "kind": "runner_defaults",
   "notes": "runner 级常量，不是 case；由 scripts/run_cases.py 读取。凡进入判定或结论的数值在 docs/参数溯源.csv 有行。",
   "drive": {
-    "speed_kp_nm_per_mps": 2.0
+    "speed_kp_nm_per_mps": 2.0,
+    "speed_ki_nm_per_mps_s": 0.5,
+    "integral_clamp_nm": 0.1
   },
   "obstacle_half_width_m": 0.6,
   "creep": {
@@ -12,7 +14,10 @@
     "residual_tail_s": 0.5,
     "max_residual_speed_mps": 0.001,
     "max_drift_m": 0.0005,
-    "downgrade_tiers_s": [0.001, 0.0005]
+    "downgrade_tiers_s": [
+      0.001,
+      0.0005
+    ]
   },
   "time": {
     "settle_check_window_s": 0.2,

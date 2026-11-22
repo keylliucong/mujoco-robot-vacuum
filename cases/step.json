@@ -1,24 +1,24 @@
 {
   "schema_version": "1.0",
-  "case_id": "step_forward_20mm",
+  "case_id": "step",
   "model": {
     "path": "models/baseline.xml",
-    "sha256": "469fd2fd5d8d16da86a1d8fbbebf50c764627461fc662f8bbc3e095b6637b140"
+    "sha256": "ff3dff5d892e96d44bbe81a50cce0c1d07796fe6b2a8de96940f01c3c001231b"
   },
   "scenario": {
     "kind": "step",
     "obstacle": {
       "shape": "box",
       "height_m": 0.02,
-      "edge_radius_m": 0.0,
-      "top_width_m": 1.2
+      "edge_radius_m": 0.003,
+      "top_width_m": 0.04
     },
     "heading_deg": 0.0,
     "approach": {
-      "speed_mps": 0.15,
+      "speed_mps": 0.04,
       "start_distance_m": 0.5,
-      "settle_s": 1.0,
-      "settle_tol_mps": 0.02
+      "settle_s": 1.5,
+      "settle_tol_mps": 0.01
     }
   },
   "environment": {
@@ -26,8 +26,8 @@
       "wheel_L--floor": {
         "friction": [
           0.8,
-          0.02,
-          0.001,
+          0.005,
+          0.0001,
           0.0001
         ],
         "condim": 3
@@ -35,44 +35,26 @@
       "wheel_R--floor": {
         "friction": [
           0.8,
-          0.02,
-          0.001,
+          0.005,
+          0.0001,
           0.0001
         ],
         "condim": 3
       },
       "wheel_L--step": {
         "friction": [
-          0.6,
-          0.02,
-          0.001,
+          0.8,
+          0.005,
+          0.0001,
           0.0001
         ],
         "condim": 3
       },
       "wheel_R--step": {
         "friction": [
-          0.6,
-          0.02,
-          0.001,
-          0.0001
-        ],
-        "condim": 3
-      },
-      "chassis--floor": {
-        "friction": [
-          0.5,
-          0.02,
-          0.001,
-          0.0001
-        ],
-        "condim": 3
-      },
-      "chassis--step": {
-        "friction": [
-          0.5,
-          0.02,
-          0.001,
+          0.8,
+          0.005,
+          0.0001,
           0.0001
         ],
         "condim": 3
@@ -81,8 +63,8 @@
         "friction": [
           0.02,
           0.005,
-          0.0005,
-          5e-05
+          0.0001,
+          0.0001
         ],
         "condim": 3
       },
@@ -90,8 +72,17 @@
         "friction": [
           0.02,
           0.005,
-          0.0005,
-          5e-05
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--step": {
+        "friction": [
+          0.3,
+          0.005,
+          0.0001,
+          0.0001
         ],
         "condim": 3
       }
@@ -100,10 +91,10 @@
   "drive": {
     "channels": {
       "wheel_L": {
-        "torque_limit_nm": 0.8
+        "torque_limit_nm": 0.5
       },
       "wheel_R": {
-        "torque_limit_nm": 0.8
+        "torque_limit_nm": 0.5
       }
     }
   },
@@ -137,5 +128,5 @@
     "contact_normal_min_n": 0.5
   },
   "seed": 0,
-  "notes": "主工况 B：正向硬质单级台阶 20 mm，台阶后平台 1.2 m，供整机登上并恢复前进。全部数值为【工程假设】，见 docs/参数溯源.csv。config_id=proto_v1。"
+  "notes": "正向 20 mm 台阶，0.04 m/s 低速接近（准静态上限 sqrt(g*h)=0.443 m/s 的约 1/10，保证真跑起来并产生轮-台阶接触时序）。20 mm > 12.5 mm 离地间隙，预计触发底盘接触；是否通过由 judge.py 判定。config_id=oomwoo。"
 }

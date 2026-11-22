@@ -1,0 +1,501 @@
+{
+  "schema_version": "1.0",
+  "config_id": "oomwoo",
+  "machine": "oomwoo",
+  "note": "基准机型 oomwoo 参数集。数值取自 makerspet/oomwoo-one URDF 公开参数（公开参考）与公开尺寸公式换算（因未齐备 v1.7.7 图纸推算准入，降为工程假设）；z_cg 缺失。config_id=oomwoo。",
+  "params": {
+    "numerics.timestep_s": {
+      "value": 0.002,
+      "unit": "s",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 基线步长，按契约 v1 默认值起步；未做步长收敛标定"
+    },
+    "numerics.integrator": {
+      "value": "implicitfast",
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 显式写出，不依赖引擎默认"
+    },
+    "numerics.solver": {
+      "value": "Newton",
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 求解器起步值"
+    },
+    "numerics.cone": {
+      "value": "pyramidal",
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 显式写出；elliptic 对照另跑"
+    },
+    "numerics.iterations": {
+      "value": 100,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 未做收敛性专项标定"
+    },
+    "numerics.tolerance": {
+      "value": 1e-08,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=oomwoo; 求解容差，非物理量"
+    },
+    "gravity.x": {
+      "value": 0.0,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 世界系重力分量取 0"
+    },
+    "gravity.y": {
+      "value": 0.0,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 世界系重力分量取 0"
+    },
+    "gravity.z": {
+      "value": -9.81,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 取标准重力约值 9.81（精确值 9.80665），属数值取整假设"
+    },
+    "contact.condim": {
+      "value": 3,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 法向+2切向；升 4/6 须先校验扭转/滚阻读数"
+    },
+    "contact.solref_timeconst_s": {
+      "value": 0.01,
+      "unit": "s",
+      "label": "待标定",
+      "ref": "machine=oomwoo; MuJoCo 软接触时间常数，须按冲击响应标定"
+    },
+    "contact.solref_dampratio": {
+      "value": 1.0,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=oomwoo; MuJoCo 软接触阻尼比"
+    },
+    "contact.solimp_d0": {
+      "value": 0.95,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=oomwoo; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.solimp_d1": {
+      "value": 0.99,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=oomwoo; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.solimp_d2": {
+      "value": 0.001,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=oomwoo; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.solimp_d3": {
+      "value": 0.5,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=oomwoo; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.solimp_d4": {
+      "value": 2.0,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=oomwoo; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.friction_s": {
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 地面/默认接触的低摩擦底值；实际轮-地摩擦由 wheel_L/R geom 的 0.8 与 pair 取最大值生效"
+    },
+    "contact.friction_t": {
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 地面/默认接触的低摩擦底值；实际轮-地摩擦由 wheel_L/R geom 的 0.8 与 pair 取最大值生效"
+    },
+    "contact.friction_r": {
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 地面/默认接触的低摩擦底值；实际轮-地摩擦由 wheel_L/R geom 的 0.8 与 pair 取最大值生效"
+    },
+    "mass.chassis": {
+      "value": 2.5,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=lower_cylinder_mass（含电池，URDF 未拆分）"
+    },
+    "com.chassis.x": {
+      "value": -0.0048,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 为使整机 CoM 复现 URDF 注释 +2.2 mm，对 lower_cylinder 质心作 -4.8 mm 偏置；电池/线束未单独建模"
+    },
+    "com.chassis.y": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 按左右对称设 0（假设，非实测）"
+    },
+    "com.chassis.z": {
+      "value": 0.04575,
+      "unit": "m",
+      "label": "缺失",
+      "ref": "machine=oomwoo; z_cg 无公开实测；0.04575 m 为筒身几何中心占位（floor_clearance + lower_cylinder_height/2），只用于跑通流程，不得作为结论",
+      "missing": true
+    },
+    "inertia.chassis.xx": {
+      "value": 0.0195,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 实心圆柱 m(3r^2+h^2)/12，m=2.5,r=0.1745,h=0.0665; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "inertia.chassis.yy": {
+      "value": 0.0195,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 同上; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "inertia.chassis.zz": {
+      "value": 0.0372,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 实心圆柱 m r^2/2; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "geom.chassis.radius": {
+      "value": 0.172,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; bumper_face_radius - bumper_lead；保险杠 24 片简化为圆柱; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "geom.chassis.half_height": {
+      "value": 0.03325,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=lower_cylinder_height/2"
+    },
+    "geom.chassis.pos_z": {
+      "value": 0.04575,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; floor_clearance + lower_cylinder_height/2; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "pos.wheel.x": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/robot.urdf.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; 轮轴在 base_link x=0"
+    },
+    "pos.wheel.track_half": {
+      "value": 0.1175,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=wheel_base/2（0.235/2；固件桥接 0.233 未采用）"
+    },
+    "pos.wheel.z": {
+      "value": 0.034,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; wheel_diameter/2；URDF base_link 处 wheel_z = d/2 - floor_clearance + floor_clearance; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "mass.wheel": {
+      "value": 0.1,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=wheel_mass"
+    },
+    "inertia.wheel.xx": {
+      "value": 3.01e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 实心圆柱 m(3r^2+w^2)/12，r=0.034,w=0.012; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "inertia.wheel.yy": {
+      "value": 5.78e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 实心圆柱绕轮轴 m r^2/2; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "inertia.wheel.zz": {
+      "value": 3.01e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 同 ixx; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "geom.wheel.radius": {
+      "value": 0.034,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=wheel_diameter/2（0.068/2）"
+    },
+    "geom.wheel.half_width": {
+      "value": 0.006,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=wheel_width/2（0.012/2）"
+    },
+    "susp.travel_neg": {
+      "value": -0.0001,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 首版按契约允许的 0 行程固定滑移（±1 µm 数值下限），不再模拟被动悬挂"
+    },
+    "susp.travel_pos": {
+      "value": 0.0001,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 同上"
+    },
+    "susp.stiffness": {
+      "value": 0.0,
+      "unit": "N/m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 固定滑移，刚度置 0；URDF 未公开悬挂"
+    },
+    "susp.springref": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 固定滑移，预压置 0"
+    },
+    "susp.damping": {
+      "value": 0.0,
+      "unit": "N*s/m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 固定滑移，阻尼置 0"
+    },
+    "joint.damping": {
+      "value": 0.002,
+      "unit": "N*m*s/rad",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 轴承/减速器折算阻尼，取低值 0.002 N·m·s/rad（未辨识，工程假设）"
+    },
+    "joint.armature": {
+      "value": 0.0002,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 电机/减速器折算惯量，未辨识"
+    },
+    "pos.caster.x": {
+      "value": 0.1445,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/robot.urdf.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; base_diameter/2 - caster_inset"
+    },
+    "pos.caster.z": {
+      "value": 0.0125,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; caster_diameter/2; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "mass.caster": {
+      "value": 0.05,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=caster_mass"
+    },
+    "inertia.caster.xx": {
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 实心球 2mr^2/5，m=0.05,r=0.0125; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "inertia.caster.yy": {
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 实心球 2mr^2/5，m=0.05,r=0.0125; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "inertia.caster.zz": {
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 实心球 2mr^2/5，m=0.05,r=0.0125; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "geom.caster.radius": {
+      "value": 0.0125,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=caster_diameter/2（0.025/2）"
+    },
+    "caster.travel_neg": {
+      "value": -0.0001,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 前从动球改为滚动球 + 0 行程固定滑移"
+    },
+    "caster.travel_pos": {
+      "value": 0.0001,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 同上"
+    },
+    "caster.stiffness": {
+      "value": 0.0,
+      "unit": "N/m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 固定滑移，刚度置 0"
+    },
+    "caster.springref": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 固定滑移，预压置 0"
+    },
+    "caster.damping": {
+      "value": 0.0,
+      "unit": "N*s/m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; 固定滑移，阻尼置 0"
+    },
+    "pos.lidar.x": {
+      "value": 0.0745,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; base_diameter/2 - lidar_min_range"
+    },
+    "pos.lidar.z": {
+      "value": 0.088,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; body_top 0.079 + laser_puck_offset 0.009; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "mass.lidar": {
+      "value": 0.15,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=laser_puck_mass"
+    },
+    "inertia.lidar.xx": {
+      "value": 6.86e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 实心圆柱 m(3r^2+h^2)/12，r=0.0415,h=0.018; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "inertia.lidar.yy": {
+      "value": 6.86e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 同上; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "inertia.lidar.zz": {
+      "value": 0.0001292,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; derived=公开 URDF 尺寸按公式换算; 实心圆柱 m r^2/2; 未齐备 v1.7.7 图纸推算准入（输入 sha256/尺寸表/环境声明），按契约降为工程假设"
+    },
+    "geom.lidar.radius": {
+      "value": 0.0415,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=laser_puck_diameter/2（0.083/2）"
+    },
+    "geom.lidar.half_height": {
+      "value": 0.009,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=laser_puck_height/2（0.018/2）"
+    },
+    "drive.torque_limit": {
+      "value": 0.5,
+      "unit": "N*m",
+      "label": "公开参考",
+      "ref": "machine=oomwoo; source=makerspet/oomwoo-one/urdf/params.xacro; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd; retrieved=2026-11-22; role=value; key=motor_stall_torque；仅堵转上限，缺扭矩-转速曲线与限流"
+    },
+    "contact.wheel_floor_s": {
+      "value": 0.8,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; wheel_floor 滑动摩擦假设，未实测"
+    },
+    "contact.wheel_floor_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; wheel_floor 扭转摩擦，condim=3 时不参与"
+    },
+    "contact.wheel_floor_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; wheel_floor 滚动摩擦，condim=3 时不参与"
+    },
+    "contact.wheel_step_s": {
+      "value": 0.8,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; wheel_step 滑动摩擦假设，未实测"
+    },
+    "contact.wheel_step_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; wheel_step 扭转摩擦，condim=3 时不参与"
+    },
+    "contact.wheel_step_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; wheel_step 滚动摩擦，condim=3 时不参与"
+    },
+    "contact.caster_floor_s": {
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; caster_floor 滑动摩擦假设，未实测"
+    },
+    "contact.caster_floor_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; caster_floor 扭转摩擦，condim=3 时不参与"
+    },
+    "contact.caster_floor_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; caster_floor 滚动摩擦，condim=3 时不参与"
+    },
+    "contact.caster_step_s": {
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; caster_step 滑动摩擦假设，未实测"
+    },
+    "contact.caster_step_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; caster_step 扭转摩擦，condim=3 时不参与"
+    },
+    "contact.caster_step_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; caster_step 滚动摩擦，condim=3 时不参与"
+    },
+    "contact.chassis_step_s": {
+      "value": 0.3,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; chassis_step 滑动摩擦假设，未实测"
+    },
+    "contact.chassis_step_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; chassis_step 扭转摩擦，condim=3 时不参与"
+    },
+    "contact.chassis_step_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=oomwoo; chassis_step 滚动摩擦，condim=3 时不参与"
+    }
+  }
+}
