@@ -418,7 +418,11 @@ def check_s10():
         rendered = rendered_model()
         import model_checks  # noqa: E402
 
-        ledger_rows = model_checks.load_ledger(LEDGER_PATH, machine=params_doc["machine"])
+        ledger_rows = model_checks.load_ledger(
+            LEDGER_PATH,
+            machine=params_doc["machine"],
+            config_id=params_doc["config_id"],
+        )
         problems.extend(
             model_checks.check_ledger_against_xml(ET.fromstring(rendered["text"]), ledger_rows)
         )
@@ -546,7 +550,11 @@ def load_model():
     model = mujoco.MjModel.from_xml_string(rendered["text"])
     data = mujoco.MjData(model)
     mujoco.mj_forward(model, data)
-    ledger = model_checks.load_ledger(LEDGER_PATH, machine=rendered["header"]["machine"])
+    ledger = model_checks.load_ledger(
+        LEDGER_PATH,
+        machine=rendered["header"]["machine"],
+        config_id=rendered["params"]["config_id"],
+    )
     return model, data, ET.fromstring(rendered["text"]), ledger
 
 
@@ -921,17 +929,18 @@ def check_s21():
     machine = rendered_model()["header"]["machine"]
     ledger = {row["param_id"]: row for row in rows}
     params_doc = json.loads(read_text(PARAMS_PATH))
+    config_id = params_doc["config_id"]
     problems = []
     needed = [
-        f"{machine}.payload.empty.m",
-        f"{machine}.payload.empty.com_x",
-        f"{machine}.payload.empty.inertia_xx",
+        f"{machine}.{config_id}.payload.empty.m",
+        f"{machine}.{config_id}.payload.empty.com_x",
+        f"{machine}.{config_id}.payload.empty.inertia_xx",
     ]
     for param_id in needed:
         if param_id not in ledger:
             problems.append(f"缺载荷状态行 {param_id}")
     for suffix in ("inertia_xx", "inertia_yy", "inertia_zz"):
-        param_id = f"{machine}.payload.empty.{suffix}"
+        param_id = f"{machine}.{config_id}.payload.empty.{suffix}"
         if param_id in ledger:
             ref = ledger[param_id]["ref"]
             for token in ("role=", "ref_point=", "axes=", f"config_id={params_doc['config_id']}"):

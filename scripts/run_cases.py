@@ -1023,8 +1023,10 @@ def build_judge_params(
 MODEL_CONSTANTS = {"wheel_radius_m": 0.0, "susp_range_m": 0.0, "com_offset_B_m": (0.0, 0.0, 0.0)}
 
 
-def load_ledger_rows(machine):
-    ledger = model_checks.load_ledger(LEDGER_PATH, machine=machine)
+def load_ledger_rows(machine, config_id=None):
+    ledger = model_checks.load_ledger(
+        LEDGER_PATH, machine=machine, config_id=config_id
+    )
     # v1.7.6：结论等级只取绑定了 xpath 的行（真正进入模型/判定的那些）
     bound = {
         param_id: row["label"]
@@ -1261,7 +1263,9 @@ def main(argv=None):
     check_front_lip_derived(params_document)
     model_text = rendered["text"]
 
-    ledger, labels = load_ledger_rows(params_document["machine"])
+    ledger, labels = load_ledger_rows(
+        params_document["machine"], params_document["config_id"]
+    )
     radius = model_checks.ledger_value(ledger, "geom.wheel_radius_m")
     MODEL_CONSTANTS["wheel_radius_m"] = radius
     MODEL_CONSTANTS["susp_range_m"] = model_checks.ledger_value(ledger, "susp.travel_limit_m")

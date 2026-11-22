@@ -40,15 +40,50 @@ VARIANTS = {
 }
 
 
+def key_for(params: dict, bare: str) -> str:
+    """按裸量名找三段键（兼容尚未迁移的旧参数集）。"""
+    if bare in params:
+        return bare
+    suffix = "." + bare
+    matches = [key for key in params if key.endswith(suffix)]
+    if len(matches) != 1:
+        raise KeyError(f"参数 {bare!r} 找不到唯一键：{matches}")
+    return matches[0]
+
+
+def requalify(document: dict, old_config_id: str) -> None:
+    """把复制自基准参数集的键改成当前变体的 <machine>.<config_id>.<量名>。"""
+    machine = document["machine"]
+    new_config_id = document["config_id"]
+    old_prefix = f"{machine}.{old_config_id}."
+    machine_prefix = f"{machine}."
+    new_prefix = f"{machine}.{new_config_id}."
+    params = document["params"]
+    rekeyed = {}
+    for key, entry in params.items():
+        if key.startswith(old_prefix):
+            new_key = new_prefix + key[len(old_prefix) :]
+        elif key.startswith(machine_prefix):
+            rest = key[len(machine_prefix) :]
+            # 兼容旧两段式：<machine>.<量名>。
+            new_key = new_prefix + rest
+        else:
+            new_key = new_prefix + key
+        if new_key in rekeyed:
+            raise ValueError(f"变体 {new_config_id} 迁移后键重复：{new_key}")
+        rekeyed[new_key] = entry
+    document["params"] = rekeyed
+
+
 def derive(document: dict) -> None:
     params = document["params"]
-    height = float(params["front_lip.height_m"]["value"])
-    radius = float(params["front_lip.radius_m"]["value"])
-    overhang = float(params["front_lip.overhang_m"]["value"])
+    height = float(params[key_for(params, "front_lip.height_m")]["value"])
+    radius = float(params[key_for(params, "front_lip.radius_m")]["value"])
+    overhang = float(params[key_for(params, "front_lip.overhang_m")]["value"])
     geom_radius = max(radius, 0.0002)
-    params["front_lip.geom_radius_m"]["value"] = geom_radius
-    params["front_lip.center_x_m"]["value"] = overhang
-    params["front_lip.center_z_m"]["value"] = height + geom_radius
+    params[key_for(params, "front_lip.geom_radius_m")]["value"] = geom_radius
+    params[key_for(params, "front_lip.center_x_m")]["value"] = overhang
+    params[key_for(params, "front_lip.center_z_m")]["value"] = height + geom_radius
 
 
 def main() -> int:
@@ -57,14 +92,16 @@ def main() -> int:
     BASE.write_text(json.dumps(base, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     for config_id, overrides in VARIANTS.items():
         document = copy.deepcopy(base)
+        old_config_id = document["config_id"]
         document["config_id"] = config_id
+        requalify(document, old_config_id)
         document["note"] = (
             f"{base['note']} 本文件是 G2.5 敏感性变体：{config_id}，"
             f"覆盖 {', '.join(f'{k}={v}' for k, v in overrides.items())}；"
             "只用于说明哪些前缘参数值得实测，不作机型结论。"
         )
         for key, value in overrides.items():
-            document["params"][key]["value"] = value
+            document["params"][key_for(document["params"], key)]["value"] = value
         derive(document)
         path = PARAMS_DIR / f"{config_id}.json"
         path.write_text(

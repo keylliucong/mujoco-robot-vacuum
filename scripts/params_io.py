@@ -67,25 +67,34 @@ def format_number(value):
     return repr(number)
 
 
-def resolve_id(values, machine, param_id):
-    """把模型模板里的裸占位符解析到 v1.8.1 的机型前缀键。
+def resolve_id(values, machine, config_id, param_id):
+    """把模型模板里的裸占位符解析到 v1.8.4 的三段键。
 
     模型模板是跨机型共用的（`${mass.chassis}`），台账与 params 文件的键从
-    v1.8.1 起是 `<machine>.<id>`。优先取裸 id（历史参数集），否则取当前机型
-    前缀；不跨机型回退，避免把别的机型数值静默填进来。
+    v1.8.4 起是 `<machine>.<config_id>.<id>`。优先取裸 id（历史参数集），
+    否则取当前机型/配置前缀；再退回 v1.8.1 的两段式，兼容尚未迁移的旧文件。
+    不跨机型回退，避免把别的机型数值静默填进来。
     """
     if param_id in values:
         return param_id
-    prefixed = f"{machine}.{param_id}"
-    if prefixed in values:
-        return prefixed
+    for prefixed in (
+        f"{machine}.{config_id}.{param_id}",
+        f"{machine}.{param_id}",
+    ):
+        if prefixed in values:
+            return prefixed
     return None
 
 
 def get_param(params_document, param_id):
-    """按裸 id 或带机型前缀的 id 取参数条目，返回 (键, 条目)。"""
+    """按裸 id、三段键或旧两段键取参数条目，返回 (键, 条目)。"""
     values = params_document["params"]
-    key = resolve_id(values, params_document["machine"], param_id)
+    key = resolve_id(
+        values,
+        params_document["machine"],
+        params_document["config_id"],
+        param_id,
+    )
     if key is None:
         raise ParamError(f"参数 {param_id} 在 {params_document['config_id']} 里不存在（不得静默填）")
     return key, values[key]
@@ -94,10 +103,11 @@ def get_param(params_document, param_id):
 def render(model_text, params_document):
     values = params_document["params"]
     machine = params_document["machine"]
+    config_id = params_document["config_id"]
 
     def replace(match):
         param_id = match.group(1)
-        key = resolve_id(values, machine, param_id)
+        key = resolve_id(values, machine, config_id, param_id)
         if key is None:
             raise ParamError(f"模型占位 ${{{param_id}}} 在 params 文件里不存在（不得静默填）")
         return format_number(values[key]["value"])

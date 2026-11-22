@@ -94,24 +94,29 @@ class ModelCheckError(AssertionError):
 
 
 class Ledger(dict):
-    """台账行视图：param_id 在 v1.8.1 起为 `<machine>.<量名>`。
+    """台账行视图：param_id 在 v1.8.4 起为 `<machine>.<config_id>.<量名>`。
 
     脚本内部一律按裸量名（如 `mass.assembly`）取用；前缀解析只在读取层做一次，
-    调用点不再重复拼前缀。裸 id 本身若存在则优先；否则先试当前机型前缀，最后
-    只在后缀全局唯一时回退，避免把 own/oomwoo 的同名行混进来。
+    调用点不再重复拼前缀。裸 id 本身若存在则优先；否则依次试当前机型+配置、
+    旧两段式机型前缀，最后只在后缀全局唯一时回退，避免把 other 机型/配置的
+    同名行混进来。
     """
 
-    def __init__(self, rows, machine=None):
+    def __init__(self, rows, machine=None, config_id=None):
         super().__init__(rows)
         self.machine = machine
+        self.config_id = config_id
 
     def resolve(self, key):
         if dict.__contains__(self, key):
             return key
         if self.machine:
-            prefixed = f"{self.machine}.{key}"
-            if dict.__contains__(self, prefixed):
-                return prefixed
+            prefixed = [f"{self.machine}.{key}"]
+            if self.config_id:
+                prefixed.insert(0, f"{self.machine}.{self.config_id}.{key}")
+            for candidate in prefixed:
+                if dict.__contains__(self, candidate):
+                    return candidate
         suffix = "." + key
         candidates = [name for name in dict.keys(self) if name.endswith(suffix)]
         if len(candidates) == 1:
@@ -131,7 +136,7 @@ class Ledger(dict):
             return default
 
 
-def load_ledger(path, machine=None):
+def load_ledger(path, machine=None, config_id=None):
     rows = {}
     with open(path, newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
@@ -150,7 +155,7 @@ def load_ledger(path, machine=None):
             raise ModelCheckError(f"台账列不是契约 9 列：{reader.fieldnames}")
         for row in reader:
             rows[row["param_id"]] = row
-    return Ledger(rows, machine)
+    return Ledger(rows, machine, config_id)
 
 
 def ledger_value(ledger, param_id):
