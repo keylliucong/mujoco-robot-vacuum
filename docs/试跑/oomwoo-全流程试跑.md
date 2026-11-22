@@ -296,6 +296,8 @@ S22 True has_suspension=0，模型内无 susp_* 关节/执行器
 
 **表注 2（适用范围，评审新增 A）**：`oomwoo_step20_casterblock` 的 `h=20 mm > 12.5 mm`，落在 §4.3 的不成立区。该行的 `blocked/belly_contact` 只说明“本模型几何下壳体前下缘先挡住”，不能当机型通过/不通过；因模型无保险杠柔性、无前下缘倒角，这个 `blocked` 是**下界**（真机可能通过）。
 
+**表注 3（invalid 只留四类，评审返工 1）**：本轮判定侧 `invalid` 只保留四类——solver 失效（`diverged`）、全程无任何机体-台阶接触（`never_contacted`）、蠕滑超红线、时间窗/触发前稳态不足（`data_invalid`，v1.8.1 起 `not_settled` 并入此类）。机体已碰台阶、驱动轮够不到，走 `belly_contact` 判负，不再进 `invalid`。
+
 观测解读（只写观测，不写判据结论）：
 
 - **平地直行**：`outcome = cleared`。左右轮速与车身速度同源，8 s 前进 1.1193 m，pitch/roll 峰值为 0.0002°/0.0000°，无打滑/无托底标记。轮端扭矩 0.012 N·m，说明该配置下平地阻力很小。
