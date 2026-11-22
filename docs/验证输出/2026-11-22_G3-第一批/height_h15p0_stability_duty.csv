@@ -1,0 +1,5 @@
+tier,repeat,window_s,window_frames,both_wheels_on_top_frames,duty_both_wheels_on_top,contact_gap_max_s,contact_normal_max_n,static_wheel_load_n,static_load_multiple,judge_outcome,report_outcome,cross_fail_reasons
+2ms,1,0.050,26,25,0.961538,0.070,145.23,10.94,13.28,blocked,invalid:end_state_ambiguous,not_ended_on_platform
+2ms,2,0.050,26,25,0.961538,0.070,145.23,10.94,13.28,blocked,invalid:end_state_ambiguous,not_ended_on_platform
+1ms,1,0.050,51,51,1.000000,0.061,194.31,10.94,17.76,cleared,invalid:end_state_ambiguous,
+1ms,2,0.050,51,51,1.000000,0.061,194.31,10.94,17.76,cleared,invalid:end_state_ambiguous,
