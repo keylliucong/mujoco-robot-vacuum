@@ -350,7 +350,19 @@ def pair_geom_names(key, obstacle_shape):
     return names_a, names_b
 
 
-def build_scenario_xml(model_text, config, chassis_front_m, defaults):
+def contact_pair_attrs(params_document):
+    values = params_document["params"]
+    solref = "{} {}".format(
+        params_io.format_number(values["contact.solref_timeconst_s"]["value"]),
+        params_io.format_number(values["contact.solref_dampratio"]["value"]),
+    )
+    solimp = " ".join(
+        params_io.format_number(values[f"contact.solimp_d{i}"]["value"]) for i in range(5)
+    )
+    return {"solref": solref, "solimp": solimp}
+
+
+def build_scenario_xml(model_text, config, chassis_front_m, defaults, params_document):
     root = ET.fromstring(model_text)
     kind = config["scenario"]["kind"]
     if kind == "step":
@@ -421,14 +433,14 @@ def build_scenario_xml(model_text, config, chassis_front_m, defaults):
                 if name_a not in geom_names or name_b not in geom_names:
                     continue
                 friction = spec["friction"]
-                pair_elements.append(
-                    {
-                        "geom1": name_a,
-                        "geom2": name_b,
-                        "condim": str(spec["condim"]),
-                        "friction": " ".join(str(v) for v in friction + [friction[-1]]),
-                    }
-                )
+                attrs = {
+                    "geom1": name_a,
+                    "geom2": name_b,
+                    "condim": str(spec["condim"]),
+                    "friction": " ".join(str(v) for v in friction + [friction[-1]]),
+                }
+                attrs.update(contact_pair_attrs(params_document))
+                pair_elements.append(attrs)
     if pair_elements:
         contact = root.find("contact")
         if contact is None:
@@ -990,7 +1002,9 @@ def main(argv=None):
     body_length_m = model_checks.body_length(base_model)
     chassis_front_m = chassis_front(base_model)
 
-    scenario_xml = build_scenario_xml(model_text, config, chassis_front_m, defaults)
+    scenario_xml = build_scenario_xml(
+        model_text, config, chassis_front_m, defaults, params_document
+    )
     scenario_sha = sha256_text(scenario_xml)
     out_dir.mkdir(parents=True)
 
@@ -1033,7 +1047,7 @@ def main(argv=None):
         tiers = [("base", float(config["numerics"]["timestep_s"]))]
         if creep["redline"]:
             tiers += [
-                (f"downgrade_{int(round(t * 1000))}ms", float(t))
+                (f"downgrade_{t * 1000:g}ms", float(t))
                 for t in defaults["creep"]["downgrade_tiers_s"]
             ]
 
