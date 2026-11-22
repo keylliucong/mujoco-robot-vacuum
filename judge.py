@@ -1,8 +1,8 @@
 """G2 判定模块：只吃时程 + 阈值，不 import mujoco，不读模型或配置对象（S04/S09）。
 
-契约版本：v1.8.3（文档）；判据集在 v1.7 基础上吸收 v1.8.2 的
-`t_trigger` 口径（首次任一机体-台阶接触），并按 G2.5 需要增加 `belly_contact`
-失败模式（枚举扩展，待契约正文同步）。
+契约版本：v1.9.0（文档）；判据集在 v1.7 基础上吸收 v1.8.2 的
+`t_trigger` 口径（首次任一机体-台阶接触），并按 v1.9.0 增加 `belly_contact`
+与 `cross_fail` 失败模式（契约正文已同步）。
 本文件是唯一写 `passed` / `failure_*` 的地方；输入是 CSV 列字典（字符串原样，
 空串表示无数据）与一份扁平的数值参数字典。参数键集封闭，出现未知键即 raise，
 因此配置无法夹带期望结果（S09）。
@@ -13,7 +13,7 @@ from __future__ import annotations
 import math
 from bisect import bisect_left, bisect_right
 
-CONTRACT_VERSION = "1.8.3"
+CONTRACT_VERSION = "1.9.0"
 
 FAILURE_PRIORITY = (
     "data_invalid",
@@ -401,7 +401,9 @@ def judge_case(columns, params):
     passed = bool(advance_ok and recovered and crossed_ok and not hit)
 
     observed = list(flags)
-    if not passed:
+    if not passed and not observed:
+        # timeout 只在窗口内没有任何机理命中时补；否则 topple/cross_fail 等
+        # 已给出主因，再追加 timeout 会让 reviewer 误读。
         flags.append("timeout")
 
     primary = ""

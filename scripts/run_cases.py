@@ -29,7 +29,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-CONTRACT_VERSION = "1.8.3"  # S14：等于契约文档版本；G2.5 另加 belly_contact 扩展
+CONTRACT_VERSION = "1.9.0"  # S14：等于契约文档版本；v1.9.0 枚举含 belly_contact / cross_fail
 SCHEMA_VERSION = "1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent

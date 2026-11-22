@@ -393,30 +393,77 @@ def declared_com_offset(ledger):
 
 
 def body_length(model):
-    """chassis_* 几何包围盒在 x 方向的长度（判据用的车身长）。"""
+    """chassis_* 几何在 x 方向的长度（判据用的车身长）。
+
+    box / cylinder / sphere / ellipsoid 取 2×size[0]，capsule 取 2×(半径+半长)，
+    其它 geom 用包围球直径兜底。OOMWOO 的圆柱壳体不再需要 wrapper 补丁。
+    """
     lengths = []
     for gid in range(model.ngeom):
         name = model.geom(gid).name
         if not name.startswith("chassis_"):
             continue
         size = model.geom_size[gid]
-        if model.geom_type[gid] == mujoco.mjtGeom.mjGEOM_BOX:
+        geom_type = model.geom_type[gid]
+        if geom_type in (
+            mujoco.mjtGeom.mjGEOM_BOX,
+            mujoco.mjtGeom.mjGEOM_CYLINDER,
+            mujoco.mjtGeom.mjGEOM_SPHERE,
+            mujoco.mjtGeom.mjGEOM_ELLIPSOID,
+        ):
             lengths.append(2.0 * float(size[0]))  # arithmetic
+        elif geom_type == mujoco.mjtGeom.mjGEOM_CAPSULE:
+            lengths.append(2.0 * (float(size[0]) + float(size[1])))  # arithmetic
+        else:
+            lengths.append(2.0 * float(model.geom_rbound[gid]))  # arithmetic
     if not lengths:
-        raise ModelCheckError("chassis_* 中没有 box 几何，无法取车身长")
+        raise ModelCheckError("chassis_* 中没有可求 x 向长度的几何")
     return max(lengths)
 
 
 def chassis_min_z(model, data):
-    """chassis_* 几何包围球下界（近似值，契约 §3）。"""
+    """chassis_* 几何在 world z 方向的实际下界（契约 §3 的壳体最低点）。
+
+    按 geom 类型与姿态求支撑映射，不再用包围球近似：圆柱/胶囊的竖直半高随
+    轴向倾斜变化，box/ellipsoid 按旋转矩阵投影。OOMWOO 圆柱壳体因此得到真实
+    底面，不需要 wrapper 补丁。
+    """
     lows = []
     for gid in range(model.ngeom):
         model.geom(gid)  # 名称必须存在，缺名即失败
         name = model.geom(gid).name
         if not name.startswith("chassis_"):
             continue
-        center = np.asarray(data.geom_xpos[gid], dtype=float)
-        lows.append(float(center[-1]) - float(model.geom_rbound[gid]))
+        center_z = float(np.asarray(data.geom_xpos[gid], dtype=float)[2])
+        size = np.asarray(model.geom_size[gid], dtype=float)
+        geom_type = model.geom_type[gid]
+        if geom_type == mujoco.mjtGeom.mjGEOM_SPHERE:
+            lows.append(center_z - float(size[0]))
+        elif geom_type == mujoco.mjtGeom.mjGEOM_CYLINDER:
+            rot = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)
+            axis_z = abs(float(rot[2, 2]))
+            vertical = float(size[1]) * axis_z + float(size[0]) * math.sqrt(
+                max(0.0, 1.0 - axis_z * axis_z)
+            )
+            lows.append(center_z - vertical)
+        elif geom_type == mujoco.mjtGeom.mjGEOM_CAPSULE:
+            rot = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)
+            axis_z = abs(float(rot[2, 2]))
+            lows.append(center_z - (float(size[0]) + float(size[1]) * axis_z))
+        elif geom_type == mujoco.mjtGeom.mjGEOM_BOX:
+            rot = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)
+            half = sum(abs(float(rot[2, i])) * float(size[i]) for i in range(3))
+            lows.append(center_z - half)
+        elif geom_type == mujoco.mjtGeom.mjGEOM_ELLIPSOID:
+            rot = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)
+            half = math.sqrt(
+                sum((float(rot[2, i]) * float(size[i])) ** 2 for i in range(3))
+            )
+            lows.append(center_z - half)
+        else:
+            lows.append(center_z - float(model.geom_rbound[gid]))
+    if not lows:
+        raise ModelCheckError("chassis_* 中没有几何")
     return min(lows)
 
 

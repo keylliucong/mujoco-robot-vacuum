@@ -61,7 +61,7 @@ import run_cases  # noqa: E402
 PLAIN_LEDGER_PATH = run_cases.LEDGER_PATH
 PLAIN_RUNNER_DEFAULTS = run_cases.RUNNER_DEFAULTS
 
-import run_oomwoo  # noqa: E402  试跑级补丁：台账路径、runner 常量、圆柱底盘几何
+import run_oomwoo  # noqa: E402  试跑级补丁：台账路径、runner 常量
 
 OOMWOO_RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
 _RUNNER_MACHINE = None
@@ -161,7 +161,7 @@ def resolve_config_id(args_config, config):
 def select_runner(machine):
     """按机型选 runner 口径。
 
-    - machine=oomwoo：用试跑包装层 run_oomwoo 的补丁（独立台账、圆柱底盘几何、
+    - machine=oomwoo：用试跑包装层 run_oomwoo 的补丁（独立台账、runner 常量、
       susp_range 占位），与 ``scripts/run_oomwoo.py`` 跑批时完全一致；
     - 其它机型：回到上游 ``scripts/run_cases.py`` 原样（原型机 baseline.xml +
       ``docs/参数溯源.csv``）。
@@ -254,7 +254,7 @@ def floor_clearance_m(model, data, params_document):
     并在 HUD 里标明来源，避免把默认值当成实测。
     """
     try:
-        return float(run_oomwoo.chassis_min_z(model, data)), "geom"
+        return float(model_checks.chassis_min_z(model, data)), "geom"
     except Exception:
         pass
     try:
@@ -559,7 +559,7 @@ class Session:
             np.asarray(data.body("chassis").xquat, dtype=np.float64)
         )
         com = com_world(self.model, data)
-        clearance = run_oomwoo.chassis_min_z(self.model, data)
+        clearance = model_checks.chassis_min_z(self.model, data)
         contacts = getattr(self, "last_contacts", [])
         table = load_table(contacts)
         height = self.step_height_m

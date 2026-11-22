@@ -24,7 +24,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-CONTRACT_VERSION = "1.8.3"
+CONTRACT_VERSION = "1.9.0"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
 PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
@@ -1041,6 +1041,8 @@ def check_judge_unit_tests():
         )
     if not 49.0 <= float(verdict_tilt["metrics"]["pitch_max_deg"]) <= 51.0:
         problems.append(f"pitch_max_deg 不是度：{verdict_tilt['metrics']['pitch_max_deg']}")
+    if "timeout" in verdict_tilt["failure_flags"]:
+        problems.append(f"topple 仍被追加 timeout：{verdict_tilt['failure_flags']}")
 
     # 负例 2：末帧回到地面、台阶接触中断（斜向绕行形态）不得 passed
     detour = {name: list(values) for name, values in columns.items()}

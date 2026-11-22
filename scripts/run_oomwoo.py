@@ -1,4 +1,4 @@
-"""试跑专用批运行入口：复用 G2 的 run_cases.py，只换模型/台账与两处几何取值。
+"""试跑专用批运行入口：复用 G2 的 run_cases.py，只换台账/runner 默认路径。
 
 为什么需要这个包装层
 --------------------
@@ -7,12 +7,15 @@
    不校验文件名，所以同一张台账里放 prototype 与 oomwoo 两套同名 param_id 会
    互相覆盖/比对失败。试跑因此用独立台账
    ``docs/试跑/参数溯源-oomwoo.csv``，并把路径注入本模块，不改上游脚本。
-2. ``model_checks.body_length()`` 只认 ``chassis_*`` 的 **box** 几何；OOMWOO 是
-   圆柱壳体，没有 box。``model_checks.chassis_min_z()`` 用包围球近似，对圆柱会
-   给出远低于真实底面的值。两处都在这里做试跑级补丁，并在
-   ``docs/试跑/oomwoo-全流程试跑.md`` 记录为流程缺口（应在 model_checks 内修）。
+2. OOMWOO 的 runner 常量单独放在 ``cases/_runner_oomwoo.json``，本模块只切换
+   该路径。
 
-这两个补丁只影响观测/判据统计，不改变物理；判定仍然只在 judge.py。
+几何观测（``body_length()`` / ``chassis_min_z()``）已修回 ``model_checks``
+（box / cylinder / sphere / capsule / ellipsoid 统一按几何与姿态取支撑），
+wrapper 不再分叉。
+
+剩余补丁：OOMWOO 的 susp_L/R 是 ±1 µm 占位铰，``susp_range_m`` 置 1 m 只影响
+悬挂触底诊断；这是能力声明/占位铰问题，另记试跑报告。
 
 用法（Windows，项目 .venv）：
     .venv\\Scripts\\python.exe scripts\\run_oomwoo.py \
@@ -24,9 +27,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import mujoco
-import numpy as np
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -34,57 +34,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_cases  # noqa: E402
 
 LEDGER = REPO_ROOT / "docs" / "试跑" / "参数溯源-oomwoo.csv"
-
-
-def body_length(model) -> float:
-    """chassis_* 几何在 x 方向的包围盒长度（圆柱按直径；box 按 2*半长）。"""
-    lengths = []
-    for gid in range(model.ngeom):
-        name = model.geom(gid).name
-        if not name.startswith("chassis_"):
-            continue
-        size = np.asarray(model.geom_size[gid], dtype=float)
-        geom_type = model.geom_type[gid]
-        if geom_type == mujoco.mjtGeom.mjGEOM_BOX:
-            lengths.append(2.0 * float(size[0]))
-        elif geom_type == mujoco.mjtGeom.mjGEOM_CYLINDER:
-            lengths.append(2.0 * float(size[0]))
-        elif geom_type == mujoco.mjtGeom.mjGEOM_SPHERE:
-            lengths.append(2.0 * float(size[0]))
-        elif geom_type == mujoco.mjtGeom.mjGEOM_CAPSULE:
-            lengths.append(2.0 * (float(size[0]) + float(size[1])))
-    if not lengths:
-        raise run_cases.ContractError("chassis_* 中没有可求 x 向长度的几何")
-    return max(lengths)
-
-
-def chassis_min_z(model, data) -> float:
-    """chassis_* 几何的实际下界（圆柱/球/盒按几何中心与半高，胶囊按世界轴向）。"""
-    lows = []
-    for gid in range(model.ngeom):
-        name = model.geom(gid).name
-        if not name.startswith("chassis_"):
-            continue
-        center_z = float(np.asarray(data.geom_xpos[gid], dtype=float)[2])
-        size = np.asarray(model.geom_size[gid], dtype=float)
-        geom_type = model.geom_type[gid]
-        if geom_type == mujoco.mjtGeom.mjGEOM_CYLINDER:
-            lows.append(center_z - float(size[1]))
-        elif geom_type == mujoco.mjtGeom.mjGEOM_BOX:
-            lows.append(center_z - float(size[2]))
-        elif geom_type == mujoco.mjtGeom.mjGEOM_SPHERE:
-            lows.append(center_z - float(size[0]))
-        elif geom_type == mujoco.mjtGeom.mjGEOM_CAPSULE:
-            # 胶囊竖直半高 = 半径 + 半长 * |局部 z 轴的世界 z 分量|。
-            # 水平放置的前缘胶囊（轴沿 y）竖直半高只有半径，不能用包围球半径。
-            axis = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)[:, 2]
-            lows.append(center_z - (float(size[0]) + float(size[1]) * abs(float(axis[2]))))
-        else:
-            lows.append(center_z - float(model.geom_rbound[gid]))
-    if not lows:
-        raise run_cases.ContractError("chassis_* 中没有几何")
-    return min(lows)
-
 
 run_cases.LEDGER_PATH = LEDGER
 run_cases.RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
@@ -104,8 +53,6 @@ def build_judge_params(*args, **kwargs):
 
 _ORIGINAL_BUILD_JUDGE_PARAMS = run_cases.build_judge_params
 run_cases.build_judge_params = build_judge_params
-run_cases.model_checks.body_length = body_length
-run_cases.model_checks.chassis_min_z = chassis_min_z
 
 if __name__ == "__main__":
     try:
