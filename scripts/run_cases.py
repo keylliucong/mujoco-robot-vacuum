@@ -1167,7 +1167,7 @@ def main(argv=None):
             "structure_only": True,
         },
         "machine": params_document["machine"],
-        "params": {
+        "parameter_set": {
             "path": path_for_report(rendered["params_path"]),
             "sha256": sha256_file(rendered["params_path"]),
             "config_id": params_document["config_id"],
