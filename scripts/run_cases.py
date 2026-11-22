@@ -570,12 +570,14 @@ def sample_row(model, data, pair_lookup, ordered_pairs, geom_names):
         "vel_y_mps": float(qvel[1]),
         "vel_z_mps": float(qvel[2]),
     }
+    # 轴 +y、右手系：前进 +x 对应 +qvel（契约 §1.1 的负号与该轴定义不自洽，
+    # 本实现按契约意图「前进为正」输出 +qvel / +actuator_force，差异已记入运行记录）
     spin_l = float(np.asarray(data.joint("wheel_L_spin").qvel).reshape(-1)[0])
     spin_r = float(np.asarray(data.joint("wheel_R_spin").qvel).reshape(-1)[0])
-    row["wheel_L_speed_radps"] = -spin_l
-    row["wheel_R_speed_radps"] = -spin_r
-    row["wheel_L_torque_nm"] = -float(np.asarray(data.actuator("wheel_L").force).reshape(-1)[0])
-    row["wheel_R_torque_nm"] = -float(np.asarray(data.actuator("wheel_R").force).reshape(-1)[0])
+    row["wheel_L_speed_radps"] = spin_l
+    row["wheel_R_speed_radps"] = spin_r
+    row["wheel_L_torque_nm"] = float(np.asarray(data.actuator("wheel_L").force).reshape(-1)[0])
+    row["wheel_R_torque_nm"] = float(np.asarray(data.actuator("wheel_R").force).reshape(-1)[0])
     row["susp_L_travel_m"] = float(np.asarray(data.joint("susp_L").qpos).reshape(-1)[0])
     row["susp_R_travel_m"] = float(np.asarray(data.joint("susp_R").qpos).reshape(-1)[0])
 
@@ -625,14 +627,15 @@ def zero_drive(data):
         data.actuator(name).ctrl[:] = 0.0
 
 
-def set_drive(model, data, limits, kp, speed_cmd, radius):
+def set_drive(model, data, limits, kp, speed_cmd, radius, ramp):
+    target = speed_cmd * ramp
     for name in ("wheel_L", "wheel_R"):
         speed_rad = float(np.asarray(data.joint(f"{name}_spin").qvel).reshape(-1)[0])
-        v_wheel = -speed_rad * radius
-        torque = kp * (speed_cmd - v_wheel)
+        v_wheel = speed_rad * radius
+        torque = kp * (target - v_wheel)
         limit = limits[name]
         torque = max(-limit, min(limit, torque))
-        data.actuator(name).ctrl[:] = -torque
+        data.actuator(name).ctrl[:] = torque
 
 
 def run_creep(model, data, defaults, wheel_radius_m):
@@ -686,8 +689,10 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
         + window
     )
     max_steps = int(round(defaults["time"]["max_sim_s"] / step))
+    ramp_s = approach["settle_s"]
     for _ in range(max_steps):
-        set_drive(model, data, limits, kp, speed, radius)
+        ramp = min(1.0, float(data.time) / ramp_s)
+        set_drive(model, data, limits, kp, speed, radius, ramp)
         step_once(model, data)
         row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names)
         rows.append(row)
