@@ -1,0 +1,77 @@
+﻿param_id,value,unit,含义,文件路径:行号,原始变量名,unit_as_written
+oomwoo_one__wheel_diameter,0.068,m,轮径（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:9,wheel_diameter,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__wheel_width,0.012,m,轮宽（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:10,wheel_width,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__caster_diameter,0.025,m,万向轮直径（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:11,caster_diameter,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__caster_inset,0.030,m,万向轮中心距机体边缘（行内注释 Caster center to base edge）,makerspet/oomwoo-one/urdf/params.xacro:16,caster_inset,meters（params.xacro:4 文件级 Units 声明）；行内无单位注释
+oomwoo_one__floor_clearance,0.0125,m,离地间隙（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:17,floor_clearance,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__base_diameter,0.349,m,筒身直径（注释 round body 349mm dia）,makerspet/oomwoo-one/urdf/params.xacro:18,base_diameter,meters（params.xacro:4 文件级 Units 声明）；注释 349mm（:5）
+oomwoo_one__wheel_base,0.235,m,轮距（注释 measured wheel track 235mm；桥接器另用 WHEEL_BASE=0.233m 少 2mm）,makerspet/oomwoo-one/urdf/params.xacro:19,wheel_base,meters（params.xacro:4 文件级 Units 声明）；注释 measured wheel track 235mm（:7-8）
+oomwoo_one__lower_cylinder_height,0.0665,m,筒身圆柱高度（注释 top 79mm above floor minus 12.5mm floor gap）,makerspet/oomwoo-one/urdf/params.xacro:22,lower_cylinder_height,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__laser_puck_height,0.018,m,LiDAR 罩高度（注释 measured 18mm）,makerspet/oomwoo-one/urdf/params.xacro:24,laser_puck_height,meters（params.xacro:4 文件级 Units 声明）；注释 measured 18mm（:23）
+oomwoo_one__laser_puck_diameter,0.083,m,LiDAR 罩直径（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:25,laser_puck_diameter,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__laser_puck_offset,0.009,m,LiDAR 罩安装偏移（注释 = laser_puck_height/2）,makerspet/oomwoo-one/urdf/params.xacro:27,laser_puck_offset,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__lidar_min_range,0.1,m,2D LiDAR 最小量程（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:29,lidar_min_range,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__lidar_center_offset,${base_diameter/2 - lidar_min_range},m,LiDAR 前后安装偏移（质心说明：此偏移承载机体平衡；CoM = +2.2 mm with this offset；-1.6 mm with the turret centred（:38-39））,makerspet/oomwoo-one/urdf/params.xacro:43,lidar_center_offset,meters（params.xacro:4 文件级 Units 声明）；表达式由 base_diameter 与 lidar_min_range 组成
+oomwoo_one__motor_stall_torque,0.5,N*m,轮端电机堵转扭矩（段注释 N*m）,makerspet/oomwoo-one/urdf/params.xacro:46,motor_stall_torque,N*m（params.xacro:45 段注释 <!-- N*m -->）
+oomwoo_one__max_linear_acceleration,1,m/s2,最大线加速度（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:47,max_linear_acceleration,m/s2（params.xacro:4 文件级 Units 声明）
+oomwoo_one__lower_cylinder_mass,2.500,kg,筒身质量（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:48,lower_cylinder_mass,kg（params.xacro:4 文件级 Units 声明）
+oomwoo_one__caster_mass,0.050,kg,万向轮质量（段注释 caster and battery weight）,makerspet/oomwoo-one/urdf/params.xacro:50,caster_mass,kg（params.xacro:4 文件级 Units 声明）
+oomwoo_one__wheel_mass,0.100,kg,驱动轮质量（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:51,wheel_mass,kg（params.xacro:4 文件级 Units 声明）
+oomwoo_one__laser_puck_mass,0.150,kg,LiDAR 罩质量（质心说明中称 150 g puck）,makerspet/oomwoo-one/urdf/params.xacro:52,laser_puck_mass,kg（params.xacro:4 文件级 Units 声明）；注释 150 g puck（:37）
+oomwoo_one__bumper_facets_per_side,12,未找到,单侧保险杠分面数（注释 12 facets per side）,makerspet/oomwoo-one/urdf/params.xacro:76,bumper_facets_per_side,未找到（行内注释 12 facets per side 未给单位）
+oomwoo_one__bumper_thickness,0.010,m,保险杠径向厚度（行内注释 radial）,makerspet/oomwoo-one/urdf/params.xacro:77,bumper_thickness,meters（params.xacro:4 文件级 Units 声明）；行内注释 radial
+oomwoo_one__bumper_lead,0.002,m,保险杠面相对机体碰撞面的前伸量（行内注释 bumper face ahead of the body collision）,makerspet/oomwoo-one/urdf/params.xacro:78,bumper_lead,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__bumper_height,${lower_cylinder_height},m,保险杠高度（注释 由 lower_cylinder_height 导出）,makerspet/oomwoo-one/urdf/params.xacro:83,bumper_height,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__bumper_z,${lower_cylinder_height/2},m,保险杠 z 位置（行内注释 = body cylinder center base_link frame）,makerspet/oomwoo-one/urdf/params.xacro:84,bumper_z,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__ir_rx_splay_deg,25.0,deg,后向 IR 接收器偏航角（段注释 mount angle either side of astern）,makerspet/oomwoo-one/urdf/params.xacro:103,ir_rx_splay_deg,degrees（params.xacro:4 文件级 Units 声明）
+oomwoo_one__ir_rx_fov_deg,50.0,deg,IR 接收器视场角（行内注释 half-angle each）,makerspet/oomwoo-one/urdf/params.xacro:104,ir_rx_fov_deg,degrees（params.xacro:4 文件级 Units 声明）
+oomwoo_one__ir_rx_y,0.030,m,IR 接收器横向偏移（行内注释 lateral offset）,makerspet/oomwoo-one/urdf/params.xacro:105,ir_rx_y,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__ir_rx_z,${lower_cylinder_height/2},m,IR 接收器 z 位置（文件无行内注释）,makerspet/oomwoo-one/urdf/params.xacro:106,ir_rx_z,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__ir_rx_size,0.010,m,IR 接收器几何尺寸（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:107,ir_rx_size,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__ir_rx_mass,0.004,kg,IR 接收器质量（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:108,ir_rx_mass,kg（params.xacro:4 文件级 Units 声明）
+oomwoo_one__ir_baffle_len,0.030,m,IR 遮光片长度（行内注释 fin inward from the shell）,makerspet/oomwoo-one/urdf/params.xacro:109,ir_baffle_len,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__ir_baffle_thick,0.003,m,IR 遮光片厚度（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:110,ir_baffle_thick,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__range_sensor_min,0.02,m,侧向测距最小读数（行内注释 m closest reading）,makerspet/oomwoo-one/urdf/params.xacro:112,range_sensor_min,m（行内注释 <!-- m: closest reading -->）
+oomwoo_one__range_sensor_max,0.50,m,侧向测距最大读数（行内注释 beyond this reads as no wall）,makerspet/oomwoo-one/urdf/params.xacro:113,range_sensor_max,m（行内注释 <!-- m: beyond this reads as no wall -->）
+oomwoo_one__range_sensor_resolution,0.005,m,侧向测距分辨率（行内注释 m）,makerspet/oomwoo-one/urdf/params.xacro:114,range_sensor_resolution,m（行内注释 <!-- m -->）
+oomwoo_one__range_sensor_angle_deg,90.0,deg,侧向测距射线方位角（行内注释 90 = straight out to the side）,makerspet/oomwoo-one/urdf/params.xacro:115,range_sensor_angle_deg,deg（行内注释 <!-- deg from forward; 90 = straight out to the side -->）
+oomwoo_one__range_sensor_x,0.0,m,侧向测距传感器前后安装偏移（行内注释 fore/aft mount offset along the side）,makerspet/oomwoo-one/urdf/params.xacro:116,range_sensor_x,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__range_sensor_z,${lower_cylinder_height/2},m,侧向测距传感器 z 位置（行内注释 body mid-height base_link frame）,makerspet/oomwoo-one/urdf/params.xacro:117,range_sensor_z,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__range_sensor_update_rate,20,Hz,侧向测距更新率（行内注释 Hz）,makerspet/oomwoo-one/urdf/params.xacro:118,range_sensor_update_rate,Hz（行内注释 <!-- Hz -->）
+oomwoo_one__range_sensor_size,0.012,m,侧向测距传感器可视方块边长（行内注释 visual cube edge m）,makerspet/oomwoo-one/urdf/params.xacro:119,range_sensor_size,m（行内注释 <!-- visual cube edge (m) -->）
+oomwoo_one__range_sensor_mass,0.005,kg,侧向测距传感器质量（行内注释 negligible）,makerspet/oomwoo-one/urdf/params.xacro:120,range_sensor_mass,"kg（行内注释 <!-- kg, negligible -->）"
+oomwoo_one__range_sensor_samples,3,未找到,侧向测距射线采样数（行内注释 rays across the FOV 2 or more）,makerspet/oomwoo-one/urdf/params.xacro:125,range_sensor_samples,未找到（行内注释未给单位）
+oomwoo_one__range_sensor_fov_deg,1.0,deg,侧向测距波束总视场角（行内注释 total beam FOV）,makerspet/oomwoo-one/urdf/params.xacro:126,range_sensor_fov_deg,deg（行内注释 <!-- total beam FOV (deg) -->）
+oomwoo_one__tof_front_h_samples,16,未找到,前向 ToF 水平采样数（行内注释 8 + 8 zones across）,makerspet/oomwoo-one/urdf/params.xacro:135,tof_front_h_samples,未找到（行内注释未给单位）
+oomwoo_one__tof_front_v_samples,8,未找到,前向 ToF 垂直采样数（行内注释 8 zones tall）,makerspet/oomwoo-one/urdf/params.xacro:136,tof_front_v_samples,未找到（行内注释未给单位）
+oomwoo_one__tof_front_hfov_deg,120.0,deg,前向 ToF 水平视场角（行内注释 2 x 60 deg）,makerspet/oomwoo-one/urdf/params.xacro:137,tof_front_hfov_deg,deg（行内注释 <!-- 2 x 60 deg -->）
+oomwoo_one__tof_front_vfov_deg,60.0,deg,前向 ToF 垂直视场角（行内注释 one sensor's vertical FoV）,makerspet/oomwoo-one/urdf/params.xacro:138,tof_front_vfov_deg,degrees（params.xacro:4 文件级 Units 声明）
+oomwoo_one__tof_front_min,0.02,m,前向 ToF 最小量程（行内注释 m）,makerspet/oomwoo-one/urdf/params.xacro:139,tof_front_min,m（行内注释 <!-- m -->）
+oomwoo_one__tof_front_max,4.0,m,前向 ToF 最大量程（行内注释 VL53L7CX long range）,makerspet/oomwoo-one/urdf/params.xacro:140,tof_front_max,m（行内注释 <!-- m: VL53L7CX long range -->）
+oomwoo_one__tof_front_resolution,0.005,m,前向 ToF 距离分辨率（行内注释 m）,makerspet/oomwoo-one/urdf/params.xacro:141,tof_front_resolution,m（行内注释 <!-- m -->）
+oomwoo_one__tof_front_update_rate,15,Hz,前向 ToF 更新率（行内注释 Hz）,makerspet/oomwoo-one/urdf/params.xacro:142,tof_front_update_rate,Hz（行内注释 <!-- Hz -->）
+oomwoo_one__tof_front_x,${base_diameter/2},m,前向 ToF 前后安装位置（行内注释 front surface）,makerspet/oomwoo-one/urdf/params.xacro:143,tof_front_x,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__tof_front_z,${lower_cylinder_height/2},m,前向 ToF z 位置（行内注释 mid-height）,makerspet/oomwoo-one/urdf/params.xacro:144,tof_front_z,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__tof_front_size,0.012,m,前向 ToF 可视方块边长（行内注释 visual cube edge m）,makerspet/oomwoo-one/urdf/params.xacro:145,tof_front_size,m（行内注释 <!-- visual cube edge (m) -->）
+oomwoo_one__tof_front_mass,0.005,kg,前向 ToF 质量（行内注释 negligible）,makerspet/oomwoo-one/urdf/params.xacro:146,tof_front_mass,"kg（行内注释 <!-- kg, negligible -->）"
+oomwoo_one__camera_width,640,未找到,相机图像宽度（行内注释 VGA）,makerspet/oomwoo-one/urdf/params.xacro:166,camera_width,未找到（行内注释 VGA 未给单位）
+oomwoo_one__camera_height,480,未找到,相机图像高度（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:167,camera_height,未找到（行内无单位注释）
+oomwoo_one__camera_hfov_deg,120.0,deg,相机水平视场角（文件无行内注释）,makerspet/oomwoo-one/urdf/params.xacro:168,camera_hfov_deg,degrees（params.xacro:4 文件级 Units 声明）
+oomwoo_one__camera_vfov_deg,${2 * degrees(atan(tan(radians(camera_hfov_deg) / 2) * camera_height / camera_width))},deg,相机垂直视场角（由 hfov 与画幅导出）,makerspet/oomwoo-one/urdf/params.xacro:169-170,camera_vfov_deg,degrees（params.xacro:4 文件级 Units 声明）
+oomwoo_one__camera_pitch_deg,${90.0 - camera_vfov_deg / 2},deg,相机下俯角（行内注释 down bottom edge vertical）,makerspet/oomwoo-one/urdf/params.xacro:171,camera_pitch_deg,degrees（params.xacro:4 文件级 Units 声明）
+oomwoo_one__camera_near,0.02,m,相机近裁剪面（行内注释 m）,makerspet/oomwoo-one/urdf/params.xacro:172,camera_near,m（行内注释 <!-- m -->）
+oomwoo_one__camera_far,10.0,m,相机远裁剪面（行内注释 m）,makerspet/oomwoo-one/urdf/params.xacro:173,camera_far,m（行内注释 <!-- m -->）
+oomwoo_one__camera_update_rate,15,Hz,相机更新率（行内注释 Hz）,makerspet/oomwoo-one/urdf/params.xacro:174,camera_update_rate,Hz（行内注释 <!-- Hz -->）
+oomwoo_one__camera_x,${base_diameter/2},m,相机前后安装位置（行内注释 front surface window）,makerspet/oomwoo-one/urdf/params.xacro:175,camera_x,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__camera_z,${lower_cylinder_height - 0.008},m,相机 z 位置（行前注释 lens centre 8 mm under the body top about 71 mm above floor）,makerspet/oomwoo-one/urdf/params.xacro:177,camera_z,meters（params.xacro:4 文件级 Units 声明）；注释 8 mm / 71 mm（:176）
+oomwoo_one__camera_size,0.010,m,相机可视方块边长（行内注释 visual cube edge m）,makerspet/oomwoo-one/urdf/params.xacro:178,camera_size,m（行内注释 <!-- visual cube edge (m) -->）
+oomwoo_one__camera_mass,0.005,kg,相机质量（行内注释 negligible）,makerspet/oomwoo-one/urdf/params.xacro:179,camera_mass,"kg（行内注释 <!-- kg, negligible -->）"
+oomwoo_one__imu_x,0.0,m,IMU x 位置（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:186,imu_x,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__imu_y,0.0,m,IMU y 位置（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:187,imu_y,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__imu_z,${lower_cylinder_height/2},m,IMU z 位置（行内注释 body mid-height）,makerspet/oomwoo-one/urdf/params.xacro:188,imu_z,meters（params.xacro:4 文件级 Units 声明）
+oomwoo_one__imu_update_rate,100,Hz,IMU 更新率（行内注释 Hz）,makerspet/oomwoo-one/urdf/params.xacro:189,imu_update_rate,Hz（行内注释 <!-- Hz -->）
+oomwoo_one__imu_gyro_noise,0.0002,rad/s,IMU 陀螺噪声标准差（行内注释 MEMS-ish）,makerspet/oomwoo-one/urdf/params.xacro:190,imu_gyro_noise,rad/s stddev (MEMS-ish)（行内注释）
+oomwoo_one__imu_accel_noise,0.017,m/s2,IMU 加速度计噪声标准差（行内注释 m/s^2 stddev）,makerspet/oomwoo-one/urdf/params.xacro:191,imu_accel_noise,m/s^2 stddev（行内注释）
+oomwoo_one__imu_size,0.010,m,IMU 可视方块边长（行内注释 visual cube edge m）,makerspet/oomwoo-one/urdf/params.xacro:192,imu_size,m（行内注释 <!-- visual cube edge (m) -->）
+oomwoo_one__imu_mass,0.005,kg,IMU 质量（行内注释 negligible）,makerspet/oomwoo-one/urdf/params.xacro:193,imu_mass,"kg（行内注释 <!-- kg, negligible -->）"
+oomwoo_one__DEG2RAD,0.0174533,未找到,角度转弧度常数（文件无注释；按变量名）,makerspet/oomwoo-one/urdf/params.xacro:195,DEG2RAD,未找到（行内无单位注释）
