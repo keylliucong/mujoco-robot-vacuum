@@ -1,0 +1,355 @@
+{
+  "schema_version": "1.0",
+  "contract_version": "1.7.1",
+  "batch_notes": "基准机型 oomwoo 的通用样机工况。结构来自 makerspet/oomwoo-one URDF（公开参考），数值来自 params/oomwoo.json，逐项带来源标签；目标机型未做本机实测，不得把本批结果写成产品越障能力。本批为单级台阶（带足够长度平台），obstacle.top_width_m 表示台面沿 x 的长度，不采用 IEC 62849 的 40 mm 矩形门槛顶宽。基准机型 oomwoo 的 12.5 mm 离地间隙意味着 20 mm 及以上门槛会先触发底盘接触；10 mm 工况用于观察轮-台阶接触时序。",
+  "model": {
+    "template_path": "models/baseline.xml",
+    "template_sha256": "bae46c65a0ea037343d63de01f7f09dbcc5b60e5fa0df850870cbff7a370cf16",
+    "params_path": "params/oomwoo.json",
+    "params_sha256": "09d85dd5f75ab6984c437d9b1e9d3dc098834390d03a50c36a832cc4510a0174",
+    "config_id": "oomwoo_public_v1"
+  },
+  "judge": {
+    "window_s": 8.0,
+    "block_on": [
+      "topple",
+      "retreat",
+      "timeout",
+      "lift_fail",
+      "slip_stall",
+      "belly_contact"
+    ],
+    "min_advance_body_lengths": 1.0,
+    "recover_speed_ratio": 0.8,
+    "recover_hold_s": 0.3,
+    "stall": {
+      "speed_mps": 0.01,
+      "duration_s": 1.0
+    },
+    "tilt": {
+      "pitch_deg": 25.0,
+      "roll_deg": 15.0
+    },
+    "slip_ratio": 0.3,
+    "contact_normal_min_n": 0.5,
+    "penetration_limit_m": 0.005,
+    "approach_mean_distance_m": 0.2,
+    "A1": {
+      "coefficient": 0.02
+    },
+    "A2": {
+      "abs_limit_m": 0.0005,
+      "travel_frac_limit": 0.05
+    },
+    "A3": {
+      "accel_limit_mps2": 0.05,
+      "smooth_window_s": 0.05
+    },
+    "A4": {
+      "steady_step_ratio": 0.05,
+      "transient_step_ratio": 0.1,
+      "min_torque_frac": 0.1,
+      "transient_window_s": 0.5
+    },
+    "creep": {
+      "settle_s": 1.5,
+      "measure_s": 1.0,
+      "drift_s": 10.0,
+      "speed_limit_mps": 0.001,
+      "drift_limit_m": 0.0005
+    }
+  },
+  "cases": [
+    {
+      "case_id": "flat_straight",
+      "config_id": "oomwoo_public_v1",
+      "notes": "平地直行对照；无台阶，A1/A2 记 na。",
+      "scenario": {
+        "kind": "flat",
+        "heading_deg": 0,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.5,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02
+        }
+      },
+      "max_time_s": 5.0
+    },
+    {
+      "case_id": "step_fwd_10mm_std",
+      "config_id": "oomwoo_public_v1",
+      "notes": "正向 10 mm 台阶，0.15 m/s 正常接近；10 mm < 12.5 mm 离地间隙，底盘不先接触。",
+      "regression_expect": {
+        "outcome": "cleared",
+        "failure_mode": ""
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.01,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": 0,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.5,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02
+        }
+      },
+      "max_time_s": 15.0
+    },
+    {
+      "case_id": "step_fwd_10mm_qs",
+      "config_id": "oomwoo_public_v1",
+      "notes": "正向 10 mm 台阶，0.04 m/s 准静态接近；A1 限值 sqrt(0.02*9.81*0.01)=0.0443 m/s。",
+      "regression_expect": {
+        "outcome": "cleared",
+        "failure_mode": ""
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.01,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": 0,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.04,
+          "start_distance_m": 0.3,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.01
+        }
+      },
+      "max_time_s": 20.0
+    },
+    {
+      "case_id": "step_fwd_20mm_belly",
+      "config_id": "oomwoo_public_v1",
+      "notes": "预期受阻：20 mm > 12.5 mm 离地间隙，底盘/前支撑先接触，用于核对 belly_contact 分类。",
+      "regression_expect": {
+        "outcome": "blocked",
+        "failure_mode": "belly_contact"
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.02,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": 0,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.5,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02
+        }
+      },
+      "max_time_s": 15.0
+    },
+    {
+      "case_id": "step_fwd_high_30mm",
+      "config_id": "oomwoo_public_v1",
+      "notes": "预期受阻：30 mm 高台阶，用于核对失败分类（底盘接触/失速）。",
+      "regression_expect": {
+        "outcome": "blocked",
+        "failure_mode": "belly_contact"
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.03,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": 0,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.5,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02
+        }
+      },
+      "max_time_s": 15.0
+    },
+    {
+      "case_id": "step_fwd_low_torque",
+      "config_id": "oomwoo_public_v1",
+      "notes": "预期受阻：10 mm 台阶 + 0.12 N·m 轮端限扭（公开堵转上限 0.5 N·m 降低），用于核对 slip_stall。",
+      "regression_expect": {
+        "outcome": "blocked",
+        "failure_mode": "slip_stall"
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.01,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": 0,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.5,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02
+        }
+      },
+      "drive": {
+        "torque_limit_nm": 0.12
+      },
+      "max_time_s": 15.0
+    },
+    {
+      "case_id": "step_obl_p15",
+      "config_id": "oomwoo_public_v1",
+      "notes": "斜向 +15°；正角=左轮先触。与 step_obl_m15 为镜像，不合并。",
+      "regression_expect": {
+        "outcome": "cleared",
+        "failure_mode": ""
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.01,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": 15,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.6,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02
+        }
+      },
+      "max_time_s": 15.0
+    },
+    {
+      "case_id": "step_obl_m15",
+      "config_id": "oomwoo_public_v1",
+      "notes": "斜向 -15°；负角=右轮先触。与 step_obl_p15 为镜像，不合并。",
+      "regression_expect": {
+        "outcome": "cleared",
+        "failure_mode": ""
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.01,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": -15,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.6,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02
+        }
+      },
+      "max_time_s": 15.0
+    },
+    {
+      "case_id": "step_obl_p30",
+      "config_id": "oomwoo_public_v1",
+      "notes": "斜向 +30°；正角=左轮先触。与 step_obl_m30 为镜像，不合并。",
+      "regression_expect": {
+        "outcome": "cleared",
+        "failure_mode": ""
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.01,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": 30,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.6,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02
+        }
+      },
+      "max_time_s": 15.0
+    },
+    {
+      "case_id": "step_obl_m30",
+      "config_id": "oomwoo_public_v1",
+      "notes": "斜向 -30°；负角=右轮先触。与 step_obl_p30 为镜像，不合并。",
+      "regression_expect": {
+        "outcome": "cleared",
+        "failure_mode": ""
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.01,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": -30,
+        "start_offset_y_m": 0.0,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.6,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02
+        }
+      },
+      "max_time_s": 15.0
+    },
+    {
+      "case_id": "step_fwd_no_contact",
+      "config_id": "oomwoo_public_v1",
+      "notes": "接触数据无效表示算例：从 10 mm 台阶侧面 1.6 m 外直行，规定时间内不发生轮-台阶接触；summary 记 invalid/no_contact，接触力列留空而不是 0.0。",
+      "regression_expect": {
+        "outcome": "invalid",
+        "failure_mode": "no_contact"
+      },
+      "scenario": {
+        "kind": "step",
+        "obstacle": {
+          "shape": "box",
+          "height_m": 0.01,
+          "edge_radius_m": 0.003,
+          "top_width_m": 2.0
+        },
+        "heading_deg": 0,
+        "start_offset_y_m": 1.6,
+        "approach": {
+          "speed_mps": 0.15,
+          "start_distance_m": 0.5,
+          "settle_s": 1.5,
+          "settle_tol_mps": 0.02,
+          "no_contact_timeout_s": 3.5
+        }
+      },
+      "max_time_s": 6.0
+    }
+  ]
+}

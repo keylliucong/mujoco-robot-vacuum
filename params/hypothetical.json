@@ -1,0 +1,597 @@
+{
+  "schema_version": "1.0",
+  "config_id": "hypothetical_v1",
+  "machine": "hypothetical generic differential prototype（非基准机型 oomwoo）",
+  "source": {
+    "primary_repo": "internal",
+    "note": "切换 config_id 用的纯工程假设参数集；不代表 oomwoo，也不代表任何产品。"
+  },
+  "values": {
+    "numerics.timestep_s": {
+      "value": 0.002,
+      "unit": "s",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "numerics.integrator": {
+      "value": "implicitfast",
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "numerics.cone": {
+      "value": "pyramidal",
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "numerics.solver": {
+      "value": "Newton",
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "numerics.iterations": {
+      "value": 100,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "numerics.tolerance": {
+      "value": 1e-08,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "",
+      "note": ""
+    },
+    "numerics.gravity_z": {
+      "value": -9.81,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.condim": {
+      "value": 3,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.solref_timeconst": {
+      "value": 0.01,
+      "unit": "s",
+      "label": "待标定",
+      "ref": "",
+      "note": ""
+    },
+    "contact.solref_dampratio": {
+      "value": 1.0,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "",
+      "note": ""
+    },
+    "contact.solimp_0": {
+      "value": 0.95,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "",
+      "note": ""
+    },
+    "contact.solimp_1": {
+      "value": 0.99,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "",
+      "note": ""
+    },
+    "contact.solimp_2": {
+      "value": 0.001,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "",
+      "note": ""
+    },
+    "contact.solimp_3": {
+      "value": 0.5,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "",
+      "note": ""
+    },
+    "contact.solimp_4": {
+      "value": 2.0,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_wheel_floor_s": {
+      "value": 0.8,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_wheel_floor_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_wheel_floor_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_wheel_step_s": {
+      "value": 0.8,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_wheel_step_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_wheel_step_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_caster_floor_s": {
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_caster_floor_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_caster_floor_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_caster_step_s": {
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_caster_step_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_caster_step_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_chassis_step_s": {
+      "value": 0.3,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_chassis_step_t": {
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "contact.mu_chassis_step_r": {
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "default.joint_damping": {
+      "value": 0.02,
+      "unit": "N*m*s/rad",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "default.joint_armature": {
+      "value": 0.0002,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "chassis.mass": {
+      "value": 2.2,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "chassis.ipos_x": {
+      "value": -0.01,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "chassis.ipos_z": {
+      "value": 0.055,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "chassis.ixx": {
+      "value": 0.02,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "chassis.iyy": {
+      "value": 0.022,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "chassis.izz": {
+      "value": 0.035,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "chassis.radius": {
+      "value": 0.14,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "chassis.height_half": {
+      "value": 0.04,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "chassis.center_z": {
+      "value": 0.065,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "wheel.x": {
+      "value": 0.06,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "wheel.track_half": {
+      "value": 0.14,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "wheel.z": {
+      "value": 0.035,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "wheel.mass": {
+      "value": 0.18,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "wheel.ixx": {
+      "value": 7e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "wheel.iyy": {
+      "value": 0.00011,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "wheel.izz": {
+      "value": 7e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "wheel.radius": {
+      "value": 0.035,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "wheel.halfwidth": {
+      "value": 0.016,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "susp.travel_neg": {
+      "value": -0.006,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "susp.travel_pos": {
+      "value": 0.006,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "susp.stiffness": {
+      "value": 20000.0,
+      "unit": "N/m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "susp.springref": {
+      "value": -0.00055,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": "预压使 q=0 时每轮约 11 N"
+    },
+    "susp.damping": {
+      "value": 30.0,
+      "unit": "N*s/m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.x": {
+      "value": -0.16,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.z": {
+      "value": 0.01,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.travel_neg": {
+      "value": -0.008,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.travel_pos": {
+      "value": 0.008,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.stiffness": {
+      "value": 500.0,
+      "unit": "N/m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.springref": {
+      "value": -0.0008,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.damping": {
+      "value": 5.0,
+      "unit": "N*s/m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.mass": {
+      "value": 0.05,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.ixx": {
+      "value": 2e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.iyy": {
+      "value": 2e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.izz": {
+      "value": 2e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "caster.radius": {
+      "value": 0.01,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "lidar.x": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "lidar.z": {
+      "value": 0.11,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "lidar.mass": {
+      "value": 0.001,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "lidar.ixx": {
+      "value": 1e-07,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "lidar.iyy": {
+      "value": 1e-07,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "lidar.izz": {
+      "value": 1e-07,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "lidar.radius": {
+      "value": 0.01,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "lidar.height_half": {
+      "value": 0.005,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "drive.torque_limit": {
+      "value": 1.2,
+      "unit": "N*m",
+      "label": "工程假设",
+      "ref": "",
+      "note": ""
+    },
+    "numerics.timestep_downgrade_s": {
+      "value": 0.001,
+      "unit": "s",
+      "label": "工程假设",
+      "ref": "",
+      "note": "蠕滑基线超限时的降步长目标"
+    },
+    "control.kp_nm_per_radps": {
+      "value": 0.35,
+      "unit": "N*m/(rad/s)",
+      "label": "工程假设",
+      "ref": "",
+      "note": "轮速 PI 比例增益"
+    },
+    "control.ki_nm_per_rad": {
+      "value": 1.2,
+      "unit": "N*m/rad",
+      "label": "工程假设",
+      "ref": "",
+      "note": "轮速 PI 积分增益"
+    },
+    "control.integral_clamp_nm": {
+      "value": 1.2,
+      "unit": "N*m",
+      "label": "工程假设",
+      "ref": "",
+      "note": "积分限幅"
+    },
+    "control.torque_filter_s": {
+      "value": 0.03,
+      "unit": "s",
+      "label": "工程假设",
+      "ref": "",
+      "note": "力矩一阶滤波"
+    },
+    "control.torque_rate_limit_nm_per_s": {
+      "value": 80.0,
+      "unit": "N*m/s",
+      "label": "工程假设",
+      "ref": "",
+      "note": "力矩速率限幅"
+    }
+  },
+  "missing": [
+    {
+      "item": "全部整机参数",
+      "status": "未公开",
+      "action": "本文件仅用于验证参数外置与切换，不得用于任何产品结论",
+      "label": "工程假设"
+    }
+  ],
+  "blockers": [
+    "本参数集没有公开或实测来源，只用于结构/入口的可复跑性检查。",
+    "不得把 hypothetical_v1 的结果写成 oomwoo 或自家方案的结果。"
+  ]
+}

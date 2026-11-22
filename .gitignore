@@ -16,3 +16,6 @@ data/private/
 !.env.example
 *.pem
 *.key
+
+# Generated model build artifacts
+build/

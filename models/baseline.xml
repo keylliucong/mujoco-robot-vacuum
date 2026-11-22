@@ -1,0 +1,192 @@
+<!--
+  基准机型 oomwoo 的 MuJoCo 结构模板（只写结构，不写数值）
+  ==========================================================================
+  本文件不是可直接加载的 MJCF：所有双花括号占位符必须由
+  scripts/build_model.py 从 params/<config_id>.json 注入后生成可运行 XML。
+  生成产物放在 build/models/<config_id>.xml，不手工编辑。
+
+  结构来源：makerspet/oomwoo-one（Apache-2.0）
+    urdf/robot.urdf.xacro、urdf/params.xacro @ a630d1c
+  结构简化（均为工程假设，不影响数值来源标签）：
+    - 前保险杠的 24 片圆弧碰撞面简化为一个圆柱底盘；保留底盘碰撞半径。
+    - URDF 的 continuous 轮轴在 MuJoCo 中用 hinge + 力矩执行器表达。
+    - oomwoo 的驱动轮模块自带被动悬挂，但仓库未公开弹簧/阻尼/行程；
+      这里用竖向 slide + 弹簧 + 限位表示，参数标【工程假设】。
+    - 前从动支撑在 URDF 中是固定球；这里加竖向弹簧行程，使它能被 10 mm
+      级门槛顶起。该自由度是工程假设，不是 oomwoo 的公开结构。
+
+  机体系 B（与 G2 接口契约一致）：
+    原点 O = 左右驱动轮轴心连线中点在地面的投影；+x 前向，+y 左向，+z 向上。
+    chassis 在 world 中恒为 pos="0 0 0" quat="1 0 0 0"。
+
+  名称表（runner 只按名字取）：
+    body      chassis / wheel_L / wheel_R / caster / lidar
+    joint     chassis_free / wheel_L_spin / wheel_R_spin / susp_L / susp_R / caster_susp
+    actuator  wheel_L / wheel_R（gear=1，单位 N·m，轮端）
+    geom      chassis_body / wheel_L_tire / wheel_R_tire / caster_ball / lidar_body
+    material  floor / step（floor、step 由 runner 注入）
+
+  接触对拓扑写在本文件；摩擦/锥/接触参数由 params 注入。
+  runner 注入 floor、step、step_edge；flat 工况把 step 放到远处，保证
+  接触对引用始终存在。
+
+  符号约定：两轮 hinge 轴 +y。按右手定则，前进 +x 对应绕 +y 的正角速度；
+  时程列 wheel_*_speed_radps 取 qvel 本身（前进为正），与契约 v1.7.1 §1.1
+  写的 -qvel 不一致，差异在 run.json 的 notes 中留痕。
+-->
+<mujoco model="baseline_structure">
+  <compiler angle="radian" autolimits="true"/>
+
+  <option timestep="{{numerics.timestep_s}}"
+          integrator="{{numerics.integrator}}"
+          cone="{{numerics.cone}}"
+          solver="{{numerics.solver}}"
+          iterations="{{numerics.iterations}}"
+          tolerance="{{numerics.tolerance}}"
+          gravity="0 0 {{numerics.gravity_z}}"/>
+
+  <default>
+    <default class="wheel">
+      <geom condim="{{contact.condim}}"
+            friction="{{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_t}} {{contact.mu_wheel_floor_r}}"
+            solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+            solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+      <joint damping="{{default.joint_damping}}" armature="{{default.joint_armature}}"/>
+    </default>
+  </default>
+
+  <asset>
+    <material name="floor" rgba="0.55 0.55 0.55 1"/>
+    <material name="step" rgba="0.78 0.78 0.78 1"/>
+    <material name="body" rgba="0.20 0.42 0.80 1"/>
+    <material name="tire" rgba="0.12 0.12 0.12 1"/>
+  </asset>
+
+  <worldbody>
+    <body name="chassis" pos="0 0 0" quat="1 0 0 0">
+      <freejoint name="chassis_free"/>
+      <inertial pos="{{chassis.ipos_x}} 0 {{chassis.ipos_z}}"
+                mass="{{chassis.mass}}"
+                diaginertia="{{chassis.ixx}} {{chassis.iyy}} {{chassis.izz}}"/>
+      <!-- 底盘碰撞面：圆柱，contype=2 只与地面/台阶（contype=1）碰撞 -->
+      <geom name="chassis_body" type="cylinder"
+            size="{{chassis.radius}} {{chassis.height_half}}"
+            pos="0 0 {{chassis.center_z}}" material="body"
+            contype="2" conaffinity="0" condim="{{contact.condim}}"
+            friction="{{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_t}} {{contact.mu_chassis_step_r}}"
+            solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+            solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+
+      <!-- 左驱动轮（轮体含轮胎几何；轴 +y） -->
+      <body name="wheel_L" pos="{{wheel.x}} {{wheel.track_half}} {{wheel.z}}">
+        <joint name="susp_L" type="slide" axis="0 0 1"
+               range="{{susp.travel_neg}} {{susp.travel_pos}}"
+               stiffness="{{susp.stiffness}}" springref="{{susp.springref}}"
+               damping="{{susp.damping}}"/>
+        <joint name="wheel_L_spin" type="hinge" axis="0 1 0" class="wheel"/>
+        <inertial pos="0 0 0" mass="{{wheel.mass}}"
+                  diaginertia="{{wheel.ixx}} {{wheel.iyy}} {{wheel.izz}}"/>
+        <geom name="wheel_L_tire" type="cylinder"
+              size="{{wheel.radius}} {{wheel.halfwidth}}"
+              zaxis="0 1 0" class="wheel" material="tire"
+              contype="1" conaffinity="1"/>
+      </body>
+
+      <!-- 右驱动轮 -->
+      <body name="wheel_R" pos="{{wheel.x}} -{{wheel.track_half}} {{wheel.z}}">
+        <joint name="susp_R" type="slide" axis="0 0 1"
+               range="{{susp.travel_neg}} {{susp.travel_pos}}"
+               stiffness="{{susp.stiffness}}" springref="{{susp.springref}}"
+               damping="{{susp.damping}}"/>
+        <joint name="wheel_R_spin" type="hinge" axis="0 1 0" class="wheel"/>
+        <inertial pos="0 0 0" mass="{{wheel.mass}}"
+                  diaginertia="{{wheel.ixx}} {{wheel.iyy}} {{wheel.izz}}"/>
+        <geom name="wheel_R_tire" type="cylinder"
+              size="{{wheel.radius}} {{wheel.halfwidth}}"
+              zaxis="0 1 0" class="wheel" material="tire"
+              contype="1" conaffinity="1"/>
+      </body>
+
+      <!-- 前从动支撑：URDF 是固定球；这里加竖向弹簧行程（工程假设） -->
+      <body name="caster" pos="{{caster.x}} 0 {{caster.z}}">
+        <joint name="caster_susp" type="slide" axis="0 0 1"
+               range="{{caster.travel_neg}} {{caster.travel_pos}}"
+               stiffness="{{caster.stiffness}}" springref="{{caster.springref}}"
+               damping="{{caster.damping}}"/>
+        <inertial pos="0 0 0" mass="{{caster.mass}}"
+                  diaginertia="{{caster.ixx}} {{caster.iyy}} {{caster.izz}}"/>
+        <geom name="caster_ball" type="sphere" size="{{caster.radius}}"
+              condim="{{contact.condim}}"
+              friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}}"
+              solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+              solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"
+              material="tire" contype="1" conaffinity="1"/>
+      </body>
+
+      <!-- LiDAR 罩：结构配重，不参与接触 -->
+      <body name="lidar" pos="{{lidar.x}} 0 {{lidar.z}}">
+        <inertial pos="0 0 0" mass="{{lidar.mass}}"
+                  diaginertia="{{lidar.ixx}} {{lidar.iyy}} {{lidar.izz}}"/>
+        <geom name="lidar_body" type="cylinder"
+              size="{{lidar.radius}} {{lidar.height_half}}"
+              material="body" contype="0" conaffinity="0"/>
+      </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <pair geom1="wheel_L_tire" geom2="floor"
+          friction="{{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_t}} {{contact.mu_wheel_floor_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="wheel_R_tire" geom2="floor"
+          friction="{{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_t}} {{contact.mu_wheel_floor_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="wheel_L_tire" geom2="step"
+          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="wheel_R_tire" geom2="step"
+          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="wheel_L_tire" geom2="step_edge"
+          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="wheel_R_tire" geom2="step_edge"
+          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="caster_ball" geom2="floor"
+          friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="caster_ball" geom2="step"
+          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="caster_ball" geom2="step_edge"
+          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="chassis_body" geom2="step"
+          friction="{{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_t}} {{contact.mu_chassis_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="chassis_body" geom2="step_edge"
+          friction="{{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_t}} {{contact.mu_chassis_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+  </contact>
+
+  <actuator>
+    <motor name="wheel_L" joint="wheel_L_spin" gear="1"
+           ctrlrange="-{{drive.torque_limit}} {{drive.torque_limit}}"
+           forcerange="-{{drive.torque_limit}} {{drive.torque_limit}}"/>
+    <motor name="wheel_R" joint="wheel_R_spin" gear="1"
+           ctrlrange="-{{drive.torque_limit}} {{drive.torque_limit}}"
+           forcerange="-{{drive.torque_limit}} {{drive.torque_limit}}"/>
+  </actuator>
+</mujoco>
