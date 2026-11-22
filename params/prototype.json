@@ -1,0 +1,333 @@
+{
+  "schema_version": "1.0",
+  "config_id": "proto_v1",
+  "machine": "prototype",
+  "note": "原型机参数集。既非 makerspet/oomwoo，也非本机实测机型；换机型 = 换本文件。z_cg 缺失，占位值不作结论。",
+  "params": {
+    "mass.chassis": {
+      "value": 2.1,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型机身质量假设，非 oomwoo、非本机实测"
+    },
+    "mass.caster": {
+      "value": 0.02,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型前支撑质量假设"
+    },
+    "mass.wheel_L": {
+      "value": 0.05,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型左轮质量假设"
+    },
+    "mass.wheel_R": {
+      "value": 0.05,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型右轮质量假设"
+    },
+    "com.chassis.x": {
+      "value": 0.01,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型机身质心前移量假设"
+    },
+    "com.chassis.y": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 按左右对称设 0（原型假设，非实测）"
+    },
+    "com.chassis.z": {
+      "value": 0.055,
+      "unit": "m",
+      "label": "缺失",
+      "missing": true,
+      "ref": "machine=prototype; z_cg 原型占位 0.055 m，只用于跑通流程；本机型须三点称重/倾斜法实测（目标 2 mm），不得作为结论；基准机型 oomwoo 才允许扫描 [0.25H,0.55H]"
+    },
+    "inertia.chassis.xx": {
+      "value": 0.018,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型整机惯量假设"
+    },
+    "inertia.chassis.yy": {
+      "value": 0.023,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型整机惯量假设"
+    },
+    "inertia.chassis.zz": {
+      "value": 0.038,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型整机惯量假设"
+    },
+    "inertia.chassis.xy": {
+      "value": 0.0,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 按左右对称设 0（原型假设）"
+    },
+    "inertia.chassis.xz": {
+      "value": 0.0,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 按主轴假设设 0（原型假设）"
+    },
+    "inertia.chassis.yz": {
+      "value": 0.0,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 按主轴假设设 0（原型假设）"
+    },
+    "inertia.caster.xx": {
+      "value": 1.8e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 球体估算"
+    },
+    "inertia.caster.yy": {
+      "value": 1.8e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 球体估算"
+    },
+    "inertia.caster.zz": {
+      "value": 1.8e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 球体估算"
+    },
+    "inertia.wheel_L.xx": {
+      "value": 1.7e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 实心圆柱估算"
+    },
+    "inertia.wheel_L.yy": {
+      "value": 3.06e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 实心圆柱估算（转轴）"
+    },
+    "inertia.wheel_L.zz": {
+      "value": 1.7e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 实心圆柱估算"
+    },
+    "inertia.wheel_R.xx": {
+      "value": 1.7e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 实心圆柱估算"
+    },
+    "inertia.wheel_R.yy": {
+      "value": 3.06e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 实心圆柱估算（转轴）"
+    },
+    "inertia.wheel_R.zz": {
+      "value": 1.7e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 实心圆柱估算"
+    },
+    "geom.chassis.half_x": {
+      "value": 0.17,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型机身半长（车身长 0.34 m）"
+    },
+    "geom.chassis.half_y": {
+      "value": 0.15,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型机身半宽"
+    },
+    "geom.chassis.half_z": {
+      "value": 0.035,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型机身半高"
+    },
+    "geom.chassis.pos_z": {
+      "value": 0.065,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 壳体中心高度；底面 0.03 m 即原型离地间隙"
+    },
+    "pos.caster.x": {
+      "value": 0.12,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 前支撑纵向位置"
+    },
+    "pos.caster.y": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 前支撑居中"
+    },
+    "pos.caster.z": {
+      "value": 0.015,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 前支撑球心高度=半径"
+    },
+    "geom.caster.radius": {
+      "value": 0.015,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 前支撑球半径"
+    },
+    "geom.wheel_radius_m": {
+      "value": 0.035,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 驱动轮半径 R=35 mm；本机轮径缺失，原型假设"
+    },
+    "geom.wheel_half_width_m": {
+      "value": 0.01,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 驱动轮半宽（全宽 20 mm）"
+    },
+    "pos.susp.y": {
+      "value": 0.135,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 半轮距（轮距 270 mm）；本机轮距缺失"
+    },
+    "pos.susp.z": {
+      "value": 0.035,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 轮心高度 = R（A4）"
+    },
+    "susp.stiffness_n_per_m": {
+      "value": 4000.0,
+      "unit": "N/m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型悬挂刚度假设"
+    },
+    "susp.damping_ns_per_m": {
+      "value": 50.0,
+      "unit": "N*s/m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 原型悬挂阻尼假设"
+    },
+    "susp.travel_limit_m": {
+      "value": 0.006,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 单侧压缩行程上限（±6 mm）"
+    },
+    "wheel.damping_nms": {
+      "value": 0.0005,
+      "unit": "N*m*s",
+      "label": "工程假设",
+      "ref": "machine=prototype; 轮轴粘性阻尼假设"
+    },
+    "wheel.armature_kgm2": {
+      "value": 5e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "machine=prototype; 轮轴转子惯量假设"
+    },
+    "actuator.torque_limit_nm": {
+      "value": 0.8,
+      "unit": "N*m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 轮端扭矩上限假设；本机轮端扭矩缺失，非实测"
+    },
+    "contact.friction_s": {
+      "value": 0.8,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=prototype; 干态橡胶-硬地滑动摩擦起始值"
+    },
+    "contact.friction_t": {
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=prototype; 切向第二方向摩擦起始值"
+    },
+    "contact.friction_r": {
+      "value": 0.001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=prototype; 扭转摩擦（condim=3 时未引用）"
+    },
+    "contact.condim": {
+      "value": 3.0,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "machine=prototype; v1 只用 condim=3；4/6 的 res[3..5] 未经专项校验不得引用"
+    },
+    "contact.solref_timeconst_s": {
+      "value": 0.01,
+      "unit": "s",
+      "label": "待标定",
+      "ref": "machine=prototype; MuJoCo 软接触时间常数；须按冲击响应标定"
+    },
+    "contact.solref_dampratio": {
+      "value": 1.0,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=prototype; MuJoCo 软接触阻尼比"
+    },
+    "contact.solimp_d0": {
+      "value": 0.9,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=prototype; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.solimp_d1": {
+      "value": 0.99,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=prototype; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.solimp_d2": {
+      "value": 0.003,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=prototype; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.solimp_d3": {
+      "value": 0.5,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=prototype; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.solimp_d4": {
+      "value": 0.1,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "machine=prototype; solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "gravity.x": {
+      "value": 0.0,
+      "unit": "m/s^2",
+      "label": "公开参考",
+      "ref": "machine=prototype; 世界系重力分量"
+    },
+    "gravity.y": {
+      "value": 0.0,
+      "unit": "m/s^2",
+      "label": "公开参考",
+      "ref": "machine=prototype; 世界系重力分量"
+    },
+    "gravity.z": {
+      "value": -9.81,
+      "unit": "m/s^2",
+      "label": "公开参考",
+      "ref": "machine=prototype; 标准重力加速度"
+    }
+  }
+}
