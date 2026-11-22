@@ -10,7 +10,7 @@
 - [仿真参数表](docs/仿真参数表.md)：按"本机实测 / 公开参考 / 工程假设 / 缺失 / 待标定"标记的参数清单。
 - [基准工况与数据缺口](docs/基准工况与数据缺口.md)：平地、正向门槛、斜向门槛三类工况的判据、输出、证据与缺口，以及标定/验证补测清单。
 
-Windows 项目级环境已用 Python 3.13.1 和 MuJoCo 4.0.1 跑通落球冒烟测试，重建步骤见[仿真环境安装与版本记录](docs/仿真环境安装与版本.md)。基准机型 [oomwoo](https://github.com/makerspet/oomwoo) 的[结构模板](models/baseline.xml)、[参数集](params/oomwoo.json)、[场景配置](cases/baseline.json)与[批运行入口](scripts/run_cases.py)已建立（数值逐项带来源标签；工程假设值不可当作实测）。判据与口径见[口径裁定记录](docs/判据/口径裁定记录.md)。
+Windows 项目级环境已用 Python 3.13.1 和 MuJoCo 4.0.1 跑通；接触力读数已用 `mj_contactForce` 校验（平地静置、30° 斜面静置、密度翻倍三档工况 × 金字塔/椭圆两种摩擦锥，法向/切向/竖直分量误差均小于 0.001%），见[接触力读数校验](docs/接触力读数校验.md)。重建步骤见[仿真环境安装与版本记录](docs/仿真环境安装与版本.md)。基准机型 [oomwoo](https://github.com/makerspet/oomwoo) 的[结构模板](models/baseline.xml)、[参数集](params/oomwoo.json)、[场景配置](cases/baseline.json)与[批运行入口](scripts/run_cases.py)已建立（数值逐项带来源标签；工程假设值不可当作实测）。判据与口径见[口径裁定记录](docs/判据/口径裁定记录.md)。
 
 下一阶段用通用原型跑通三类工况与参数扫描，再做时间步/锥型对照。本机建模和独立验证依赖目标机型及 CAD、质量/质心/惯量、轮系与悬挂参数、轮端扭矩、摩擦和实测试验。
 
