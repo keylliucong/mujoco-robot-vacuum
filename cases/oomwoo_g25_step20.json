@@ -1,0 +1,154 @@
+{
+  "schema_version": "1.0",
+  "case_id": "oomwoo_g25_step20",
+  "model": {
+    "path": "models/oomwoo.xml",
+    "sha256": "d6639011c503f4b19d9319300da8e6eea045cd9f9c662ba6960096aae2cd07ae"
+  },
+  "scenario": {
+    "kind": "step",
+    "obstacle": {
+      "shape": "box",
+      "height_m": 0.02,
+      "edge_radius_m": 0.003,
+      "top_width_m": 1.2
+    },
+    "heading_deg": 0.0,
+    "approach": {
+      "speed_mps": 0.15,
+      "start_distance_m": 0.5,
+      "settle_s": 1.0,
+      "settle_tol_mps": 0.02
+    }
+  },
+  "environment": {
+    "pairs": {
+      "wheel_L--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_R--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_L--step": {
+        "friction": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_R--step": {
+        "friction": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "caster--floor": {
+        "friction": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "caster--step": {
+        "friction": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--floor": {
+        "friction": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--step": {
+        "friction": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      }
+    }
+  },
+  "drive": {
+    "channels": {
+      "wheel_L": {
+        "torque_limit_nm": 0.5
+      },
+      "wheel_R": {
+        "torque_limit_nm": 0.5
+      }
+    }
+  },
+  "numerics": {
+    "timestep_s": 0.002,
+    "integrator": "implicitfast",
+    "solver": "Newton",
+    "cone": "pyramidal",
+    "iterations": 100
+  },
+  "judge": {
+    "window_s": 8.0,
+    "fail_on": [
+      "topple",
+      "belly_contact",
+      "retreat",
+      "timeout",
+      "stall"
+    ],
+    "min_advance_body_lengths": 1.0,
+    "recover_speed_ratio": 0.8,
+    "recover_hold_s": 0.3,
+    "stall": {
+      "speed_mps": 0.01,
+      "duration_s": 1.0
+    },
+    "tilt": {
+      "pitch_deg": 25.0,
+      "roll_deg": 15.0
+    },
+    "slip_ratio": 0.3,
+    "contact_normal_min_n": 0.5
+  },
+  "seed": 0,
+  "notes": "G2.5 前缘扩展：正向硬质单级台阶 h=20 mm，R3 棱边，平台宽 1.2 m。壳体前下缘 chassis_front_lip 参数化（基线 height=12.5 mm、radius=0、rigid、overhang=0.1745 m）。20/30 mm 时前下缘应成为首次接触来源；若驱动轮整窗未触台阶，judge 判 blocked/belly_contact。config_id=oomwoo_g25。",
+  "regression_expect": {
+    "passed": false,
+    "failure_primary": "retreat"
+  }
+}

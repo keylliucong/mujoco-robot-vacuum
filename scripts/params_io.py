@@ -83,11 +83,21 @@ def missing_ids(params_document):
     )
 
 
-def load_and_render(model_path):
+def load_and_render(model_path, params_path=None):
+    """渲染模型模板。
+
+    ``params_path`` 省略时按模型头 ``parameter_source`` 取（原行为）；给出时用它
+    覆盖，用于同一模型跑多套参数（G2.5 敏感性扫描）。machine 必须与模型头一致。
+    """
     model_path = Path(model_path)
     text = model_path.read_text(encoding="utf-8")
     header = parse_header(text)
-    params_path = (model_path.parent.parent / header["source"]).resolve()
+    if params_path is None:
+        params_path = (model_path.parent.parent / header["source"]).resolve()
+    else:
+        params_path = Path(params_path)
+        if not params_path.is_absolute():
+            params_path = (model_path.parent.parent / params_path).resolve()
     document = load_params(params_path)
     if document["machine"] != header["machine"]:
         raise ParamError(

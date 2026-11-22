@@ -29,7 +29,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-CONTRACT_VERSION = "1.8.0"  # S14：等于契约文档版本；判据集仍冻结在 v1.7
+CONTRACT_VERSION = "1.8.3"  # S14：等于契约文档版本；G2.5 另加 belly_contact 扩展
 SCHEMA_VERSION = "1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -45,6 +45,7 @@ RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner.json"
 
 FAILURE_ENUM = {
     "topple",
+    "belly_contact",
     "retreat",
     "timeout",
     "stall",
@@ -59,7 +60,9 @@ FAILURE_ENUM = {
 PAIR_GEOMS = {
     "wheel_L": ("wheel_L_tire",),
     "wheel_R": ("wheel_R_tire",),
-    "chassis": ("chassis_shell",),
+    # G2.5：壳体前下缘是独立的 chassis_* geom；放进同一对名，pair 仍按
+    # chassis--step / chassis--floor 取名，摩擦不从 geom 继承（S24）。
+    "chassis": ("chassis_shell", "chassis_front_lip"),
     "caster": ("caster_wheel",),
     "floor": ("floor_plane",),
     "step": ("step", "step_edge"),
@@ -310,8 +313,11 @@ def load_case(path):
                 raise ContractError(f"未知接触对成员：{side}")
         if set(spec) != {"friction", "condim"}:
             raise ContractError(f"{key} 只允许 friction/condim")
-        if len(spec["friction"]) != 4:
-            raise ContractError(f"{key}.friction 必须是 [μ_s, μ_t, μ_r, μ_roll] 四个值")
+        if len(spec["friction"]) not in (4, 5):
+            raise ContractError(
+                f"{key}.friction 必须写满 pair 的 5 分量 [slide1 slide2 spin roll1 roll2]，"
+                "或沿用旧的 4 值 [μ_s, μ_t, μ_r, μ_roll]（runner 把末项补成第 5 项）"
+            )
         if spec["condim"] not in (1, 3, 4, 6):
             raise ContractError(f"{key}.condim 非法：{spec['condim']}")
         if side_a.startswith("wheel") and spec["condim"] in (4, 6):
@@ -360,6 +366,60 @@ def contact_pair_attrs(params_document):
         params_io.format_number(values[f"contact.solimp_d{i}"]["value"]) for i in range(5)
     )
     return {"solref": solref, "solimp": solimp}
+
+
+def front_lip_pair_attrs(params_document):
+    """前下缘 pair 的 solref/solimp：soft 档由 params 的 front_lip.* 给出。
+
+    静电/静置接触也用同一组值，保证 rigid/soft 的差异只来自前缘接触参数。
+    """
+    values = params_document["params"]
+    keys = ("front_lip.solref_timeconst_s", "front_lip.solref_dampratio") + tuple(
+        f"front_lip.solimp_d{i}" for i in range(5)
+    )
+    if not all(key in values for key in keys):
+        return contact_pair_attrs(params_document)
+    solref = "{} {}".format(
+        params_io.format_number(values["front_lip.solref_timeconst_s"]["value"]),
+        params_io.format_number(values["front_lip.solref_dampratio"]["value"]),
+    )
+    solimp = " ".join(
+        params_io.format_number(values[f"front_lip.solimp_d{i}"]["value"]) for i in range(5)
+    )
+    return {"solref": solref, "solimp": solimp}
+
+
+def check_front_lip_derived(params_document):
+    """前缘派生量一致性：height/radius/overhang 是主参数，center_*/geom_radius 是派生。"""
+    values = params_document["params"]
+    required = (
+        "front_lip.height_m",
+        "front_lip.radius_m",
+        "front_lip.overhang_m",
+        "front_lip.geom_radius_m",
+        "front_lip.center_x_m",
+        "front_lip.center_z_m",
+    )
+    if not all(key in values for key in required):
+        return False
+    height = float(values["front_lip.height_m"]["value"])
+    radius = float(values["front_lip.radius_m"]["value"])
+    overhang = float(values["front_lip.overhang_m"]["value"])
+    geom_radius = float(values["front_lip.geom_radius_m"]["value"])
+    center_x = float(values["front_lip.center_x_m"]["value"])
+    center_z = float(values["front_lip.center_z_m"]["value"])
+    tolerance = 1e-9
+    if abs(geom_radius - max(radius, 0.0002)) > tolerance:
+        raise ContractError(
+            f"front_lip.geom_radius_m={geom_radius} != max(radius,0.2mm)={max(radius, 0.0002)}"
+        )
+    if abs(center_x - overhang) > tolerance:
+        raise ContractError(f"front_lip.center_x_m={center_x} != overhang={overhang}")
+    if abs(center_z - (height + geom_radius)) > tolerance:
+        raise ContractError(
+            f"front_lip.center_z_m={center_z} != height+geom_radius={height + geom_radius}"
+        )
+    return True
 
 
 def build_scenario_xml(model_text, config, chassis_front_m, defaults, params_document):
@@ -432,14 +492,22 @@ def build_scenario_xml(model_text, config, chassis_front_m, defaults, params_doc
             for name_b in names_b:
                 if name_a not in geom_names or name_b not in geom_names:
                     continue
-                friction = spec["friction"]
+                friction = list(spec["friction"])
+                if len(friction) == 4:
+                    # 旧 4 值写法：末项补成第 5 项（roll2）；新 case 建议直接写 5 值。
+                    friction.append(friction[-1])
                 attrs = {
                     "geom1": name_a,
                     "geom2": name_b,
                     "condim": str(spec["condim"]),
-                    "friction": " ".join(str(v) for v in friction + [friction[-1]]),
+                    "friction": " ".join(str(v) for v in friction),
                 }
-                attrs.update(contact_pair_attrs(params_document))
+                if name_a.startswith("chassis_front_lip") or name_b.startswith(
+                    "chassis_front_lip"
+                ):
+                    attrs.update(front_lip_pair_attrs(params_document))
+                else:
+                    attrs.update(contact_pair_attrs(params_document))
                 pair_elements.append(attrs)
     if pair_elements:
         contact = root.find("contact")
@@ -549,7 +617,44 @@ def make_columns(ordered_pairs):
     return TIMESERIES_COLUMNS + contact_columns(ordered_pairs) + TIMESERIES_TAIL
 
 
-def sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspension):
+def friction_expectations(config, obstacle_shape):
+    """S24：把每个 case 的 pair 摩擦解析成 {(geom1, geom2): spec}。"""
+    expected = {}
+    for key, spec in config["environment"]["pairs"].items():
+        names_a, names_b = pair_geom_names(key, obstacle_shape)
+        friction = list(spec["friction"])
+        if len(friction) == 4:
+            friction.append(friction[-1])
+        for name_a in names_a:
+            for name_b in names_b:
+                expected[frozenset((name_a, name_b))] = {
+                    "condim": int(spec["condim"]),
+                    "friction": [float(v) for v in friction],
+                }
+    return expected
+
+
+def check_s24_contact(contact, spec, pair_label):
+    """S24 三条断言，真值只读 data.contact[i].friction（v1.8.3）。"""
+    if int(contact.dim) != spec["condim"]:
+        raise ContractError(
+            f"S24 {pair_label}: contact.dim={int(contact.dim)} != 期望 condim={spec['condim']}"
+        )
+    friction = np.asarray(contact.friction, dtype=float).reshape(-1)
+    if friction.size < 2 or abs(float(friction[0]) - float(friction[1])) > 1e-12:
+        raise ContractError(
+            f"S24 {pair_label}: contact.friction[0]={friction[0]!r} != [1]={friction[1]!r}"
+            "（各向同性；常见原因：把 geom 的 3 分量写法抄进 5 分量的 pair）"
+        )
+    if abs(float(friction[0]) - spec["friction"][0]) > 1e-9:
+        raise ContractError(
+            f"S24 {pair_label}: contact.friction[0]={friction[0]!r} != pair slide1={spec['friction'][0]!r}"
+        )
+
+
+def sample_row(
+    model, data, pair_lookup, ordered_pairs, geom_names, has_suspension, friction_specs=None
+):
     xpos = np.array(data.body("chassis").xpos, dtype=float)
     xquat = np.array(data.body("chassis").xquat, dtype=float)
     qvel = np.array(data.joint("chassis_free").qvel, dtype=float)
@@ -598,6 +703,10 @@ def sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspensi
         key = pair_lookup.get(frozenset((name1, name2)))
         if key is None:
             continue
+        if friction_specs is not None:
+            spec = friction_specs.get(frozenset((name1, name2)))
+            if spec is not None:
+                check_s24_contact(contact, spec, f"{name1}--{name2}")
         mujoco.mj_contactForce(model, data, i, force)
         counts[key] += 1
         normals[key] += float(force[0])
@@ -684,7 +793,7 @@ def run_creep(model, data, defaults, wheel_radius_m):
     }
 
 
-def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, geom_names, radius, has_suspension):
+def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, geom_names, radius, has_suspension, friction_specs=None):
     approach = config["scenario"]["approach"]
     speed = approach["speed_mps"]
     window = config["judge"]["window_s"]
@@ -694,7 +803,7 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     reset_state(model, data)
     columns = make_columns(ordered_pairs)
     rows = []
-    wheel_step = [k for k in ordered_pairs if k.startswith("wheel_") and k.endswith("--step")]
+    step_pairs = [k for k in ordered_pairs if k.endswith("--step")]
     trigger_time = 0.0 if config["scenario"]["kind"] == "flat" else None
     cap_time = (
         approach["settle_s"]
@@ -708,10 +817,18 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
         ramp = min(1.0, float(data.time) / ramp_s)
         set_drive(model, data, limits, kp, speed, ramp, yaw_damping)
         step_once(model, data)
-        row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspension)
+        row = sample_row(
+            model,
+            data,
+            pair_lookup,
+            ordered_pairs,
+            geom_names,
+            has_suspension,
+            friction_specs,
+        )
         rows.append(row)
         if trigger_time is None:
-            for key in wheel_step:
+            for key in step_pairs:
                 if row[f"contact_{key}_active"] == 1:
                     trigger_time = row["t_s"]
                     break
@@ -983,6 +1100,11 @@ def main(argv=None):
     parser.add_argument("--config", required=True, help="单次运行的 case JSON")
     parser.add_argument("--out", required=True, help="批次输出目录")
     parser.add_argument("--repeat", type=int, default=1, help="同配置重复次数")
+    parser.add_argument(
+        "--params",
+        default=None,
+        help="覆盖参数集路径（默认取模型头 parameter_source）；用于同一模型扫多套参数",
+    )
     args = parser.parse_args(argv)
 
     if args.repeat < 1:
@@ -1013,8 +1135,9 @@ def main(argv=None):
     MODEL_CONSTANTS["susp_range_m"] = model_checks.ledger_value(ledger, "susp.travel_limit_m")
     MODEL_CONSTANTS["com_offset_B_m"] = model_checks.declared_com_offset(ledger)
 
-    rendered = params_io.load_and_render(model_path)
+    rendered = params_io.load_and_render(model_path, args.params)
     params_document = rendered["params"]
+    check_front_lip_derived(params_document)
     model_text = rendered["text"]
     config_id = parse_config_id(config)
     if params_document["config_id"] != config_id:
@@ -1065,6 +1188,7 @@ def main(argv=None):
         data = mujoco.MjData(model)
         pair_lookup, ordered_pairs = build_pair_lookup(config, config["scenario"]["kind"])
         geom_names = geom_name_table(model)
+        friction_specs = friction_expectations(config, config["scenario"]["kind"])
         actual_columns = make_columns(ordered_pairs)
 
         creep = run_creep(model, data, defaults, radius)
@@ -1102,6 +1226,7 @@ def main(argv=None):
                 geom_names,
                 radius,
                 has_suspension,
+                friction_specs,
             )
             write_timeseries(tier_dir / "timeseries.csv", columns, table)
             judge_table = {

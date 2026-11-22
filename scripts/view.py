@@ -374,8 +374,15 @@ class Session:
         obstacle = config["scenario"].get("obstacle", {})
         self.step_height_m = float(obstacle.get("height_m", 0.0))
         self.kind = kind
-        # 台阶高于壳体离地间隙：本模型没有壳体前下缘/保险杠接触，结论不成立
-        self.unsupported = bool(self.step_height_m > self.clearance_m + 1e-12)
+        # 台阶高于壳体离地间隙且模型没有参数化前下缘时，才判"未覆盖此机理"。
+        # G2.5 起 oomwoo.xml 带 chassis_front_lip，h > 12.5 mm 的接触机理已被建模。
+        self.has_front_lip = any(
+            self.model.geom(gid).name == "chassis_front_lip"
+            for gid in range(self.model.ngeom)
+        )
+        self.unsupported = bool(
+            self.step_height_m > self.clearance_m + 1e-12 and not self.has_front_lip
+        )
 
         self.pair_lookup, self.ordered_pairs = run_cases.build_pair_lookup(config, kind)
         self.geom_names = run_cases.geom_name_table(self.model)

@@ -1,6 +1,8 @@
 """G2 判定模块：只吃时程 + 阈值，不 import mujoco，不读模型或配置对象（S04/S09）。
 
-契约版本：v1.7（判据集）；文档 1.7.1 只含澄清。
+契约版本：v1.8.3（文档）；判据集在 v1.7 基础上吸收 v1.8.2 的
+`t_trigger` 口径（首次任一机体-台阶接触），并按 G2.5 需要增加 `belly_contact`
+失败模式（枚举扩展，待契约正文同步）。
 本文件是唯一写 `passed` / `failure_*` 的地方；输入是 CSV 列字典（字符串原样，
 空串表示无数据）与一份扁平的数值参数字典。参数键集封闭，出现未知键即 raise，
 因此配置无法夹带期望结果（S09）。
@@ -11,11 +13,12 @@ from __future__ import annotations
 import math
 from bisect import bisect_left, bisect_right
 
-CONTRACT_VERSION = "1.8.0"
+CONTRACT_VERSION = "1.8.3"
 
 FAILURE_PRIORITY = (
     "data_invalid",
     "topple",
+    "belly_contact",
     "retreat",
     "bottom_out",
     "stall",
@@ -170,18 +173,24 @@ def judge_case(columns, params):
 
     wheel_step = [k for k in params["wheel_step_pairs"] if k in pair_keys]
     bottom_out = [k for k in params["bottom_out_pairs"] if k in pair_keys]
+    step_pairs = [k for k in pair_keys if k.endswith("--step")]
+    non_wheel_step = [k for k in step_pairs if k not in wheel_step]
     active = {k: columns[f"contact_{k}_active"] for k in pair_keys}
+
+    def first_active(key):
+        col = active[key]
+        for i, raw in enumerate(col):
+            if raw == "1":
+                return i
+        return None
 
     kind = params["kind"]
     if kind == "step":
-        trigger_index = None
-        for k in wheel_step:
-            col = active[k]
-            for i, raw in enumerate(col):
-                if raw == "1":
-                    trigger_index = i if trigger_index is None else min(trigger_index, i)
-                    break
-        if trigger_index is None:
+        # v1.8.2：t_trigger = 首次任一机体-台阶接触。旧定义只看驱动轮，
+        # 台阶高于离地间隙时永不触发，会把真实托底漏成 invalid/no_contact。
+        hits = [(first_active(k), k) for k in step_pairs]
+        hits = [(i, k) for i, k in hits if i is not None]
+        if not hits:
             return _result(
                 status="invalid",
                 invalid_reason="never_contacted",
@@ -189,9 +198,16 @@ def judge_case(columns, params):
                 params=params,
                 metrics=_empty_metrics(),
             )
+        trigger_index = min(i for i, _ in hits)
+        wheel_hits = [first_active(k) for k in wheel_step]
+        wheel_hits = [i for i in wheel_hits if i is not None]
+        wheel_touch_index = min(wheel_hits) if wheel_hits else None
     else:
         trigger_index = 0
+        wheel_touch_index = None
     t_trigger = times[trigger_index]
+    t_wheel_touch = times[wheel_touch_index] if wheel_touch_index is not None else None
+
     window_end = t_trigger + params["window_s"]
     if times[-1] + step * 1e-6 < window_end:  # arithmetic
         return _result(
@@ -250,6 +266,13 @@ def judge_case(columns, params):
         flags.append("topple")
     if advance < 0.0:
         flags.append("retreat")
+    if kind == "step":
+        wheel_touched = any(_has_active(active[k], window) for k in wheel_step)
+        other_body_touched = any(_has_active(active[k], window) for k in non_wheel_step)
+        # G2.5：驱动轮在整个窗口内够不到台阶，而壳体（含前下缘）/从动轮已经
+        # 碰到台阶——确定、可重复的真实托底受阻，不是"没接触所以数据无效"。
+        if other_body_touched and not wheel_touched:
+            flags.append("belly_contact")
     if any(_has_active(active[k], window) for k in bottom_out):
         flags.append("bottom_out")
     if _stall(vel_x, times, window, params):
@@ -283,6 +306,7 @@ def judge_case(columns, params):
 
     metrics = {
         "t_trigger_s": t_trigger,
+        "t_wheel_touch_s": t_wheel_touch,
         "t_climb_s": t_climb,
         "t_recover_s": t_recover,
         "advance_m": advance,
@@ -354,6 +378,7 @@ def _result(status, invalid_reason, flags, params, metrics, passed=None, primary
 def _empty_metrics():
     return {
         "t_trigger_s": None,
+        "t_wheel_touch_s": None,
         "t_climb_s": None,
         "t_recover_s": None,
         "advance_m": None,
