@@ -25,7 +25,7 @@ A4_ABS_TOL_M = 0.001  # contract-tolerance A4
 A3_ABS_TOL_ZERO = 1e-6  # contract-tolerance A3（对称积应为 0 的绝对门）
 
 REQUIRED_NAMES = {
-    "body": ["chassis", "wheel_L", "wheel_R", "susp_L", "susp_R"],
+    "body": ["chassis", "wheel_L", "wheel_R"],
     "joint": ["wheel_L_spin", "wheel_R_spin", "susp_L", "susp_R"],
     "actuator": ["wheel_L", "wheel_R"],
     "material": ["floor", "step"],

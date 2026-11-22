@@ -52,38 +52,35 @@
         <geom name="caster_ball" type="sphere" size="${geom.caster.radius}" material="rubber"/>
       </body>
 
-      <!-- 左驱动轮组：susp_L 为被动滑移悬挂（压缩为正），wheel_L_spin 绕 +y -->
-      <body name="susp_L" pos="0 ${pos.susp.y} ${pos.susp.z}">
+      <!-- 左驱动轮组：susp_L 为被动滑移悬挂（压缩为正），wheel_L_spin 绕 +y。
+           两个关节同体，避免无质量中间体（MuJoCo 要求运动体质量/惯量 > mjMINVAL）。 -->
+      <body name="wheel_L" pos="0 ${pos.susp.y} ${pos.susp.z}">
         <joint name="susp_L" type="slide" axis="0 0 1" limited="true"
                range="-${susp.travel_limit_m} ${susp.travel_limit_m}"
                stiffness="${susp.stiffness_n_per_m}" damping="${susp.damping_ns_per_m}"/>
-        <body name="wheel_L" pos="0 0 0">
-          <joint name="wheel_L_spin" type="hinge" axis="0 1 0"
-                 damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
-          <inertial pos="0 0 0" mass="${mass.wheel_L}"
-                    diaginertia="${inertia.wheel_L.xx} ${inertia.wheel_L.yy} ${inertia.wheel_L.zz}"/>
-          <geom name="wheel_L_tire" type="cylinder"
-                size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
-                quat="0.7071067811865476 0.7071067811865476 0 0"
-                material="rubber"/>
-        </body>
+        <joint name="wheel_L_spin" type="hinge" axis="0 1 0"
+               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
+        <inertial pos="0 0 0" mass="${mass.wheel_L}"
+                  diaginertia="${inertia.wheel_L.xx} ${inertia.wheel_L.yy} ${inertia.wheel_L.zz}"/>
+        <geom name="wheel_L_tire" type="cylinder"
+              size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
+              quat="0.7071067811865476 0.7071067811865476 0 0"
+              material="rubber"/>
       </body>
 
       <!-- 右驱动轮组：与左侧镜像，A4 断言两轮心对称且 z=R -->
-      <body name="susp_R" pos="0 -${pos.susp.y} ${pos.susp.z}">
+      <body name="wheel_R" pos="0 -${pos.susp.y} ${pos.susp.z}">
         <joint name="susp_R" type="slide" axis="0 0 1" limited="true"
                range="-${susp.travel_limit_m} ${susp.travel_limit_m}"
                stiffness="${susp.stiffness_n_per_m}" damping="${susp.damping_ns_per_m}"/>
-        <body name="wheel_R" pos="0 0 0">
-          <joint name="wheel_R_spin" type="hinge" axis="0 1 0"
-                 damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
-          <inertial pos="0 0 0" mass="${mass.wheel_R}"
-                    diaginertia="${inertia.wheel_R.xx} ${inertia.wheel_R.yy} ${inertia.wheel_R.zz}"/>
-          <geom name="wheel_R_tire" type="cylinder"
-                size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
-                quat="0.7071067811865476 0.7071067811865476 0 0"
-                material="rubber"/>
-        </body>
+        <joint name="wheel_R_spin" type="hinge" axis="0 1 0"
+               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
+        <inertial pos="0 0 0" mass="${mass.wheel_R}"
+                  diaginertia="${inertia.wheel_R.xx} ${inertia.wheel_R.yy} ${inertia.wheel_R.zz}"/>
+        <geom name="wheel_R_tire" type="cylinder"
+              size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
+              quat="0.7071067811865476 0.7071067811865476 0 0"
+              material="rubber"/>
       </body>
     </body>
   </worldbody>
