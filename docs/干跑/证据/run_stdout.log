@@ -1,0 +1,17 @@
+batch_id: oomwoo_s24_final
+contract_version: 1.7.7
+model: models/baseline.xml sha256=ff3dff5d892e96d44bbe81a50cce0c1d07796fe6b2a8de96940f01c3c001231b
+params: oomwoo machine=oomwoo missing=['com.chassis.z']
+git: {'commit': 'd91741192e6c350137394938aa72f537a817068a', 'branch': 'dryrun/oomwoo', 'dirty': False}
+[flat] config: /Users/liucong/orca/workspaces/mujoco_/dryrun-oomwoo/cases/flat.json sha256=ed899ecd26efc5a1207699716f084c256b13590f0baa88953d3224f0b8d3b3fd
+[flat] scenario_xml_sha256: 05a6ec0edfbd6bf425556ae9b4c969645ad612de816bb9cc6cc523a83fde9f41
+[flat r1] creep: drift=0.0817 mm residual=0.0182 mm/s redline=False
+[flat r1 base] status=ok passed=True primary= flags=suspension_bottom;slip
+[flat r2] creep: drift=0.0817 mm residual=0.0182 mm/s redline=False
+[flat r2 base] status=ok passed=True primary= flags=suspension_bottom;slip
+[step] config: /Users/liucong/orca/workspaces/mujoco_/dryrun-oomwoo/cases/step.json sha256=4f1aff592c71deda15b3cb66454b413548e20a9da15248961d3402f076b3047c
+[step] scenario_xml_sha256: baf34bd56c29c8583369c34ca70c2652655234791d47b38352e0bda9631694c6
+[step r1] creep: drift=0.0817 mm residual=0.0182 mm/s redline=False
+[step r1 base] status=invalid passed=None primary= flags=no_contact
+[step r2] creep: drift=0.0817 mm residual=0.0182 mm/s redline=False
+[step r2 base] status=invalid passed=None primary= flags=no_contact
