@@ -14,7 +14,17 @@
       "urdf/inertial.xacro"
     ],
     "accessed": "2026-11-22",
-    "note": "oomwoo 主仓库没有 CAD/STEP 与整机参数表；数值取自 oomwoo-one 的 Gazebo/URDF 参数。"
+    "note": "oomwoo 主仓库没有 CAD/STEP 与整机参数表；数值取自 oomwoo-one 的 Gazebo/URDF 参数。",
+    "cad_repo": {
+      "repo": "https://github.com/makerspet/oomwoo-cad",
+      "commit": "266210a47cab931c5891a07c9a29d48388a54b0c",
+      "trusted_paths": [
+        "designs/one/stock/",
+        "lib/"
+      ],
+      "red_line": "designs/one/agentic/july-2026/device_full.step 明确不是 OOMWOO One 设计；禁止用于几何、质量属性或接触几何",
+      "red_line_source": "designs/one/agentic/july-2026/README.md"
+    }
   },
   "values": {
     "numerics.timestep_s": {
@@ -590,6 +600,146 @@
       "label": "工程假设",
       "ref": "scripts/run_cases.py",
       "note": "力矩速率限幅"
+    },
+    "ref.base_diameter": {
+      "value": 0.349,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "轮式机身直径；注释：源自 Proscenic M6 Pro"
+    },
+    "ref.body_height": {
+      "value": 0.079,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "机身顶面高度（不含 LiDAR 塔）"
+    },
+    "ref.body_height_with_lidar": {
+      "value": 0.097,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "含 LiDAR 塔的整机高度"
+    },
+    "ref.wheel_diameter": {
+      "value": 0.068,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "驱动轮直径"
+    },
+    "ref.wheel_width": {
+      "value": 0.012,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "驱动轮宽度"
+    },
+    "ref.wheel_base": {
+      "value": 0.235,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "实测轮距；桥接固件用 0.233 m"
+    },
+    "ref.caster_diameter": {
+      "value": 0.025,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "前从动支撑直径"
+    },
+    "ref.caster_inset": {
+      "value": 0.03,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "从动支撑中心到机身边缘"
+    },
+    "ref.floor_clearance": {
+      "value": 0.0125,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "底盘最小离地间隙"
+    },
+    "ref.lower_cylinder_height": {
+      "value": 0.0665,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "下部圆柱机身高度"
+    },
+    "ref.laser_puck_height": {
+      "value": 0.018,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "LiDAR 塔高度"
+    },
+    "ref.laser_puck_diameter": {
+      "value": 0.083,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "LiDAR 塔直径"
+    },
+    "ref.lower_cylinder_mass": {
+      "value": 2.5,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "下部圆柱机身质量（含电池等，URDF 未拆分）"
+    },
+    "ref.wheel_mass": {
+      "value": 0.1,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "单只驱动轮质量"
+    },
+    "ref.caster_mass": {
+      "value": 0.05,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "从动支撑质量"
+    },
+    "ref.laser_puck_mass": {
+      "value": 0.15,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "LiDAR 塔质量"
+    },
+    "ref.motor_stall_torque": {
+      "value": 0.5,
+      "unit": "N*m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "轮端堵转扭矩上限"
+    },
+    "ref.max_linear_acceleration": {
+      "value": 1.0,
+      "unit": "m/s^2",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "URDF 参数中的最大线加速度"
+    },
+    "chassis.com_B_x_public": {
+      "value": 0.0022,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "URDF 注释按质量×位置算出的全机 x_cg；LiDAR 塔居中时为 -1.6 mm"
+    },
+    "chassis.com_B_x_lidar_centered": {
+      "value": -0.0016,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "LiDAR 塔居中时的 x_cg；用于敏感性对照"
     }
   },
   "missing": [
@@ -653,5 +803,6 @@
     "悬挂、摩擦、接触参数未公开，保留工程假设/待标定，结论封顶机理 + 敏感性。",
     "12.5 mm 离地间隙意味着 20 mm 及以上门槛会先触发底盘接触；这是结构限制，需实机确认。",
     "motor_stall_torque=0.5 N·m 只是堵转上限，缺少扭矩-转速曲线与限流。"
-  ]
+  ],
+  "inertia_derivation": "uniform_primitive"
 }
