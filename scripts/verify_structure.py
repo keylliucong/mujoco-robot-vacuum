@@ -1101,7 +1101,32 @@ def check_judge_unit_tests():
     if "not_ended_on_platform" not in edge_cross.get("cross_fail_reasons", []):
         problems.append("骑棱边未记入 cross_fail 子条件")
 
-    add("抽查4/6", not problems, "pitch 单位=度（50° 触发 topple）、绕行/骑棱边不通过、无接触双断言与 fail_on 单点生效" if not problems else "；".join(problems))
+    # 负例 4：|Ft|/Fn = μ + 1e-9 落在浮点容差内，不得触发 slip_force_exceeded
+    friction_edge = {name: list(values) for name, values in columns.items()}
+    for i in range(len(friction_edge["t_s"])):
+        if friction_edge["contact_wheel_L--step_active"][i] == "1":
+            # 合成时程 normal=5.0 → tangent=5*(0.8+1e-9)=4.000000005，比值 0.800000001
+            friction_edge["contact_wheel_L--step_tangent_n"][i] = "4.000000005"
+    verdict_friction = judge.judge_case(friction_edge, params)
+    if verdict_friction["metrics"].get("slip_force_exceeded") is not False:
+        problems.append(
+            "|Ft|/Fn=μ+1e-9 仍触发 slip_force_exceeded："
+            f"{verdict_friction['metrics'].get('slip_force_exceeded')}"
+        )
+    if "slip" in verdict_friction["failure_flags"]:
+        problems.append(
+            f"|Ft|/Fn=μ+1e-9 仍记 slip：flags={verdict_friction['failure_flags']}"
+        )
+    # 正对照：超出容差（0.8000016 > 0.8*(1+1e-6)）仍必须触发，防止容差把真实打滑吞掉
+    friction_over = {name: list(values) for name, values in columns.items()}
+    for i in range(len(friction_over["t_s"])):
+        if friction_over["contact_wheel_L--step_active"][i] == "1":
+            friction_over["contact_wheel_L--step_tangent_n"][i] = "4.000008"
+    verdict_over = judge.judge_case(friction_over, params)
+    if verdict_over["metrics"].get("slip_force_exceeded") is not True:
+        problems.append("|Ft|/Fn 超容差仍未触发 slip_force_exceeded")
+
+    add("抽查4/6", not problems, "pitch 单位=度（50° 触发 topple）、绕行/骑棱边不通过、无接触双断言、fail_on 单点生效、|Ft|/Fn=μ+1e-9 不触发且超容差触发" if not problems else "；".join(problems))
 
 
 def check_run_outputs(root=None):

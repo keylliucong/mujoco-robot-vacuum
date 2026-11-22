@@ -573,7 +573,11 @@ def _slip_max(speed_rad, vel_x, indices, params):
 
 
 def _friction_exceeded(columns, pair_keys, indices, pair_friction):
-    """接触力比 |Ft|/Fn 是否超过台账 μ（缺列/缺参数即输入错误）。"""
+    """接触力比 |Ft|/Fn 是否超过台账 μ（缺列/缺参数即输入错误）。
+
+    力点可能正压在摩擦锥面上，浮点会给出 μ+1e-9；1e-6 相对容差只吸收
+    这种数值噪声，不改变真实超限的判定。
+    """
     for key in pair_keys:
         if key not in pair_friction:
             raise JudgeError(f"缺接触对 {key} 的摩擦参数")
@@ -585,7 +589,7 @@ def _friction_exceeded(columns, pair_keys, indices, pair_friction):
             tangent = tangents[i]
             if normal is None or tangent is None or normal <= 0.0:
                 continue
-            if abs(tangent) / normal > mu:
+            if abs(tangent) / normal > mu * (1.0 + 1e-6):  # arithmetic：浮点容差
                 return True
     return False
 
