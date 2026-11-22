@@ -45,11 +45,12 @@
             size="${geom.chassis.half_x} ${geom.chassis.half_y} ${geom.chassis.half_z}"
             pos="0 0 ${geom.chassis.pos_z}" material="shell"/>
 
-      <!-- 前万向支撑（球代替滚轮，v1 不做滚动） -->
-      <body name="caster_front" pos="${pos.caster.x} ${pos.caster.y} ${pos.caster.z}">
+      <!-- 万向支撑（球代替滚轮，v1 不做滚动）；置于车尾，使驱动轮先触台阶 -->
+      <body name="caster_rear" pos="${pos.caster.x} ${pos.caster.y} ${pos.caster.z}">
         <inertial pos="0 0 0" mass="${mass.caster}"
                   diaginertia="${inertia.caster.xx} ${inertia.caster.yy} ${inertia.caster.zz}"/>
-        <geom name="caster_ball" type="sphere" size="${geom.caster.radius}" material="rubber"/>
+        <geom name="caster_ball" type="sphere" size="${geom.caster.radius}" material="rubber"
+              solref="${contact.caster_solref_timeconst_s} ${contact.solref_dampratio}"/>
       </body>
 
       <!-- 左驱动轮组：susp_L 为被动滑移悬挂（压缩为正），wheel_L_spin 绕 +y。
@@ -62,7 +63,7 @@
                damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
         <inertial pos="0 0 0" mass="${mass.wheel_L}"
                   diaginertia="${inertia.wheel_L.xx} ${inertia.wheel_L.yy} ${inertia.wheel_L.zz}"/>
-        <geom name="wheel_L_tire" type="cylinder"
+        <geom name="wheel_L_tire" type="capsule"
               size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
               quat="0.7071067811865476 0.7071067811865476 0 0"
               material="rubber"/>
@@ -77,7 +78,7 @@
                damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
         <inertial pos="0 0 0" mass="${mass.wheel_R}"
                   diaginertia="${inertia.wheel_R.xx} ${inertia.wheel_R.yy} ${inertia.wheel_R.zz}"/>
-        <geom name="wheel_R_tire" type="cylinder"
+        <geom name="wheel_R_tire" type="capsule"
               size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
               quat="0.7071067811865476 0.7071067811865476 0 0"
               material="rubber"/>

@@ -3,14 +3,14 @@
   "case_id": "invalid_flat_with_obstacle",
   "model": {
     "path": "models/baseline.xml",
-    "sha256": "469fd2fd5d8d16da86a1d8fbbebf50c764627461fc662f8bbc3e095b6637b140"
+    "sha256": "3848321c2edaeb0ac008c18b3fdc54142f81209d6bee96d5bd8728b21453dcca"
   },
   "scenario": {
     "kind": "flat",
     "obstacle": {
       "shape": "box",
       "height_m": 0.02,
-      "edge_radius_m": 0.0,
+      "edge_radius_m": 0.003,
       "top_width_m": 1.2
     },
     "heading_deg": 0.0,
