@@ -1,6 +1,6 @@
 batch g25-step30
 contract 1.8.3
-git {'commit': '799359abfc2a021c285ef9a6500e82434c231715', 'branch': 'HEAD', 'dirty': False}
+git {'commit': '50ec740f8b06ab6ddb5abc49882e4b560fc1caab', 'branch': 'HEAD', 'dirty': False}
 model models/oomwoo.xml 0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e
 config E:\mujoco-robot-vacuum\cases\oomwoo_g25_step30.json 58287bf0f31e0a0e50d48241d4ad1d51e2aec5e5eeeec2e8e1cd73471a1f6361
 scenario_xml_sha256 53599fbd2de863c1fc5f9bc51f71d1a2679cbe5204c0f6fbc4a7a9a98831f0b2

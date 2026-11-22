@@ -15,7 +15,7 @@
   "cwd": "E:\\mujoco-robot-vacuum",
   "host": "DESKTOP-RGG6DMC",
   "git": {
-    "commit": "799359abfc2a021c285ef9a6500e82434c231715",
+    "commit": "50ec740f8b06ab6ddb5abc49882e4b560fc1caab",
     "branch": "HEAD",
     "dirty": false
   },
@@ -517,8 +517,8 @@
     "consistent": true,
     "key_metrics_tol": 0.0
   },
-  "started_utc": "2026-11-22T09:05:08.505556+00:00",
-  "finished_utc": "2026-11-22T09:05:10.542529+00:00",
+  "started_utc": "2026-11-22T09:11:54.122930+00:00",
+  "finished_utc": "2026-11-22T09:11:55.851689+00:00",
   "cases": [
     {
       "case_id": "oomwoo_g25_step20",

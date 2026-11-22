@@ -1,4 +1,4 @@
-﻿batch,case_id,repeat,status,passed,failure_primary,failure_flags,t_trigger_s,first_contact_pair,t_first_contact_s,t_wheel_touch_s,t_chassis_touch_s,advance_m,pitch_max_deg,contact_normal_max_n
+batch,case_id,repeat,status,passed,failure_primary,failure_flags,t_trigger_s,first_contact_pair,t_first_contact_s,t_wheel_touch_s,t_chassis_touch_s,advance_m,pitch_max_deg,contact_normal_max_n
 g25-step12p5,oomwoo_g25_step12p5,1,ok,1,,bottom_out;torque_limit;slip,3.978000000,caster--step,3.978000,5.244000,,1.100391827,0.149531708,662.858990985
 g25-step12p5,oomwoo_g25_step12p5,2,ok,1,,bottom_out;torque_limit;slip,3.978000000,caster--step,3.978000,5.244000,,1.100391827,0.149531708,662.858990985
 g25-step20,oomwoo_g25_step20,1,ok,0,belly_contact,belly_contact;bottom_out;torque_limit;slip;timeout,3.856000000,chassis--step,3.856000,,3.856000,0.000083338,0.021035953,296.780404757
