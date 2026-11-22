@@ -1060,10 +1060,13 @@ def main(argv=None):
                 radius,
             )
             write_timeseries(tier_dir / "timeseries.csv", columns, table)
+            judge_table = {
+                column: [format_value(value) for value in table[column]] for column in columns
+            }
             params = build_judge_params(
                 config, defaults, tier_model, tier_limits, ordered_pairs, body_length_m, radius
             )
-            verdict = judge.judge_case(table, params)
+            verdict = judge.judge_case(judge_table, params)
             verdict["timestep_s"] = float(tier_model.opt.timestep)
             tier_results.append(
                 {

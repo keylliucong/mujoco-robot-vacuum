@@ -210,16 +210,16 @@
       "ref": "machine=prototype; 轮心高度 = R（A4）"
     },
     "susp.stiffness_n_per_m": {
-      "value": 4000.0,
+      "value": 2000.0,
       "unit": "N/m",
       "label": "工程假设",
-      "ref": "machine=prototype; 原型悬挂刚度假设"
+      "ref": "machine=prototype; 原型悬挂刚度假设；静置压缩约 4.8 mm；4000 N/m 在 2 ms 下出现接触-弹簧极限环"
     },
     "susp.damping_ns_per_m": {
-      "value": 50.0,
+      "value": 40.0,
       "unit": "N*s/m",
       "label": "工程假设",
-      "ref": "machine=prototype; 原型悬挂阻尼假设"
+      "ref": "machine=prototype; 原型悬挂阻尼假设；与 2000 N/m 配合静置零蠕滑"
     },
     "susp.travel_limit_m": {
       "value": 0.006,
