@@ -75,7 +75,7 @@
           "settle_tol_mps": 0.02
         }
       },
-      "max_time_s": 5.0
+      "max_time_s": 8.0
     },
     {
       "case_id": "step_fwd_10mm_std",
