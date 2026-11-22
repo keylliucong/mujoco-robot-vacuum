@@ -133,6 +133,7 @@ TIMESERIES_COLUMNS = [
     "contact_caster_rear_floor_tangent_n", "contact_caster_rear_floor_count",
     "contact_chassis_step_active", "contact_chassis_step_normal_n",
     "contact_chassis_step_tangent_n", "contact_chassis_step_count",
+    "robot_step_normal_n",
     "wheel_L_normal_n", "wheel_R_normal_n",
     "wheel_L_tangent_n", "wheel_R_tangent_n", "wheel_tangent_total_n",
     "all_contact_normal_n", "all_contact_count",
@@ -453,6 +454,7 @@ def read_contacts(model: mujoco.MjModel, data: mujoco.MjData, gid: dict) -> dict
         "wheel_L_step_normal": 0.0,
         "wheel_R_step_normal": 0.0,
         "chassis_step_normal": 0.0,
+        "robot_step_normal": 0.0,
         "caster_floor_normal": 0.0,
         "caster_rear_floor_normal": 0.0,
         "all_normal": 0.0,
@@ -526,6 +528,10 @@ def read_contacts(model: mujoco.MjModel, data: mujoco.MjData, gid: dict) -> dict
             p["tangent"] += ft
             p["count"] += 1
             out["chassis_step_normal"] += fn
+
+        robot_geoms = set(wheel_ids.values()) | {caster_id, caster_rear_id} | chassis_geoms
+        if pair & robot_geoms and pair & step_ids:
+            out["robot_step_normal"] += fn
 
     warnings = int(np.sum(np.asarray(data.warning.number)))
     out["warnings"] = warnings
@@ -741,18 +747,20 @@ def evaluate_case(rows: list[dict], case: dict, cfg: dict, params: dict,
           "v_approach_mean_mps": None, "same_frame": None}
     v_impact = None
     v_approach = None
-    if is_step and trigger is not None:
-        v_impact = float(horiz[trigger_idx])
+    wheel_idx = None if trigger is None else trigger.get("wheel_index")
+    if is_step and wheel_idx is not None:
+        v_impact = float(horiz[wheel_idx])
         limit = math.sqrt(float(judge["A1"]["coefficient"]) *
                           float(-model.opt.gravity[2]) * h)
-        x_trigger = float(px[trigger_idx])
+        x_trigger = float(px[wheel_idx])
+        t_wheel = float(times[wheel_idx])
         window = float(judge["approach_mean_distance_m"])
-        sel = np.where((px >= x_trigger - window) & (times <= t_trigger))[0]
+        sel = np.where((px >= x_trigger - window) & (times <= t_wheel))[0]
         if sel.size >= 5:
             v_approach = float(np.mean(horiz[sel]))
         same_frame = bool(
-            abs(float(times[trigger_idx]) - t_trigger) <= 1e-12
-            and float(trigger["normal_at_trigger"]) >
+            abs(float(times[wheel_idx]) - float(trigger["wheel_t_s"])) <= 1e-12
+            and float(trigger.get("wheel_normal", 0.0)) >
             float(judge["contact_normal_min_n"])
         )
         a1 = _a_result(v_impact, limit, v_impact <= limit)
@@ -1072,6 +1080,7 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
             "wheel_R_actuator_force_nm": float(data.actuator_force[act_id["R"]]),
             "all_contact_count": contact["ncon"],
             "all_contact_normal_n": contact["all_normal"] if contact["ncon"] else None,
+            "robot_step_normal_n": contact["robot_step_normal"] if contact["ncon"] else None,
             "chassis_min_z_m": _chassis_min_z(model, data, gid["chassis_geoms"]),
             "data_valid": 1 if valid else 0,
             "penetration_max_m": float(contact["max_penetration"]),
@@ -1107,6 +1116,7 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
             row["wheel_R_tangent_n"] = None
             row["wheel_tangent_total_n"] = None
             row["all_contact_normal_n"] = None
+            row["robot_step_normal_n"] = None
         return row
 
     rows.append(current_row(0.0))
@@ -1154,39 +1164,52 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
                     val = row.get(f"contact_wheel_{side}_step_normal_n")
                     if val is not None and float(val) > min_normal:
                         first_contact[side] = float(row["t_s"])
-            if trigger is None and (first_contact["L"] is not None or
-                                    first_contact["R"] is not None):
+
+            # 第一次“机器人任何部位-台阶”接触：用于失效分类与时间窗
+            any_val = row.get("robot_step_normal_n")
+            if (trigger is None and any_val is not None
+                    and float(any_val) > min_normal):
+                trigger = {
+                    "t_s": float(row["t_s"]),
+                    "index": len(rows) - 1,
+                    "first_wheel": None,
+                    "contact_dt_s": None,
+                    "wheel_index": None,
+                    "wheel_t_s": None,
+                    "wheel_normal": 0.0,
+                }
+
+            # 第一次“驱动轮-台阶”接触：A1 的 v_impact 必须取这一帧
+            if trigger is not None and trigger.get("wheel_index") is None:
                 a = first_contact["L"]
                 b = first_contact["R"]
-                if a is not None and b is not None:
-                    if abs(a - b) < 1e-12:
-                        first_wheel = "both"
-                    elif a < b:
-                        first_wheel = "L"
+                if a is not None or b is not None:
+                    if a is not None and b is not None:
+                        if abs(a - b) < 1e-12:
+                            first_wheel = "both"
+                        elif a < b:
+                            first_wheel = "L"
+                        else:
+                            first_wheel = "R"
+                        contact_dt = abs(a - b)
                     else:
-                        first_wheel = "R"
-                    contact_dt = abs(a - b)
-                else:
-                    first_wheel = "L" if a is not None else "R"
-                    contact_dt = None
-                trigger_t = a if (a is not None and (b is None or a <= b)) else b
-                trigger = {
-                    "t_s": float(trigger_t),
-                    "index": len(rows) - 1,
-                    "first_wheel": first_wheel,
-                    "contact_dt_s": contact_dt,
-                    "normal_at_trigger": float(
-                        row.get("contact_wheel_L_step_normal_n") or 0.0)
-                    + float(row.get("contact_wheel_R_step_normal_n") or 0.0),
-                }
+                        first_wheel = "L" if a is not None else "R"
+                        contact_dt = None
+                    trigger["wheel_index"] = len(rows) - 1
+                    trigger["wheel_t_s"] = float(row["t_s"])
+                    trigger["first_wheel"] = first_wheel
+                    trigger["contact_dt_s"] = contact_dt
+                    trigger["wheel_normal"] = float(
+                        row.get("contact_wheel_L_step_normal_n") or 0.0) + float(
+                        row.get("contact_wheel_R_step_normal_n") or 0.0)
 
             if trigger is not None and t_climb is None:
                 on_top = True
                 for side in ("L", "R"):
                     z = float(data.xpos[wheel_body[side]][2])
-                    if z < h + radius - 0.005:
+                    if z < h + radius - 0.01:
                         on_top = False
-                if on_top and float(data.xpos[chassis_id][2]) > h * 0.8:
+                if on_top and float(data.xpos[chassis_id][2]) > h * 0.5:
                     climb_hold += dt
                 else:
                     climb_hold = 0.0
@@ -1203,9 +1226,6 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
                     break
             else:
                 if float(data.time) - float(trigger["t_s"]) >= window:
-                    break
-                if t_climb is not None and float(data.time) - t_climb >= 1.2:
-                    # 已登录平台后再给 1.2 s 观察恢复与前进
                     break
         # 发散保护
         if not np.all(np.isfinite(data.qpos)) or np.max(np.abs(data.qpos)) > 100.0:
@@ -1261,7 +1281,7 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
         "static_susp_m": static_susp,
         "flat_speed_rel_diff_L": flat_rel_L,
         "flat_speed_rel_diff_R": flat_rel_R,
-        "contact_events": _contact_events(rows, first_contact, t_climb, is_step),
+        "contact_events": _contact_events(trigger, first_contact, t_climb, is_step),
         "rows": rows,
     })
     return result
@@ -1276,10 +1296,12 @@ def _chassis_min_z(model, data, chassis_geoms) -> float:
     return min(vals)
 
 
-def _contact_events(rows, first_contact, t_climb, is_step) -> list[dict]:
+def _contact_events(trigger, first_contact, t_climb, is_step) -> list[dict]:
     if not is_step:
         return []
     events = []
+    if trigger is not None:
+        events.append({"event": "first_robot_step_contact", "t_s": trigger["t_s"]})
     for side in ("L", "R"):
         if first_contact[side] is not None:
             events.append({"event": f"wheel_{side}_step_contact",
