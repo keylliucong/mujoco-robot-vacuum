@@ -549,7 +549,7 @@ def check_s16():
     def drop_mass(tree):
         for body in tree.iter("body"):
             if body.get("name") == "wheel_R":
-                body.find("inertial").set("mass", "0.0")
+                body.find("inertial").set("mass", "0.01")
 
     def shift_wheel(tree):
         for body in tree.iter("body"):
