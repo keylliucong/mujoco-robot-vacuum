@@ -342,7 +342,17 @@ def load_case(path):
 
 
 def load_runner_defaults():
+    """读 runner 默认层；声明为 delta 的文件先与 base 合成。
+
+    ``cases/_runner_oomwoo.json`` 用 ``kind="runner_delta"`` 声明自己只写与
+    ``cases/_runner.json`` 不同的键。合并必须在本体里做：只有跑过这里的所有
+    入口（run_oomwoo / view / diag / 以后新增的）才都会拿到同一份完整默认层，
+    不会因为忘记 import 某个 wrapper 而静默用回 prototype 的数。
+    """
     defaults = read_json(RUNNER_DEFAULTS)
+    if defaults.get("kind") == "runner_delta":
+        base = read_json(REPO_ROOT / "cases" / "_runner.json")
+        defaults = {**base, **defaults}
     if defaults.get("schema_version") != SCHEMA_VERSION:
         raise ContractError("cases/_runner.json schema_version 不匹配")
     return defaults

@@ -7,9 +7,10 @@
    不校验文件名，所以同一张台账里放 prototype 与 oomwoo 两套同名 param_id 会
    互相覆盖/比对失败。试跑因此用独立台账
    ``docs/试跑/参数溯源-oomwoo.csv``，并把路径注入本模块，不改上游脚本。
-2. OOMWOO 的 runner 常量放在 ``cases/_runner_oomwoo.json``，**只写与
-   ``cases/_runner.json`` 不同的键（delta）**，本模块加载时合成
-   ``{**base, **delta}``；未写出的键一律继承 base 的取值与台账 provenance。
+2. OOMWOO 的 runner 常量放在 ``cases/_runner_oomwoo.json``，用
+   ``kind="runner_delta"`` 声明为 delta（只写与 ``cases/_runner.json``
+   不同的键）；run_cases 读 runner 默认层时按 kind 合成
+   ``{**base, **delta}``，未写出的键一律继承 base 的取值与台账 provenance。
 
 几何观测（``body_length()`` / ``chassis_min_z()``）已修回 ``model_checks``
 （box / cylinder / sphere / capsule / ellipsoid 统一按几何与姿态取支撑），
@@ -25,7 +26,6 @@ wrapper 不再分叉。
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -36,35 +36,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_cases  # noqa: E402
 
 LEDGER = REPO_ROOT / "docs" / "试跑" / "参数溯源-oomwoo.csv"
-BASE_RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner.json"
 OOMWOO_RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
 
 run_cases.LEDGER_PATH = LEDGER
 run_cases.RUNNER_DEFAULTS = OOMWOO_RUNNER_DEFAULTS
-
-
-def load_runner_defaults():
-    """oomwoo runner 是 delta：只写与 base 不同的键，这里合成 base+delta。
-
-    ``cases/_runner_oomwoo.json`` 不再复制整份默认层。半份默认层会让
-    ``run_cases`` 读 ``end_hold_s`` / ``lateral_margin_body_half`` 时 KeyError
-    （v1.10.0 起就存在，不是本 PR 引入）；delta 里没有的键一律继承
-    ``cases/_runner.json``。``view.py`` 与 ``diag_g25_first_contact.py`` 也经
-    ``run_cases.load_runner_defaults`` 读这一层，所以补丁打在这里而不是
-    ``main()`` 里。
-    """
-    if run_cases.RUNNER_DEFAULTS != OOMWOO_RUNNER_DEFAULTS:
-        return _ORIGINAL_LOAD_RUNNER_DEFAULTS()
-    base = json.loads(BASE_RUNNER_DEFAULTS.read_text(encoding="utf-8"))
-    delta = json.loads(OOMWOO_RUNNER_DEFAULTS.read_text(encoding="utf-8"))
-    merged = {**base, **delta}
-    if merged.get("schema_version") != run_cases.SCHEMA_VERSION:
-        raise run_cases.ContractError("cases/_runner.json schema_version 不匹配")
-    return merged
-
-
-_ORIGINAL_LOAD_RUNNER_DEFAULTS = run_cases.load_runner_defaults
-run_cases.load_runner_defaults = load_runner_defaults
 
 
 def build_judge_params(*args, **kwargs):

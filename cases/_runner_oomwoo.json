@@ -1,3 +1,4 @@
 {
-  "notes": "oomwoo / G2.5 试跑专用 runner delta：只写与 cases/_runner.json 不同的键，加载时由 scripts/run_oomwoo.py 合成 {**base, **delta}；未列出的键一律继承 base（含 end_hold_s / end_duty_min / end_duty_ambiguous / lateral_margin_body_half / lateral_drift_untrusted_ratio 与 drive / creep / tolerances）。OOMWOO 无悬挂（has_suspension=0），susp_* 列整列为空、judge 不产生 suspension_bottom；susp_bottom_rel 仅为参数字典封闭保留，不参与本机型判定。"
+  "kind": "runner_delta",
+  "notes": "oomwoo / G2.5 试跑专用 runner delta：kind=runner_delta 声明本文件只写与 cases/_runner.json 不同的键，run_cases.load_runner_defaults 读到时合成 {**base, **delta}；未列出的键一律继承 base（含 end_hold_s / end_duty_min / end_duty_ambiguous / lateral_margin_body_half / lateral_drift_untrusted_ratio 与 drive / creep / tolerances）。OOMWOO 无悬挂（has_suspension=0），susp_* 列整列为空、judge 不产生 suspension_bottom；susp_bottom_rel 仅为参数字典封闭保留，不参与本机型判定。"
 }
