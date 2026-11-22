@@ -3,7 +3,8 @@
 在 Windows 项目目录执行：
     .venv\\Scripts\\python.exe scripts\\verify_env.py
 
-不依赖外部模型文件，也不启动图形界面。
+接触力只用 ``mujoco.mj_contactForce`` 读取，不用 ``efc_force``：
+金字塔锥下后者是棱边系数，不是力。不依赖外部模型文件，也不启动图形界面。
 """
 
 import sys
@@ -34,9 +35,14 @@ def main() -> int:
     for _ in range(1000):
         mujoco.mj_step(model, data)
 
-    contact_forces = data.efc_force[data.efc_force > 0]
+    res = np.zeros(6, dtype=np.float64)
+    normals = []
+    for i in range(data.ncon):
+        mujoco.mj_contactForce(model, data, i, res)
+        normals.append(abs(float(res[0])))
+    max_normal = max(normals) if normals else 0.0
     ball_z = float(data.qpos[2])
-    ok = data.ncon > 0 and contact_forces.size > 0 and 0.05 < ball_z < 0.15
+    ok = data.ncon > 0 and max_normal > 0.0 and 0.05 < ball_z < 0.15
 
     print(f"Python:        {sys.version.split()[0]}")
     print(f"MuJoCo:        {mujoco.__version__}")
@@ -46,10 +52,8 @@ def main() -> int:
     print(f"steps:         {data.time / model.opt.timestep:.0f}")
     print(f"active contacts (ncon): {data.ncon}")
     print(f"ball z:        {ball_z:.4f} m (expected ~0.1 m)")
-    print(f"positive contact force entries: {contact_forces.size}")
-    print(f"max contact force: {float(contact_forces.max()):.3f} N"
-          if contact_forces.size else "max contact force: n/a")
-    print("SMOKE TEST:", "PASS" if ok else "FAIL")
+    print(f"max contact normal (mj_contactForce): {max_normal:.3f} N")
+    print("SMOKE TEST:", "OK" if ok else "NOT_OK")
     return 0 if ok else 1
 
 
