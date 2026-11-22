@@ -627,14 +627,23 @@ def zero_drive(data):
         data.actuator(name).ctrl[:] = 0.0
 
 
-def set_drive(model, data, limits, kp, speed_cmd, ramp):
-    """机体速度闭环。轮速伺服在台阶棱边会因轮子空转而卸扭，v1 用机体速度（稳态等价于轮心速度）。"""
+def set_drive(model, data, limits, kp, speed_cmd, ramp, yaw_damping):
+    """机体速度闭环 + 偏航率阻尼。
+
+    轮速伺服在台阶棱边会因轮子空转而卸扭，v1 用机体速度（稳态等价于轮心速度）。
+    左右轮先后触台阶会产生偏航力矩；加偏航率阻尼模拟差速底盘的航向保持，
+    k_yaw 为轮端差动扭矩增益（N·m·s/rad）。
+    """
     target = speed_cmd * ramp
-    vx = float(np.asarray(data.joint("chassis_free").qvel)[0])
+    qvel = np.asarray(data.joint("chassis_free").qvel, dtype=float)
+    vx = float(qvel[0])
+    wz = float(qvel[5])
     torque = kp * (target - vx)
-    for name in ("wheel_L", "wheel_R"):
+    diff = yaw_damping * wz
+    for name, sign in (("wheel_L", 1.0), ("wheel_R", -1.0)):
         limit = limits[name]
-        data.actuator(name).ctrl[:] = max(-limit, min(limit, torque))
+        value = torque + sign * diff / 2
+        data.actuator(name).ctrl[:] = max(-limit, min(limit, value))
 
 
 def run_creep(model, data, defaults, wheel_radius_m):
@@ -676,6 +685,7 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     window = config["judge"]["window_s"]
     step = float(model.opt.timestep)
     kp = defaults["drive"]["speed_kp_nm_per_mps"]
+    yaw_damping = defaults["drive"]["yaw_damping_nm_per_radps"]
     reset_state(model, data)
     columns = make_columns(ordered_pairs)
     rows = []
@@ -691,7 +701,7 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     ramp_s = approach["settle_s"]
     for _ in range(max_steps):
         ramp = min(1.0, float(data.time) / ramp_s)
-        set_drive(model, data, limits, kp, speed, ramp)
+        set_drive(model, data, limits, kp, speed, ramp, yaw_damping)
         step_once(model, data)
         row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names)
         rows.append(row)
