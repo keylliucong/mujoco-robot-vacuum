@@ -88,7 +88,7 @@ CASE_PRESETS = {
     },
     "step_30mm": {
         "case": "cases/oomwoo_step20_casterblock.json",
-        "height_m": 0.030,
+        "height_m": 0.030,  # ui-constant
         "help": "正向台阶 30 mm（由 20 mm case 在内存里改高度注入）",
     },
     "step_10mm_lowtorque": {
@@ -101,7 +101,7 @@ CASE_PRESETS = {
     },
     "slope_30deg": {
         "case": "cases/oomwoo_flat.json",
-        "slope_deg": 30.0,
+        "slope_deg": 30.0,  # ui-constant
         "help": "30° 等效斜面静置观测（slope_hold.py 口径，重力绕 +y 旋转，不驱动）",
     },
 }
@@ -264,7 +264,7 @@ def floor_clearance_m(model, data, params_document):
         )
         return pos_z - half, "params"
     except (KeyError, TypeError, ValueError, params_io.ParamError):
-        return 0.0125, "default"
+        return 0.0125, "default"  # ui-constant
 
 
 # ------------------------------------------------------------------ 接触读数
@@ -369,7 +369,7 @@ class Session:
             stack["base_model"], stack["base_data"], self.params_document
         )
         self.gravity = abs(
-            float(params_io.get_param(self.params_document, "gravity.z")[1].get("value", -9.81))
+            float(params_io.get_param(self.params_document, "gravity.z")[1].get("value", -9.81))  # ui-constant
         )
         kind = config["scenario"]["kind"]
         obstacle = config["scenario"].get("obstacle", {})
@@ -382,7 +382,7 @@ class Session:
             for gid in range(self.model.ngeom)
         )
         self.unsupported = bool(
-            self.step_height_m > self.clearance_m + 1e-12 and not self.has_front_lip
+            self.step_height_m > self.clearance_m + 1e-12 and not self.has_front_lip  # ui-constant
         )
 
         self.pair_lookup, self.ordered_pairs = run_cases.build_pair_lookup(config, kind)
@@ -478,7 +478,7 @@ class Session:
 
     def stop_reason(self):
         t = float(self.data.time)
-        if t >= self.max_sim_s - 1e-12:
+        if t >= self.max_sim_s - 1e-12:  # ui-constant
             return "到达 max_sim_s"
         if self.slope_deg is not None and self.args.slope_max_drift > 0:
             if self.drift() >= self.args.slope_max_drift:
@@ -502,7 +502,7 @@ class Session:
             return None
         if len(self.rows) < 2:
             return None
-        if not force and float(self.data.time) - self.verdict_at < 0.25:
+        if not force and float(self.data.time) - self.verdict_at < 0.25:  # ui-constant
             return self.verdict
         table = {
             column: [run_cases.format_value(row[column]) for row in self.rows]
@@ -701,7 +701,7 @@ class Session:
 
         if self.slope_deg is not None:
             drift = self.drift()
-            hit = drift > 0.0005 or self.max_speed > 0.001
+            hit = drift > 0.0005 or self.max_speed > 0.001  # ui-constant
             lines.append(
                 f"蠕滑红线: {'触发' if hit else '未触发'}（斜面静置口径 drift={drift * 1000:.4f} mm，"
                 f"全程最大速度={self.max_speed * 1000:.3f} mm/s，红线 0.5 mm / 1 mm/s）"
@@ -760,7 +760,7 @@ def draw_overlay(scn, session):
         scn.ngeom += 1
         return geom
 
-    def add_arrow(start, vector, rgba, width=0.004):
+    def add_arrow(start, vector, rgba, width=0.004):  # ui-constant
         geom = add(mujoco.mjtGeom.mjGEOM_ARROW, np.zeros(3), np.zeros(3), data_id, rgba)
         if geom is not None:
             mujoco.mjv_connector(
@@ -771,7 +771,7 @@ def draw_overlay(scn, session):
                 np.asarray(start, dtype=np.float64) + np.asarray(vector, dtype=np.float64),
             )
 
-    def add_line(start, end, rgba, width=2.0):
+    def add_line(start, end, rgba, width=2.0):  # ui-constant
         geom = add(mujoco.mjtGeom.mjGEOM_LINE, np.zeros(3), np.zeros(3), data_id, rgba)
         if geom is not None:
             mujoco.mjv_connector(
@@ -786,29 +786,29 @@ def draw_overlay(scn, session):
     com = com_world(model, data)
     add(
         mujoco.mjtGeom.mjGEOM_SPHERE,
-        np.array([0.008, 0.008, 0.008]),
+        np.array([0.008, 0.008, 0.008]),  # ui-constant
         com,
         data_id,
-        [1.0, 0.15, 0.15, 1.0],
+        [1.0, 0.15, 0.15, 1.0],  # ui-constant
     )
-    add_line(com, np.array([com[0], com[1], 0.0]), [1.0, 0.15, 0.15, 0.8])
+    add_line(com, np.array([com[0], com[1], 0.0]), [1.0, 0.15, 0.15, 0.8])  # ui-constant
 
     # ② 每个接触点一条沿法向的箭头，长度按 Fn 归一化（—fn-ref 为满量程）
     contacts = getattr(session, "last_contacts", [])
-    max_len = 0.05
+    max_len = 0.05  # ui-constant
     for item in contacts:
-        ratio = min(1.0, abs(item["fn"]) / max(session.args.fn_ref, 1e-9))
-        length = max(0.008, max_len * ratio)
+        ratio = min(1.0, abs(item["fn"]) / max(session.args.fn_ref, 1e-9))  # ui-constant
+        length = max(0.008, max_len * ratio)  # ui-constant
         add_arrow(
             item["pos"],
             item["normal"] * length,
-            [0.1, 0.9, 1.0, 1.0] if item["fn"] >= 0.0 else [1.0, 0.6, 0.1, 1.0],
+            [0.1, 0.9, 1.0, 1.0] if item["fn"] >= 0.0 else [1.0, 0.6, 0.1, 1.0],  # ui-constant
         )
 
     # ③ 整机前进方向（机体系 +x）
     xmat = np.asarray(data.body("chassis").xmat, dtype=np.float64).reshape(3, 3)
-    origin = np.asarray(data.body("chassis").xpos, dtype=np.float64) + xmat[:, 0] * 0.05
-    add_arrow(origin, xmat[:, 0] * 0.12, [0.2, 1.0, 0.2, 1.0], width=0.006)
+    origin = np.asarray(data.body("chassis").xpos, dtype=np.float64) + xmat[:, 0] * 0.05  # ui-constant
+    add_arrow(origin, xmat[:, 0] * 0.12, [0.2, 1.0, 0.2, 1.0], width=0.006)  # ui-constant
 
 
 # ------------------------------------------------------------------ 主循环
@@ -880,7 +880,7 @@ def run_viewer(session):
                 break
             if finished:
                 viewer.sync()
-                time.sleep(0.05)
+                time.sleep(0.05)  # ui-constant
                 continue
 
             if handle_state["toggle"]:
@@ -903,7 +903,7 @@ def run_viewer(session):
                         finished = True
                         break
                 if advanced == 0:
-                    time.sleep(0.002)
+                    time.sleep(0.002)  # ui-constant
             elif handle_state["step"]:
                 budget = handle_state["step"]
                 handle_state["step"] = 0
@@ -915,7 +915,7 @@ def run_viewer(session):
                         finished = True
                         break
             else:
-                time.sleep(0.01)
+                time.sleep(0.01)  # ui-constant
 
             if session.data.time >= next_hud:
                 print(session.hud_text())
@@ -924,7 +924,7 @@ def run_viewer(session):
             if not finished and session.data.time >= next_eval:
                 verdict = session.evaluate()
                 if verdict is not None:
-                    next_eval = float(session.data.time) + 0.5
+                    next_eval = float(session.data.time) + 0.5  # ui-constant
 
             if finished and session.verdict is None:
                 session.evaluate(force=True)
@@ -953,7 +953,7 @@ def run_viewer(session):
             # 面板文字单独调用（set_texts 内部自己加锁，套在 viewer.lock() 里会卡死），
             # 按墙钟节流：step 模式暂停时仿真时间不走，用仿真时间会一直不刷新
             if next_panel <= time.perf_counter():
-                next_panel = time.perf_counter() + 0.2
+                next_panel = time.perf_counter() + 0.2  # ui-constant
                 if overlay_ok:
                     try:
                         viewer.set_texts(
@@ -992,8 +992,8 @@ def parse_args(argv):
     parser.add_argument(
         "--step-size-s", type=float, default=None, help="step 模式每按一次空格推进的仿真秒数（默认 1 个时间步）"
     )
-    parser.add_argument("--hud-interval", type=float, default=0.5, help="终端 HUD 间隔（仿真秒，默认 0.5）")
-    parser.add_argument("--fn-ref", type=float, default=20.0, help="法向箭头满量程（N，默认 20）")
+    parser.add_argument("--hud-interval", type=float, default=0.5, help="终端 HUD 间隔（仿真秒，默认 0.5）")  # ui-constant
+    parser.add_argument("--fn-ref", type=float, default=20.0, help="法向箭头满量程（N，默认 20）")  # ui-constant
     parser.add_argument("--max-sim-s", type=float, default=None, help="最长仿真时长（默认取 runner 的 40 s）")
     parser.add_argument("--headless", type=float, default=None, metavar="SECONDS", help="不开窗口跑指定仿真秒数后退出（自检用）")
     parser.add_argument(

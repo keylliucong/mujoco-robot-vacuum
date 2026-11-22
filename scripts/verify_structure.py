@@ -175,11 +175,18 @@ def rendered_model():
     return params_io.load_and_render(MODEL_PATH)
 
 
-def outputs_run_json():
-    if not OUTPUTS_DIR.exists():
+def outputs_run_json(root=None):
+    if root is not None:
+        base = Path(root)
+        candidate = base / "run.json"
+        if not candidate.exists():
+            return None, None
+        return candidate, json.loads(read_text(candidate))
+    base = OUTPUTS_DIR
+    if not base.exists():
         return None, None
     candidates = sorted(
-        OUTPUTS_DIR.glob("*/run.json"), key=lambda path: path.stat().st_mtime, reverse=True
+        base.glob("*/run.json"), key=lambda path: path.stat().st_mtime, reverse=True
     )
     if not candidates:
         return None, None
@@ -229,14 +236,13 @@ def check_s02():
         if path.name in (
             "verify_structure.py",
             "verify_env.py",
-            "view.py",
             "run_oomwoo.py",
             "generate_g25_lip_params.py",
             "analyze_g25_contacts.py",
             "diag_g25_first_contact.py",
         ):
-            # view.py 是 #21 的交互查看层（颜色/相机/显示步长），不参与 run_cases
-            # 判定路径；其物理量已在 run_cases 侧受本检查约束。
+            # 这些文件不属于 G2 run_cases 判定路径（自查器自身 / G1 冒烟 / G2.5 工具）。
+            # view.py 不再豁免：它是 UI 常量，但逐行标 `# ui-constant`，仍受本检查。
             continue
         tree = ast.parse(read_text(path))
         lines = read_text(path).splitlines()
@@ -245,7 +251,11 @@ def check_s02():
                 if node.value in (0.0, 1.0):
                     continue
                 line = lines[node.lineno - 1]
-                if "# arithmetic" in line or "# contract-tolerance" in line:
+                if (
+                    "# arithmetic" in line
+                    or "# contract-tolerance" in line
+                    or (path.name == "view.py" and "# ui-constant" in line)
+                ):
                     continue
                 bad.append(f"{path.name}:{node.lineno}={node.value}")
     add(
@@ -298,8 +308,8 @@ def check_s05():
     )
 
 
-def check_s06():
-    run_json_path, _ = outputs_run_json()
+def check_s06(root=None):
+    run_json_path, _ = outputs_run_json(root)
     if run_json_path is None:
         add("S06", None, "SKIP：尚无 outputs，集成测试会跑双向断言")
         return
@@ -418,8 +428,8 @@ def check_s10():
         add("S10", True, "台账↔params↔渲染后 XML 数值一致")
 
 
-def check_s11():
-    run_json_path, run_json = outputs_run_json()
+def check_s11(root=None):
+    run_json_path, run_json = outputs_run_json(root)
     if run_json_path is None:
         add("S11", None, "SKIP：尚无 outputs")
         return
@@ -633,21 +643,46 @@ def current_machine_rows():
     return [row for row in rows if row["param_id"].startswith(prefix)]
 
 
+def budget_rows():
+    path = REPO_ROOT / "docs" / "不确定度预算.csv"
+    if not path.exists():
+        return None
+    with open(path, newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
 def check_s19():
+    """S19：真的打开预算表，逐行核对有 verified_tol 的台账量是否有 B 类分量。"""
     rows = current_machine_rows()
     tol_rows = [row["param_id"] for row in rows if row["verified_tol"].strip()]
-    if tol_rows:
-        add("S19", False, f"存在 verified_tol 但本交付未建不确定度预算表：{tol_rows[:5]}")
-    else:
-        add("S19", True, "当前机型全部 verified_tol 为空，预算表约束空转（无实测数值）")
+    budget = budget_rows()
+    if budget is None:
+        add("S19", False, "docs/不确定度预算.csv 不存在，无法核对 verified_tol")
+        return
+    budget_ids = {row["param_id"] for row in budget if row.get("param_id")}
+    missing = [param_id for param_id in tol_rows if param_id not in budget_ids]
+    if missing:
+        add("S19", False, f"有 verified_tol 但预算表缺行：{missing[:5]}")
+        return
+    machine = rendered_model()["header"]["machine"]
+    add(
+        "S19",
+        True,
+        f"{machine} 机型 {len(tol_rows)} 行带 verified_tol，预算表已逐行覆盖；"
+        f"预算表共 {len(budget_ids)} 个 param_id（含其他机型）",
+    )
 
 
 def check_s20():
     comparison = [row for row in current_machine_rows() if row["verified_tol"].strip()]
     if comparison:
-        add("S20", False, "存在比对容差但缺 u_sim 三项五要素")
+        add("S20", False, "存在比对容差但 u_sim 三项五要素尚未实现")
     else:
-        add("S20", None, "SKIP：G2 无实测↔仿真比对行，u_sim 最低三项留给 G5")
+        add(
+            "S20",
+            None,
+            "SKIP：当前机型无实测↔仿真比对行；u_sim 三项五要素未实现，需实测数据后留 G5",
+        )
 
 
 def check_s21():
@@ -1027,8 +1062,8 @@ def check_judge_unit_tests():
     add("抽查4/6", not problems, "pitch 单位=度（50° 触发 topple）、绕行不通过、无接触双断言与 fail_on 单点生效" if not problems else "；".join(problems))
 
 
-def check_run_outputs():
-    run_json_path, run_json = outputs_run_json()
+def check_run_outputs(root=None):
+    run_json_path, run_json = outputs_run_json(root)
     if run_json_path is None:
         add("抽查5/7/8", None, "SKIP：尚无 outputs，--run 会生成并复核")
         return
@@ -1070,6 +1105,44 @@ def integration_checks():
             ok and run_json.get("repeat", {}).get("consistent") is True,
             "--repeat 2 两次 timeseries 与判定逐位一致" if ok else f"baseline 运行失败 rc={result.returncode}: {result.stderr[-300:]}",
         )
+
+        topple_out = temp_root / "topple"
+        topple_result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPTS_DIR / "run_cases.py"),
+                "--config",
+                str(CASES_DIR / "step_forward_60mm_topple.json"),
+                "--out",
+                str(topple_out),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        topple_ok = False
+        detail = f"topple 负例运行失败 rc={topple_result.returncode}: {topple_result.stderr[-300:]}"
+        if topple_result.returncode == 0:
+            topple_json = json.loads(read_text(topple_out / "run.json"))
+            verdict = topple_json["cases"][0]["repeats"][0]["tiers"][0]["verdict"]
+            pitch = verdict["metrics"]["pitch_max_deg"]
+            topple_ok = (
+                verdict["status"] == "ok"
+                and verdict["passed"] is False
+                and verdict["failure_primary"] == "topple"
+                and pitch is not None
+                and float(pitch) > 25.0
+            )
+            detail = (
+                f"60 mm 台阶实跑 pitch_max={pitch:.2f}°，"
+                f"passed={verdict['passed']} primary={verdict['failure_primary']}"
+                if topple_ok
+                else f"未触发 topple：pitch={pitch} verdict={verdict}"
+            )
+        add("抽查9(topple)", topple_ok, detail)
+
+        check_s06(base_out)
+        check_s11(base_out)
+        check_run_outputs(base_out)
 
         height_config = json.loads(read_text(CASES_DIR / "baseline.json"))
         height_config["case_id"] = "step_forward_40mm"
@@ -1140,9 +1213,12 @@ def main():
     check_s24()
     check_negative_configs()
     check_judge_unit_tests()
-    check_run_outputs()
     if args.run:
         integration_checks()
+    else:
+        check_s06()
+        check_s11()
+        check_run_outputs()
 
     failed = 0
     for item in RESULTS:
