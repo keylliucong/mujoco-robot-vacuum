@@ -29,10 +29,10 @@
       "ref": "machine=prototype; 原型右轮质量假设"
     },
     "com.chassis.x": {
-      "value": 0.01,
+      "value": -0.02,
       "unit": "m",
       "label": "工程假设",
-      "ref": "machine=prototype; 原型机身质心前移量假设"
+      "ref": "machine=prototype; 原型质心横向位置；置于驱动轴后、车尾支撑前，使驱动轮先触台阶"
     },
     "com.chassis.y": {
       "value": 0.0,
@@ -156,16 +156,16 @@
       "ref": "machine=prototype; 原型机身半高"
     },
     "geom.chassis.pos_z": {
-      "value": 0.065,
+      "value": 0.075,
       "unit": "m",
       "label": "工程假设",
-      "ref": "machine=prototype; 壳体中心高度；底面 0.03 m 即原型离地间隙"
+      "ref": "machine=prototype; 壳体中心高度；底面 0.04 m，扣掉悬挂静置压缩约 5 mm 后离地约 35 mm"
     },
     "pos.caster.x": {
-      "value": 0.12,
+      "value": -0.12,
       "unit": "m",
       "label": "工程假设",
-      "ref": "machine=prototype; 前支撑纵向位置"
+      "ref": "machine=prototype; 车尾支撑纵向位置；放在驱动轴后方，避免 15 mm 球先卡在台阶立面上"
     },
     "pos.caster.y": {
       "value": 0.0,
@@ -178,6 +178,12 @@
       "unit": "m",
       "label": "工程假设",
       "ref": "machine=prototype; 前支撑球心高度=半径"
+    },
+    "contact.caster_solref_timeconst_s": {
+      "value": 0.003,
+      "unit": "s",
+      "label": "工程假设",
+      "ref": "machine=prototype; 万向球接触时间常数；取 0.003 使静置穿透 <0.5 mm，避免整车低头 2.4°"
     },
     "geom.caster.radius": {
       "value": 0.015,

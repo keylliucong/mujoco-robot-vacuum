@@ -627,15 +627,14 @@ def zero_drive(data):
         data.actuator(name).ctrl[:] = 0.0
 
 
-def set_drive(model, data, limits, kp, speed_cmd, radius, ramp):
+def set_drive(model, data, limits, kp, speed_cmd, ramp):
+    """机体速度闭环。轮速伺服在台阶棱边会因轮子空转而卸扭，v1 用机体速度（稳态等价于轮心速度）。"""
     target = speed_cmd * ramp
+    vx = float(np.asarray(data.joint("chassis_free").qvel)[0])
+    torque = kp * (target - vx)
     for name in ("wheel_L", "wheel_R"):
-        speed_rad = float(np.asarray(data.joint(f"{name}_spin").qvel).reshape(-1)[0])
-        v_wheel = speed_rad * radius
-        torque = kp * (target - v_wheel)
         limit = limits[name]
-        torque = max(-limit, min(limit, torque))
-        data.actuator(name).ctrl[:] = torque
+        data.actuator(name).ctrl[:] = max(-limit, min(limit, torque))
 
 
 def run_creep(model, data, defaults, wheel_radius_m):
@@ -692,7 +691,7 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     ramp_s = approach["settle_s"]
     for _ in range(max_steps):
         ramp = min(1.0, float(data.time) / ramp_s)
-        set_drive(model, data, limits, kp, speed, radius, ramp)
+        set_drive(model, data, limits, kp, speed, ramp)
         step_once(model, data)
         row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names)
         rows.append(row)
