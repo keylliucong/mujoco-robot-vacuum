@@ -50,6 +50,12 @@ REQUIRED_PARAMS = frozenset(
         "settle_end_s",
         "wheel_radius_m",
         "step_height_m",
+        "platform_height_tol_m",
+        "step_front_m",
+        "step_half_width_m",
+        "heading_rad",
+        "com_offset_x_m",
+        "contact_gap_tol_s",
         "susp_range_m",
         "susp_bottom_rel",
         "torque_limit_L_nm",
@@ -59,6 +65,7 @@ REQUIRED_PARAMS = frozenset(
         "climb_height_ratio",
         "climb_hold_s",
         "has_suspension",
+        "pair_friction",
         "wheel_step_pairs",
         "bottom_out_pairs",
         "all_pairs",
@@ -155,6 +162,7 @@ def judge_case(columns, params):
             raise JudgeError(f"t_s 步长不恒定（第 {i} 行）")
 
     pos_x = _floats(columns, "pos_x_m")
+    pos_y = _floats(columns, "pos_y_m")
     pos_z = _floats(columns, "pos_z_m")
     vel_x = _floats(columns, "vel_x_mps")
     pitch = _floats(columns, "pitch_rad")
@@ -185,6 +193,7 @@ def judge_case(columns, params):
         return None
 
     kind = params["kind"]
+    trigger_source = ""
     if kind == "step":
         # v1.8.2：t_trigger = 首次任一机体-台阶接触。旧定义只看驱动轮，
         # 台阶高于离地间隙时永不触发，会把真实托底漏成 invalid/no_contact。
@@ -198,13 +207,14 @@ def judge_case(columns, params):
                 params=params,
                 metrics=_empty_metrics(),
             )
-        trigger_index = min(i for i, _ in hits)
+        trigger_index, trigger_source = min(hits, key=lambda item: item[0])
         wheel_hits = [first_active(k) for k in wheel_step]
         wheel_hits = [i for i in wheel_hits if i is not None]
         wheel_touch_index = min(wheel_hits) if wheel_hits else None
     else:
         trigger_index = 0
         wheel_touch_index = None
+        trigger_source = "flat"
     t_trigger = times[trigger_index]
     t_wheel_touch = times[wheel_touch_index] if wheel_touch_index is not None else None
 
@@ -246,8 +256,8 @@ def judge_case(columns, params):
     window = range(trigger_index, end_index + 1)
 
     advance = _last(pos_x, end_index) - _value(pos_x, trigger_index)
-    pitch_max = _abs_max(pitch, window)
-    roll_max = _abs_max(roll, window)
+    pitch_max = math.degrees(_abs_max(pitch, window))
+    roll_max = math.degrees(_abs_max(roll, window))
     torque_max_l = _abs_max(torque_l, window)
     torque_max_r = _abs_max(torque_r, window)
     travel_max_l = _max(travel_l, window) if has_suspension else None
@@ -260,6 +270,69 @@ def judge_case(columns, params):
     for k in pair_keys:
         values = _floats(columns, f"contact_{k}_normal_n")
         normal_max = max(normal_max, _max(values, window))
+
+    end_pos_z = _last(pos_z, end_index)
+    end_pos_x = _last(pos_x, end_index)
+    end_pos_y = _last(pos_y, end_index)
+    max_pos_z = _max(pos_z, window)
+    crossing = None
+    if kind == "step":
+        # 跨越证据（v1.8.3 返工）：机体确实从台阶前缘上方过去，而不是绕开。
+        # 以 heading 为前进方向把位置投影到台阶坐标系：s 为沿前进方向进度，
+        # lat 为横向偏移。台阶前缘平面过 (step_front_m, 0)，法向为 heading。
+        cos_h = math.cos(params["heading_rad"])
+        sin_h = math.sin(params["heading_rad"])
+        end_s = end_pos_x * cos_h + end_pos_y * sin_h
+        end_lat = -end_pos_x * sin_h + end_pos_y * cos_h
+        # 质心投影比 B 原点略偏后，仍用同一 heading 方向换算
+        com_s = end_s + params["com_offset_x_m"] * cos_h
+        wheel_on_top = any(
+            columns[f"contact_{k}_active"][end_index] == "1" for k in wheel_step
+        )
+        ended_on_platform = bool(
+            wheel_on_top
+            or end_pos_z >= params["step_height_m"] - params["platform_height_tol_m"]
+        )
+        reached_platform = (
+            max_pos_z >= params["step_height_m"] - params["platform_height_tol_m"]
+        )
+        crossed_front = com_s >= params["step_front_m"]
+        within_width = abs(end_lat) <= params["step_half_width_m"]
+        # 从首触到质心越过前缘，机体-台阶接触允许的空档不超过上限；
+        # 空档越大越像"飞过去"或"绕过去"，不是跨越。
+        cross_index = end_index
+        for i in window:
+            s_i = pos_x[i] * cos_h + pos_y[i] * sin_h
+            if s_i + params["com_offset_x_m"] * cos_h >= params["step_front_m"]:
+                cross_index = i
+                break
+        contact_gap_max = _contact_gap(
+            columns,
+            sorted(k for k in pair_keys if k.endswith("--step")),
+            trigger_index,
+            cross_index,
+            params["timestep_s"],
+        )
+        contact_ok = contact_gap_max <= params["contact_gap_tol_s"]
+        crossing = {
+            "end_progress_m": end_s,
+            "end_lateral_m": end_lat,
+            "com_progress_m": com_s,
+            "max_pos_z_m": max_pos_z,
+            "ended_on_platform": ended_on_platform,
+            "reached_platform": reached_platform,
+            "crossed_front": crossed_front,
+            "within_width": within_width,
+            "contact_gap_max_s": contact_gap_max,
+            "contact_ok": contact_ok,
+            "crossed": bool(
+                crossed_front
+                and within_width
+                and reached_platform
+                and ended_on_platform
+                and contact_ok
+            ),
+        }
 
     flags = []
     if pitch_max > params["tilt_pitch_deg"] or roll_max > params["tilt_roll_deg"]:
@@ -275,6 +348,8 @@ def judge_case(columns, params):
             flags.append("belly_contact")
     if any(_has_active(active[k], window) for k in bottom_out):
         flags.append("bottom_out")
+    if crossing is not None and not crossing["crossed"]:
+        flags.append("bottom_out")
     if _stall(vel_x, times, window, params):
         flags.append("stall")
     if max(torque_max_l, torque_max_r) >= max(
@@ -285,24 +360,33 @@ def judge_case(columns, params):
         params["susp_range_m"] * params["susp_bottom_rel"]
     ):
         flags.append("suspension_bottom")
-    if max(slip_l, slip_r) > params["slip_ratio"]:
+    # 打滑两条判据：运动学滑移率（轮速 vs 机体速度）与接触力比 |Ft|/Fn > μ。
+    # μ 来自台账（run_cases 经 params["pair_friction"] 注入），此处不写死。
+    slip_kinematic = max(slip_l, slip_r) > params["slip_ratio"]
+    slip_force = _friction_exceeded(columns, pair_keys, window, params["pair_friction"])
+    if slip_kinematic or slip_force:
         flags.append("slip")
 
     t_recover, v_recover = _recover(times, vel_x, window, params)
     t_climb = _climb(times, pos_z, trigger_index, window, params)
     recovered = t_recover is not None
     advance_ok = advance >= params["min_advance_m"]
+    crossed_ok = crossing is None or crossing["crossed"]
 
     fail_on = set(params["fail_on"])
     hit = [f for f in flags if f in fail_on]
-    passed = bool(advance_ok and recovered and not hit)
+    passed = bool(advance_ok and recovered and crossed_ok and not hit)
 
+    observed = list(flags)
     if not passed:
         flags.append("timeout")
 
     primary = ""
     if not passed:
-        primary = next((f for f in FAILURE_PRIORITY if f in flags and f in fail_on), "timeout")
+        primary = next((f for f in FAILURE_PRIORITY if f in observed and f in fail_on), "")
+        if not primary:
+            # fail_on 未列入的观测异常也要如实报，不得一律落成 timeout。
+            primary = next((f for f in FAILURE_PRIORITY if f in observed), "timeout")
 
     metrics = {
         "t_trigger_s": t_trigger,
@@ -320,8 +404,13 @@ def judge_case(columns, params):
         "susp_travel_max_L_m": travel_max_l,
         "susp_travel_max_R_m": travel_max_r,
         "contact_normal_max_n": normal_max,
+        "end_pos_z_m": end_pos_z,
+        "on_platform": None if crossing is None else crossing["ended_on_platform"],
+        "slip_force_exceeded": slip_force,
+        "trigger_source": trigger_source,
+        "crossing": crossing,
     }
-    return _result(
+    result = _result(
         status="ok",
         invalid_reason="",
         flags=flags,
@@ -330,6 +419,8 @@ def judge_case(columns, params):
         passed=passed,
         primary=primary,
     )
+    result["trigger_source"] = trigger_source
+    return result
 
 
 def timeseries_columns_complete(columns):
@@ -392,6 +483,11 @@ def _empty_metrics():
         "susp_travel_max_L_m": None,
         "susp_travel_max_R_m": None,
         "contact_normal_max_n": None,
+        "end_pos_z_m": None,
+        "on_platform": None,
+        "slip_force_exceeded": None,
+        "trigger_source": "",
+        "crossing": None,
     }
 
 
@@ -427,6 +523,20 @@ def _has_active(column, indices):
     return any(column[i] == "1" for i in indices)
 
 
+def _contact_gap(columns, keys, start, stop, step):
+    """区间 [start, stop] 内"所有机体-台阶接触同时为空"的最长连续时长。"""
+    worst = 0.0
+    gap = 0.0
+    for i in range(start, stop + 1):
+        active = any(columns[f"contact_{key}_active"][i] == "1" for key in keys)
+        if active:
+            gap = 0.0
+        else:
+            gap += step
+            worst = max(worst, gap)
+    return worst
+
+
 def _slip_max(speed_rad, vel_x, indices, params):
     radius = params["wheel_radius_m"]
     eps = params["slip_eps_mps"]
@@ -437,6 +547,24 @@ def _slip_max(speed_rad, vel_x, indices, params):
         v_wheel = speed_rad[i] * radius
         out = max(out, abs(v_wheel - vel_x[i]) / max(abs(v_wheel), eps))
     return out
+
+
+def _friction_exceeded(columns, pair_keys, indices, pair_friction):
+    """接触力比 |Ft|/Fn 是否超过台账 μ（缺列/缺参数即输入错误）。"""
+    for key in pair_keys:
+        if key not in pair_friction:
+            raise JudgeError(f"缺接触对 {key} 的摩擦参数")
+        mu = float(pair_friction[key])
+        normals = _floats(columns, f"contact_{key}_normal_n")
+        tangents = _floats(columns, f"contact_{key}_tangent_n")
+        for i in indices:
+            normal = normals[i]
+            tangent = tangents[i]
+            if normal is None or tangent is None or normal <= 0.0:
+                continue
+            if abs(tangent) / normal > mu:
+                return True
+    return False
 
 
 def _stall(vel_x, times, indices, params):

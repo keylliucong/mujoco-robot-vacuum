@@ -41,6 +41,15 @@ def load_params(path):
     for key in ("schema_version", "config_id", "machine", "params"):
         if key not in document:
             raise ParamError(f"{path} 缺键 {key}")
+    prefix = f"{document['machine']}."
+    keys = list(document["params"])
+    prefixed = [param_id for param_id in keys if param_id.startswith(prefix)]
+    if prefixed and len(prefixed) != len(keys):
+        bare = [param_id for param_id in keys if not param_id.startswith(prefix)]
+        raise ParamError(
+            f"{path} 的 param_id 混用机型前缀与裸 id：裸 id {bare[:5]}；"
+            f"整份参数集必须统一用 {prefix!r} 或统一裸 id"
+        )
     for param_id, entry in document["params"].items():
         if "value" not in entry or "label" not in entry or "ref" not in entry:
             raise ParamError(f"{path} 的 {param_id} 缺 value/label/ref")
@@ -58,14 +67,40 @@ def format_number(value):
     return repr(number)
 
 
+def resolve_id(values, machine, param_id):
+    """把模型模板里的裸占位符解析到 v1.8.1 的机型前缀键。
+
+    模型模板是跨机型共用的（`${mass.chassis}`），台账与 params 文件的键从
+    v1.8.1 起是 `<machine>.<id>`。优先取裸 id（历史参数集），否则取当前机型
+    前缀；不跨机型回退，避免把别的机型数值静默填进来。
+    """
+    if param_id in values:
+        return param_id
+    prefixed = f"{machine}.{param_id}"
+    if prefixed in values:
+        return prefixed
+    return None
+
+
+def get_param(params_document, param_id):
+    """按裸 id 或带机型前缀的 id 取参数条目，返回 (键, 条目)。"""
+    values = params_document["params"]
+    key = resolve_id(values, params_document["machine"], param_id)
+    if key is None:
+        raise ParamError(f"参数 {param_id} 在 {params_document['config_id']} 里不存在（不得静默填）")
+    return key, values[key]
+
+
 def render(model_text, params_document):
     values = params_document["params"]
+    machine = params_document["machine"]
 
     def replace(match):
         param_id = match.group(1)
-        if param_id not in values:
+        key = resolve_id(values, machine, param_id)
+        if key is None:
             raise ParamError(f"模型占位 ${{{param_id}}} 在 params 文件里不存在（不得静默填）")
-        return format_number(values[param_id]["value"])
+        return format_number(values[key]["value"])
 
     rendered = PLACEHOLDER.sub(replace, model_text)
     if "${" in rendered:

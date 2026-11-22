@@ -91,784 +91,784 @@
   "inertia_derivation": "uniform_primitive",
   "note": "oomwoo 基准机型参数集。从 PR #13（proto/baseline-cases @ bcb478f）params/oomwoo.json 抽入；结构按 main 的 scripts/params_io.py 改为 params 键、machine=oomwoo。仅作参考资产，未接入 main 的 prototype 基线模型。",
   "params": {
-    "numerics.timestep_s": {
+    "oomwoo.numerics.timestep_s": {
       "value": 0.002,
       "unit": "s",
       "label": "工程假设",
       "ref": "docs/判据/口径裁定记录.md",
       "note": "起步 2 ms；蠕滑基线超限时降 1 ms"
     },
-    "numerics.iterations": {
+    "oomwoo.numerics.iterations": {
       "value": 100,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "未做收敛性专项标定"
     },
-    "numerics.tolerance": {
+    "oomwoo.numerics.tolerance": {
       "value": 1e-08,
       "unit": "-",
       "label": "待标定",
       "ref": "docs/仿真参数表.md",
       "note": "求解容差，非物理量"
     },
-    "numerics.gravity_z": {
+    "oomwoo.numerics.gravity_z": {
       "value": -9.81,
       "unit": "m/s^2",
       "label": "公开参考",
       "ref": "MuJoCo 默认重力",
       "note": "标准重力"
     },
-    "contact.condim": {
+    "oomwoo.contact.condim": {
       "value": 3,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "法向+2切向；升 4/6 需补专项校验"
     },
-    "contact.solref_timeconst": {
+    "oomwoo.contact.solref_timeconst": {
       "value": 0.01,
       "unit": "s",
       "label": "待标定",
       "ref": "docs/仿真参数表.md",
       "note": "MuJoCo 软接触参数"
     },
-    "contact.solref_dampratio": {
+    "oomwoo.contact.solref_dampratio": {
       "value": 1.0,
       "unit": "-",
       "label": "待标定",
       "ref": "docs/仿真参数表.md",
       "note": "MuJoCo 软接触参数"
     },
-    "contact.solimp_0": {
+    "oomwoo.contact.solimp_0": {
       "value": 0.95,
       "unit": "-",
       "label": "待标定",
       "ref": "docs/仿真参数表.md",
       "note": "MuJoCo 软接触参数"
     },
-    "contact.solimp_1": {
+    "oomwoo.contact.solimp_1": {
       "value": 0.99,
       "unit": "-",
       "label": "待标定",
       "ref": "docs/仿真参数表.md",
       "note": "MuJoCo 软接触参数"
     },
-    "contact.solimp_2": {
+    "oomwoo.contact.solimp_2": {
       "value": 0.001,
       "unit": "-",
       "label": "待标定",
       "ref": "docs/仿真参数表.md",
       "note": "MuJoCo 软接触参数"
     },
-    "contact.solimp_3": {
+    "oomwoo.contact.solimp_3": {
       "value": 0.5,
       "unit": "-",
       "label": "待标定",
       "ref": "docs/仿真参数表.md",
       "note": "MuJoCo 软接触参数"
     },
-    "contact.solimp_4": {
+    "oomwoo.contact.solimp_4": {
       "value": 2.0,
       "unit": "-",
       "label": "待标定",
       "ref": "docs/仿真参数表.md",
       "note": "MuJoCo 软接触参数"
     },
-    "contact.mu_wheel_floor_s": {
+    "oomwoo.contact.mu_wheel_floor_s": {
       "value": 0.8,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "橡胶-硬地滑动摩擦，区间 0.6–1.0"
     },
-    "contact.mu_wheel_floor_t": {
+    "oomwoo.contact.mu_wheel_floor_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "扭转摩擦，condim=3 时不参与"
     },
-    "contact.mu_wheel_floor_r": {
+    "oomwoo.contact.mu_wheel_floor_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "滚动摩擦，condim=3 时不参与"
     },
-    "contact.mu_wheel_step_s": {
+    "oomwoo.contact.mu_wheel_step_s": {
       "value": 0.8,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "橡胶-铝制门槛，未实测"
     },
-    "contact.mu_wheel_step_t": {
+    "oomwoo.contact.mu_wheel_step_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "condim=3 时不参与"
     },
-    "contact.mu_wheel_step_r": {
+    "oomwoo.contact.mu_wheel_step_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "condim=3 时不参与"
     },
-    "contact.mu_caster_floor_s": {
+    "oomwoo.contact.mu_caster_floor_s": {
       "value": 0.02,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "从动支撑低摩擦"
     },
-    "contact.mu_caster_floor_t": {
+    "oomwoo.contact.mu_caster_floor_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "condim=3 时不参与"
     },
-    "contact.mu_caster_floor_r": {
+    "oomwoo.contact.mu_caster_floor_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "condim=3 时不参与"
     },
-    "contact.mu_caster_step_s": {
+    "oomwoo.contact.mu_caster_step_s": {
       "value": 0.02,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "从动支撑-门槛，未实测"
     },
-    "contact.mu_caster_step_t": {
+    "oomwoo.contact.mu_caster_step_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "condim=3 时不参与"
     },
-    "contact.mu_caster_step_r": {
+    "oomwoo.contact.mu_caster_step_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "condim=3 时不参与"
     },
-    "contact.mu_chassis_step_s": {
+    "oomwoo.contact.mu_chassis_step_s": {
       "value": 0.3,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "底盘-门槛，仅用于托底接触"
     },
-    "contact.mu_chassis_step_t": {
+    "oomwoo.contact.mu_chassis_step_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "condim=3 时不参与"
     },
-    "contact.mu_chassis_step_r": {
+    "oomwoo.contact.mu_chassis_step_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "condim=3 时不参与"
     },
-    "default.joint_damping": {
+    "oomwoo.default.joint_damping": {
       "value": 0.02,
       "unit": "N*m*s/rad",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "关节阻尼，未辨识"
     },
-    "default.joint_armature": {
+    "oomwoo.default.joint_armature": {
       "value": 0.0002,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "docs/仿真参数表.md",
       "note": "电机/减速器折算惯量，未辨识"
     },
-    "chassis.mass": {
+    "oomwoo.chassis.mass": {
       "value": 2.5,
       "unit": "kg",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "lower_cylinder_mass（含电池等，URDF 未拆分）"
     },
-    "chassis.ipos_x": {
+    "oomwoo.chassis.ipos_x": {
       "value": -0.0048,
       "unit": "m",
       "label": "工程假设",
       "ref": "由公开 CoM 反推",
       "note": "为使整机 CoM 复现 URDF 注释的 +2.2 mm，对 lower_cylinder 质心作 -4.8 mm 偏置；电池/线束未单独建模"
     },
-    "chassis.ipos_z": {
+    "oomwoo.chassis.ipos_z": {
       "value": 0.04575,
       "unit": "m",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "floor_clearance 0.0125 + lower_cylinder_height/2"
     },
-    "chassis.ixx": {
+    "oomwoo.chassis.ixx": {
       "value": 0.0195,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "由 m=2.5、r=0.1745、h=0.0665 的实心圆柱公式计算"
     },
-    "chassis.iyy": {
+    "oomwoo.chassis.iyy": {
       "value": 0.0195,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "同上"
     },
-    "chassis.izz": {
+    "oomwoo.chassis.izz": {
       "value": 0.0372,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "m*r^2/2"
     },
-    "chassis.radius": {
+    "oomwoo.chassis.radius": {
       "value": 0.172,
       "unit": "m",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "body_collision_radius = bumper_face_radius - bumper_lead；未建模保险杠分片"
     },
-    "chassis.height_half": {
+    "oomwoo.chassis.height_half": {
       "value": 0.03325,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "lower_cylinder_height/2"
     },
-    "chassis.center_z": {
+    "oomwoo.chassis.center_z": {
       "value": 0.04575,
       "unit": "m",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "floor_clearance + lower_cylinder_height/2"
     },
-    "wheel.x": {
+    "oomwoo.wheel.x": {
       "value": 0.0,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "轮轴在 base_link x=0"
     },
-    "wheel.track_half": {
+    "oomwoo.wheel.track_half": {
       "value": 0.1175,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "wheel_base 0.235/2"
     },
-    "wheel.z": {
+    "oomwoo.wheel.z": {
       "value": 0.034,
       "unit": "m",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "wheel_diameter/2；URDF 中 base_link + (d/2-floor_clearance)"
     },
-    "wheel.mass": {
+    "oomwoo.wheel.mass": {
       "value": 0.1,
       "unit": "kg",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "wheel_mass"
     },
-    "wheel.ixx": {
+    "oomwoo.wheel.ixx": {
       "value": 3.01e-05,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "m(3r^2+w^2)/12，r=0.034,w=0.012"
     },
-    "wheel.iyy": {
+    "oomwoo.wheel.iyy": {
       "value": 5.78e-05,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "m r^2/2（绕 +y 轮轴）"
     },
-    "wheel.izz": {
+    "oomwoo.wheel.izz": {
       "value": 3.01e-05,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "同 ixx"
     },
-    "wheel.radius": {
+    "oomwoo.wheel.radius": {
       "value": 0.034,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "wheel_diameter 0.068/2"
     },
-    "wheel.halfwidth": {
+    "oomwoo.wheel.halfwidth": {
       "value": 0.006,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "wheel_width 0.012/2"
     },
-    "susp.travel_neg": {
+    "oomwoo.susp.travel_neg": {
       "value": -1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 未公开悬挂",
       "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
-    "susp.travel_pos": {
+    "oomwoo.susp.travel_pos": {
       "value": 1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 未公开悬挂",
       "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
-    "susp.stiffness": {
+    "oomwoo.susp.stiffness": {
       "value": 0.0,
       "unit": "N/m",
       "label": "工程假设",
       "ref": "URDF 未公开悬挂",
       "note": "首版固定铰，不启用弹簧/阻尼"
     },
-    "susp.springref": {
+    "oomwoo.susp.springref": {
       "value": 0.0,
       "unit": "m",
       "label": "工程假设",
       "ref": "由静载反推",
       "note": "首版固定铰，不启用弹簧/阻尼"
     },
-    "susp.damping": {
+    "oomwoo.susp.damping": {
       "value": 0.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "URDF 未公开悬挂",
       "note": "首版固定铰，不启用弹簧/阻尼"
     },
-    "caster.x": {
+    "oomwoo.caster.x": {
       "value": 0.1445,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "base_diameter/2 - caster_inset"
     },
-    "caster.z": {
+    "oomwoo.caster.z": {
       "value": 0.0125,
       "unit": "m",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "caster_diameter/2；URDF base_link + (r-floor_clearance)"
     },
-    "caster.travel_neg": {
+    "oomwoo.caster.travel_neg": {
       "value": -1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 固定球",
       "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
-    "caster.travel_pos": {
+    "oomwoo.caster.travel_pos": {
       "value": 1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 固定球",
       "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
-    "caster.stiffness": {
+    "oomwoo.caster.stiffness": {
       "value": 0.0,
       "unit": "N/m",
       "label": "工程假设",
       "ref": "URDF 固定球",
       "note": "首版固定铰，不启用弹簧/阻尼"
     },
-    "caster.springref": {
+    "oomwoo.caster.springref": {
       "value": 0.0,
       "unit": "m",
       "label": "工程假设",
       "ref": "由静载反推",
       "note": "首版固定铰，不启用弹簧/阻尼"
     },
-    "caster.damping": {
+    "oomwoo.caster.damping": {
       "value": 0.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "URDF 固定球",
       "note": "首版固定铰，不启用弹簧/阻尼"
     },
-    "caster.mass": {
+    "oomwoo.caster.mass": {
       "value": 0.05,
       "unit": "kg",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "caster_mass"
     },
-    "caster.ixx": {
+    "oomwoo.caster.ixx": {
       "value": 3.125e-06,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "实心球 2mr^2/5，r=0.0125"
     },
-    "caster.iyy": {
+    "oomwoo.caster.iyy": {
       "value": 3.125e-06,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "同上"
     },
-    "caster.izz": {
+    "oomwoo.caster.izz": {
       "value": 3.125e-06,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "同上"
     },
-    "caster.radius": {
+    "oomwoo.caster.radius": {
       "value": 0.0125,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "caster_diameter 0.025/2"
     },
-    "lidar.x": {
+    "oomwoo.lidar.x": {
       "value": 0.0745,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "base_diameter/2 - lidar_min_range"
     },
-    "lidar.z": {
+    "oomwoo.lidar.z": {
       "value": 0.088,
       "unit": "m",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "body_top 0.079 + laser_puck_offset 0.009"
     },
-    "lidar.mass": {
+    "oomwoo.lidar.mass": {
       "value": 0.15,
       "unit": "kg",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "laser_puck_mass"
     },
-    "lidar.ixx": {
+    "oomwoo.lidar.ixx": {
       "value": 6.86e-05,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "实心圆柱 m(3r^2+h^2)/12，r=0.0415,h=0.018"
     },
-    "lidar.iyy": {
+    "oomwoo.lidar.iyy": {
       "value": 6.86e-05,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "同上"
     },
-    "lidar.izz": {
+    "oomwoo.lidar.izz": {
       "value": 0.0001292,
       "unit": "kg*m^2",
       "label": "图纸推算",
       "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "m r^2/2"
     },
-    "lidar.radius": {
+    "oomwoo.lidar.radius": {
       "value": 0.0415,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "laser_puck_diameter 0.083/2"
     },
-    "lidar.height_half": {
+    "oomwoo.lidar.height_half": {
       "value": 0.009,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "laser_puck_height 0.018/2"
     },
-    "drive.torque_limit": {
+    "oomwoo.drive.torque_limit": {
       "value": 0.5,
       "unit": "N*m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
       "note": "motor_stall_torque；仅为堵转上限，扭矩-转速曲线未公开"
     },
-    "numerics.timestep_downgrade_s": {
+    "oomwoo.numerics.timestep_downgrade_s": {
       "value": 0.001,
       "unit": "s",
       "label": "工程假设",
       "ref": "docs/判据/口径裁定记录.md",
       "note": "蠕滑基线超限时的降步长目标"
     },
-    "control.kp_nm_per_radps": {
+    "oomwoo.control.kp_nm_per_radps": {
       "value": 0.35,
       "unit": "N*m/(rad/s)",
       "label": "工程假设",
       "ref": "PR #13 scripts/run_cases.py（该实现未并入 main；main 的 #15 入口不读取这些控制项）",
       "note": "轮速 PI 比例增益，未标定"
     },
-    "control.ki_nm_per_rad": {
+    "oomwoo.control.ki_nm_per_rad": {
       "value": 1.2,
       "unit": "N*m/rad",
       "label": "工程假设",
       "ref": "PR #13 scripts/run_cases.py（该实现未并入 main；main 的 #15 入口不读取这些控制项）",
       "note": "轮速 PI 积分增益，未标定"
     },
-    "control.integral_clamp_nm": {
+    "oomwoo.control.integral_clamp_nm": {
       "value": 0.5,
       "unit": "N*m",
       "label": "工程假设",
       "ref": "PR #13 scripts/run_cases.py（该实现未并入 main；main 的 #15 入口不读取这些控制项）",
       "note": "积分限幅，取公开堵转上限"
     },
-    "control.torque_filter_s": {
+    "oomwoo.control.torque_filter_s": {
       "value": 0.03,
       "unit": "s",
       "label": "工程假设",
       "ref": "PR #13 scripts/run_cases.py（该实现未并入 main；main 的 #15 入口不读取这些控制项）",
       "note": "力矩一阶滤波，用于避免指令阶跃"
     },
-    "control.torque_rate_limit_nm_per_s": {
+    "oomwoo.control.torque_rate_limit_nm_per_s": {
       "value": 80.0,
       "unit": "N*m/s",
       "label": "工程假设",
       "ref": "PR #13 scripts/run_cases.py（该实现未并入 main；main 的 #15 入口不读取这些控制项）",
       "note": "力矩速率限幅"
     },
-    "ref.base_diameter": {
+    "oomwoo.ref.base_diameter": {
       "value": 0.349,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "轮式机身直径；注释：源自 Proscenic M6 Pro"
     },
-    "ref.body_height": {
+    "oomwoo.ref.body_height": {
       "value": 0.079,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "机身顶面高度（不含 LiDAR 塔）"
     },
-    "ref.body_height_with_lidar": {
+    "oomwoo.ref.body_height_with_lidar": {
       "value": 0.097,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "含 LiDAR 塔的整机高度"
     },
-    "ref.wheel_diameter": {
+    "oomwoo.ref.wheel_diameter": {
       "value": 0.068,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "驱动轮直径"
     },
-    "ref.wheel_width": {
+    "oomwoo.ref.wheel_width": {
       "value": 0.012,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "驱动轮宽度"
     },
-    "ref.wheel_base": {
+    "oomwoo.ref.wheel_base": {
       "value": 0.235,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "实测轮距；桥接固件用 0.233 m"
     },
-    "ref.caster_diameter": {
+    "oomwoo.ref.caster_diameter": {
       "value": 0.025,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "前从动支撑直径"
     },
-    "ref.caster_inset": {
+    "oomwoo.ref.caster_inset": {
       "value": 0.03,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "从动支撑中心到机身边缘"
     },
-    "ref.floor_clearance": {
+    "oomwoo.ref.floor_clearance": {
       "value": 0.0125,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "底盘最小离地间隙"
     },
-    "ref.lower_cylinder_height": {
+    "oomwoo.ref.lower_cylinder_height": {
       "value": 0.0665,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "下部圆柱机身高度"
     },
-    "ref.laser_puck_height": {
+    "oomwoo.ref.laser_puck_height": {
       "value": 0.018,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "LiDAR 塔高度"
     },
-    "ref.laser_puck_diameter": {
+    "oomwoo.ref.laser_puck_diameter": {
       "value": 0.083,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "LiDAR 塔直径"
     },
-    "ref.lower_cylinder_mass": {
+    "oomwoo.ref.lower_cylinder_mass": {
       "value": 2.5,
       "unit": "kg",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "下部圆柱机身质量（含电池等，URDF 未拆分）"
     },
-    "ref.wheel_mass": {
+    "oomwoo.ref.wheel_mass": {
       "value": 0.1,
       "unit": "kg",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "单只驱动轮质量"
     },
-    "ref.caster_mass": {
+    "oomwoo.ref.caster_mass": {
       "value": 0.05,
       "unit": "kg",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "从动支撑质量"
     },
-    "ref.laser_puck_mass": {
+    "oomwoo.ref.laser_puck_mass": {
       "value": 0.15,
       "unit": "kg",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "LiDAR 塔质量"
     },
-    "ref.motor_stall_torque": {
+    "oomwoo.ref.motor_stall_torque": {
       "value": 0.5,
       "unit": "N*m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "轮端堵转扭矩上限"
     },
-    "ref.max_linear_acceleration": {
+    "oomwoo.ref.max_linear_acceleration": {
       "value": 1.0,
       "unit": "m/s^2",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "URDF 参数中的最大线加速度"
     },
-    "chassis.com_B_x_public": {
+    "oomwoo.chassis.com_B_x_public": {
       "value": 0.0022,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "URDF 注释按质量×位置算出的全机 x_cg；LiDAR 塔居中时为 -1.6 mm"
     },
-    "chassis.com_B_x_lidar_centered": {
+    "oomwoo.chassis.com_B_x_lidar_centered": {
       "value": -0.0016,
       "unit": "m",
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "LiDAR 塔居中时的 x_cg；用于敏感性对照"
     },
-    "caster_rear.x": {
+    "oomwoo.caster_rear.x": {
       "value": -0.1445,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "后从动支撑位置；为数值稳定新增"
     },
-    "caster_rear.z": {
+    "oomwoo.caster_rear.z": {
       "value": 0.0125,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "后从动支撑，镜像前支撑；为数值稳定新增"
     },
-    "caster_rear.travel_neg": {
+    "oomwoo.caster_rear.travel_neg": {
       "value": -1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
-    "caster_rear.travel_pos": {
+    "oomwoo.caster_rear.travel_pos": {
       "value": 1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
-    "caster_rear.stiffness": {
+    "oomwoo.caster_rear.stiffness": {
       "value": 0.0,
       "unit": "N/m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "首版固定铰，不启用弹簧/阻尼"
     },
-    "caster_rear.springref": {
+    "oomwoo.caster_rear.springref": {
       "value": 0.0,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "首版固定铰，不启用弹簧/阻尼"
     },
-    "caster_rear.damping": {
+    "oomwoo.caster_rear.damping": {
       "value": 0.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "首版固定铰，不启用弹簧/阻尼"
     },
-    "caster_rear.mass": {
+    "oomwoo.caster_rear.mass": {
       "value": 0.05,
       "unit": "kg",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "后从动支撑，镜像前支撑；为数值稳定新增"
     },
-    "caster_rear.ixx": {
+    "oomwoo.caster_rear.ixx": {
       "value": 3.125e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "后从动支撑，镜像前支撑；为数值稳定新增"
     },
-    "caster_rear.iyy": {
+    "oomwoo.caster_rear.iyy": {
       "value": 3.125e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "后从动支撑，镜像前支撑；为数值稳定新增"
     },
-    "caster_rear.izz": {
+    "oomwoo.caster_rear.izz": {
       "value": 3.125e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "后从动支撑，镜像前支撑；为数值稳定新增"
     },
-    "caster_rear.radius": {
+    "oomwoo.caster_rear.radius": {
       "value": 0.0125,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "后从动支撑，镜像前支撑；为数值稳定新增"
     },
-    "control.approach_accel_mps2": {
+    "oomwoo.control.approach_accel_mps2": {
       "value": 0.05,
       "unit": "m/s^2",
       "label": "工程假设",

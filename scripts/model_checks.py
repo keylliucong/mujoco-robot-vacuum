@@ -93,7 +93,45 @@ class ModelCheckError(AssertionError):
     """A1–A5 任一不过。"""
 
 
-def load_ledger(path):
+class Ledger(dict):
+    """台账行视图：param_id 在 v1.8.1 起为 `<machine>.<量名>`。
+
+    脚本内部一律按裸量名（如 `mass.assembly`）取用；前缀解析只在读取层做一次，
+    调用点不再重复拼前缀。裸 id 本身若存在则优先；否则先试当前机型前缀，最后
+    只在后缀全局唯一时回退，避免把 own/oomwoo 的同名行混进来。
+    """
+
+    def __init__(self, rows, machine=None):
+        super().__init__(rows)
+        self.machine = machine
+
+    def resolve(self, key):
+        if dict.__contains__(self, key):
+            return key
+        if self.machine:
+            prefixed = f"{self.machine}.{key}"
+            if dict.__contains__(self, prefixed):
+                return prefixed
+        suffix = "." + key
+        candidates = [name for name in dict.keys(self) if name.endswith(suffix)]
+        if len(candidates) == 1:
+            return candidates[0]
+        return key
+
+    def __getitem__(self, key):
+        return dict.__getitem__(self, self.resolve(key))
+
+    def __contains__(self, key):
+        return dict.__contains__(self, self.resolve(key))
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+
+def load_ledger(path, machine=None):
     rows = {}
     with open(path, newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
@@ -112,7 +150,7 @@ def load_ledger(path):
             raise ModelCheckError(f"台账列不是契约 9 列：{reader.fieldnames}")
         for row in reader:
             rows[row["param_id"]] = row
-    return rows
+    return Ledger(rows, machine)
 
 
 def ledger_value(ledger, param_id):

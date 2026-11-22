@@ -205,7 +205,7 @@ def load_model_stack(config, config_id, skip_checks):
     base_data = mujoco.MjData(base_model)
     mujoco.mj_forward(base_model, base_data)
 
-    ledger, _labels = run_cases.load_ledger_rows()
+    ledger, _labels = run_cases.load_ledger_rows(params_document["machine"])
     if skip_checks:
         print("[view] 已跳过 A1–A5 与台账比对（--skip-checks）")
     else:
@@ -258,11 +258,12 @@ def floor_clearance_m(model, data, params_document):
     except Exception:
         pass
     try:
-        values = params_document["params"]
-        pos_z = float(values["geom.chassis.pos_z"]["value"])
-        half = float(values["geom.chassis.half_height"]["value"])
+        pos_z = float(params_io.get_param(params_document, "geom.chassis.pos_z")[1]["value"])
+        half = float(
+            params_io.get_param(params_document, "geom.chassis.half_height")[1]["value"]
+        )
         return pos_z - half, "params"
-    except (KeyError, TypeError, ValueError):
+    except (KeyError, TypeError, ValueError, params_io.ParamError):
         return 0.0125, "default"
 
 
@@ -368,7 +369,7 @@ class Session:
             stack["base_model"], stack["base_data"], self.params_document
         )
         self.gravity = abs(
-            float(self.params_document["params"].get("gravity.z", {}).get("value", -9.81))
+            float(params_io.get_param(self.params_document, "gravity.z")[1].get("value", -9.81))
         )
         kind = config["scenario"]["kind"]
         obstacle = config["scenario"].get("obstacle", {})
