@@ -117,7 +117,7 @@ wheel.damping_nms,models/baseline.xml:/worldbody/body[@name='chassis']/body[@nam
 wheel.armature_kgm2,models/baseline.xml:/worldbody/body[@name='chassis']/body[@name='wheel_L']/joint[@name='wheel_L_spin']@armature,5e-05,kg*m^2,工程假设,machine=prototype; 轮轴转子惯量假设,,,
 actuator.torque_limit_nm,models/baseline.xml:/actuator/motor[@name='wheel_L']@forcerange[1],0.8,N*m,工程假设,machine=prototype; 轮端扭矩上限假设；本机轮端扭矩缺失，非实测,,,
 contact.friction_s,models/baseline.xml:/default/geom@friction[0],0.8,-,工程假设,machine=prototype; 干态橡胶-硬地滑动摩擦起始值,,,
-contact.friction_t,models/baseline.xml:/default/geom@friction[1],0.02,-,工程假设,machine=prototype; 切向第二方向摩擦起始值,,,
+contact.friction_t,models/baseline.xml:/default/geom@friction[1],0.8,-,工程假设,machine=prototype; 切向第二方向摩擦；MuJoCo 的接触切向轴可能与滚动方向对齐，第二方向取 0.02 会让轮子空转，故取各向同性 0.8,,,
 contact.friction_r,models/baseline.xml:/default/geom@friction[2],0.001,-,工程假设,machine=prototype; 扭转摩擦（condim=3 时未引用）,,,
 contact.condim,models/baseline.xml:/default/geom@condim,3.0,-,工程假设,machine=prototype; v1 只用 condim=3；4/6 的 res[3..5] 未经专项校验不得引用,,,
 contact.solref_timeconst_s,models/baseline.xml:/default/geom@solref[0],0.01,s,待标定,machine=prototype; MuJoCo 软接触时间常数；须按冲击响应标定,,,

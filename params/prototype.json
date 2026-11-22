@@ -252,10 +252,10 @@
       "ref": "machine=prototype; 干态橡胶-硬地滑动摩擦起始值"
     },
     "contact.friction_t": {
-      "value": 0.02,
+      "value": 0.8,
       "unit": "-",
       "label": "工程假设",
-      "ref": "machine=prototype; 切向第二方向摩擦起始值"
+      "ref": "machine=prototype; 切向第二方向摩擦；MuJoCo 的接触切向轴可能与滚动方向对齐，第二方向取 0.02 会让轮子空转，故取各向同性 0.8"
     },
     "contact.friction_r": {
       "value": 0.001,
