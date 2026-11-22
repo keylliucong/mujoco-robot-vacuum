@@ -65,7 +65,7 @@
 
       <!-- G2.5 参数化前下缘：胶囊轴线沿 +y，圆心 (overhang, 0, height+geom_radius)。
            最低点 = height；radius>0 时最前点 = overhang+radius，先于壳体直角底边接触。
-           摩擦/condim 由 cases/*.json 的 chassis--step / chassis--floor pair 给出，
+           摩擦/condim 由 cases/*.json 的 chassis 对 step / floor 的 pair 给出，
            不在此写 geom 级 pair 摩擦（v1.8.3 / S24）。 -->
       <geom name="chassis_front_lip" type="capsule"
             size="${front_lip.geom_radius_m} ${front_lip.half_width_m}"
