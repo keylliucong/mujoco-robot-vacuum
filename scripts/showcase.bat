@@ -59,22 +59,20 @@ rem ---------------------------------------------------------------- 2. menu
 :menu
 set "CHOICE="
 set "EXTRA="
-if not "%~1"=="" (
-  echo %~1| findstr /r "^[1-5qQ]$" >nul
-  if not errorlevel 1 (
-    set "CHOICE=%~1"
-    shift
-  )
-)
+if "%~1"=="" goto :show_menu
+echo %~1| findstr /r "^[1-5qQ]$" >nul
+if errorlevel 1 goto :collect_extra
+set "CHOICE=%~1"
+shift
 :collect_extra
-if not "%~1"=="" (
-  set "EXTRA=%EXTRA% %1"
-  shift
-  goto :collect_extra
-)
-
+if "%~1"=="" goto :after_collect
+set "EXTRA=%EXTRA% %1"
+shift
+goto :collect_extra
+:after_collect
 if not "%CHOICE%"=="" goto :dispatch
 
+:show_menu
 echo.
 echo MuJoCo showcase - choose a case (no need to remember case names)
 echo.
@@ -96,10 +94,7 @@ if "%CHOICE%"=="3" set "VIEWARGS=--case cases/oomwoo_g25_step20.json --config oo
 if "%CHOICE%"=="4" set "VIEWARGS=--case cases/oomwoo_g25_step30.json --config oomwoo_g25 --speed 0.25"
 if "%CHOICE%"=="5" set "VIEWARGS=--case cases/baseline.json --config proto_v1 --speed 0.25"
 if /i "%CHOICE%"=="q" goto :quit
-if not defined VIEWARGS (
-  echo [showcase] invalid choice: %CHOICE% (expected 1-5 or q)
-  goto :fail
-)
+if not defined VIEWARGS goto :invalid
 
 echo [showcase] equivalent command: scripts\view.py %VIEWARGS%%EXTRA%
 echo [showcase] in the window: drag=rotate / wheel=zoom / Space=pause or step / Esc=exit
@@ -108,6 +103,10 @@ echo.
 set "RC=%errorlevel%"
 popd >nul
 exit /b %RC%
+
+:invalid
+echo [showcase] invalid choice: %CHOICE% - expected 1-5 or q
+goto :fail
 
 :quit
 echo [showcase] quit
