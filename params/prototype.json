@@ -240,10 +240,10 @@
       "ref": "machine=prototype; 原型悬挂阻尼假设；与 2000 N/m 配合静置零蠕滑"
     },
     "susp.travel_limit_m": {
-      "value": 0.006,
+      "value": 0.012,
       "unit": "m",
       "label": "工程假设",
-      "ref": "machine=prototype; 单侧压缩行程上限（±6 mm）"
+      "ref": "machine=prototype; 单侧压缩行程上限（±12 mm）；6 mm 时静置 5 mm + 爬升峰值会撞限位"
     },
     "wheel.frictionloss_nm": {
       "value": 0.002,
