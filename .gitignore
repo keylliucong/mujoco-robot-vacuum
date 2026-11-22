@@ -7,6 +7,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 outputs/
+MUJOCO_LOG.TXT
 logs/
 data/private/
 refs/

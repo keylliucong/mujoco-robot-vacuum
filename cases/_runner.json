@@ -22,7 +22,7 @@
     "recover_tail_s": 0.2
   },
   "tolerances": {
-    "slip_eps_mps": 1e-06,
+    "slip_eps_mps": 0.02,
     "torque_saturation_rel": 1e-06,
     "susp_bottom_rel": 0.999,
     "climb_height_ratio": 0.9,
