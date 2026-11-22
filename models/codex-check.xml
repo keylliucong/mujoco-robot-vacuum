@@ -1,0 +1,49 @@
+<mujoco model="codex-check">
+  <!-- Contact fields inherit MuJoCo defaults. The lidar puck alone has collision disabled. -->
+  <worldbody>
+    <!-- Engineering setup: +X forward, +Y left, +Z up; floor z=0. -->
+    <geom name="floor" type="plane" size="2 2 0.1"/>
+    <!-- Task: default 10 mm step, 1.20 m long and 1.20 m wide (engineering setup).
+         Front edge x=0; height is replaced by scripts/codex_run.py. -->
+    <geom name="step" type="box" size="0.60 0.60 0.005" pos="0.60 0 0.005"/>
+    <!-- Engineering approach origin x=-0.45 m.
+         makerspet/oomwoo-one/urdf/params.xacro:17 (z=0.0125 m at the chassis bottom). -->
+    <body name="chassis" pos="-0.45 0 0.0125">
+      <freejoint/>
+      <!-- makerspet/oomwoo-one/urdf/params.xacro:18,22,48.
+           Uniform cylinder, radius and half-height are half of source dimensions. -->
+      <geom name="belly" type="cylinder" pos="0 0 0.03325" size="0.1745 0.03325" mass="2.5"/>
+      <!-- makerspet/oomwoo-one/urdf/params.xacro:20-29,30-43,52.
+           x=0.349/2-0.1 m; z=0.0665+0.009 m; uniform cylinder. The mass affects balance.
+           Collision disabled explicitly as an engineering simplification. -->
+      <geom name="lidar_mass" type="cylinder" pos="0.0745 0 0.0755" size="0.0415 0.009"
+            mass="0.15" contype="0" conaffinity="0"/>
+      <!-- makerspet/oomwoo-one/urdf/params.xacro:7-10,17,19,51.
+           Axle x=0, wheel y=+/-0.235/2, z=0.068/2-0.0125. -->
+      <body name="left" pos="0 0.1175 0.0215">
+        <joint name="left_roll" type="hinge" axis="0 1 0"/>
+        <geom name="left_tire" type="cylinder" size="0.034 0.006" mass="0.1"
+              fromto="0 -0.006 0 0 0.006 0"/>
+      </body>
+      <!-- makerspet/oomwoo-one/urdf/params.xacro:7-10,17,19,51 (right-side mirror). -->
+      <body name="right" pos="0 -0.1175 0.0215">
+        <joint name="right_roll" type="hinge" axis="0 1 0"/>
+        <geom name="right_tire" type="cylinder" size="0.034 0.006" mass="0.1"
+              fromto="0 -0.006 0 0 0.006 0"/>
+      </body>
+      <!-- makerspet/oomwoo-one/urdf/params.xacro:11-19,49-50.
+           x=0.349/2-0.030 m; z=0.025/2-0.0125 m.
+           Engineering simplification: passive ball joint and solid sphere as a caster surrogate. -->
+      <body name="caster" pos="0.1445 0 0">
+        <joint name="caster_roll" type="ball"/>
+        <geom name="caster_tire" type="sphere" size="0.0125" mass="0.05"/>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <!-- makerspet/oomwoo-one/urdf/params.xacro:45-46.
+         Engineering simplification: direct joint torque with 0.5 N*m saturation per wheel. -->
+    <motor name="left_motor" joint="left_roll" gear="1" ctrllimited="true" ctrlrange="-0.5 0.5"/>
+    <motor name="right_motor" joint="right_roll" gear="1" ctrllimited="true" ctrlrange="-0.5 0.5"/>
+  </actuator>
+</mujoco>
