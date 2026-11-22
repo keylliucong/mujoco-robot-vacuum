@@ -484,8 +484,12 @@ def check_s12(run_integration):
             "--out",
             str(target),
         ]
-        first = subprocess.run(command, capture_output=True, text=True)
-        second = subprocess.run(command, capture_output=True, text=True)
+        first = subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
+        second = subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         ok = first.returncode == 0 and second.returncode != 0
         add("S12", ok, f"首次 rc={first.returncode}，重复 rc={second.returncode}（应非 0）")
     finally:
@@ -1489,7 +1493,9 @@ def integration_checks():
             "--repeat",
             "2",
         ]
-        result = subprocess.run(command, capture_output=True, text=True)
+        result = subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         ok = result.returncode == 0
         run_json = json.loads(read_text(base_out / "run.json")) if ok else {}
         add(
@@ -1510,6 +1516,8 @@ def integration_checks():
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         topple_ok = False
         detail = f"topple 负例运行失败 rc={topple_result.returncode}: {topple_result.stderr[-300:]}"
@@ -1554,6 +1562,8 @@ def integration_checks():
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         same_model = True
         if height_result.returncode == 0:
