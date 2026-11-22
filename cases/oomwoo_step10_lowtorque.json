@@ -1,0 +1,145 @@
+{
+  "schema_version": "1.0",
+  "case_id": "oomwoo_step10_lowtorque",
+  "model": {
+    "path": "models/oomwoo.xml",
+    "sha256": "0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e"
+  },
+  "scenario": {
+    "kind": "step",
+    "obstacle": {
+      "shape": "box",
+      "height_m": 0.01,
+      "edge_radius_m": 0.0,
+      "top_width_m": 1.2
+    },
+    "heading_deg": 0.0,
+    "approach": {
+      "speed_mps": 0.15,
+      "start_distance_m": 0.5,
+      "settle_s": 1.0,
+      "settle_tol_mps": 0.02
+    }
+  },
+  "environment": {
+    "pairs": {
+      "wheel_L--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_R--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "caster--floor": {
+        "friction": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--floor": {
+        "friction": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_L--step": {
+        "friction": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_R--step": {
+        "friction": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "caster--step": {
+        "friction": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--step": {
+        "friction": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      }
+    }
+  },
+  "drive": {
+    "channels": {
+      "wheel_L": {
+        "torque_limit_nm": 0.15
+      },
+      "wheel_R": {
+        "torque_limit_nm": 0.15
+      }
+    }
+  },
+  "numerics": {
+    "timestep_s": 0.002,
+    "integrator": "implicitfast",
+    "solver": "Newton",
+    "cone": "pyramidal",
+    "iterations": 100
+  },
+  "judge": {
+    "window_s": 8.0,
+    "fail_on": [
+      "topple",
+      "retreat",
+      "belly_contact",
+      "timeout",
+      "stall"
+    ],
+    "min_advance_body_lengths": 1.0,
+    "recover_speed_ratio": 0.8,
+    "recover_hold_s": 0.3,
+    "stall": {
+      "speed_mps": 0.01,
+      "duration_s": 1.0
+    },
+    "tilt": {
+      "pitch_deg": 25.0,
+      "roll_deg": 15.0
+    },
+    "slip_ratio": 0.3,
+    "contact_normal_min_n": 0.5
+  },
+  "seed": 0,
+  "regression_expect": {
+    "passed": false
+  },
+  "notes": "预期失败算例：10 mm 台阶 + 轮端限扭 0.15 N·m（该机型失速扭矩 0.5 N·m 的 30%），轮子会接触台阶但不足以抬起。用于核对 stall / torque_limit 失败分类与回归，不作通过结论。本 case 是 G2 试跑 case（8f76d00、cf14f1d）的恢复，只改三处到 main 现状：model.sha256 换成 G2.5 带参数化前下缘的 oomwoo.xml、scenario.approach.settle_tol_mps 0.15→0.02（与 cases/oomwoo_step10_dt2ms.json 同口径）、config_id=oomwoo_g25；几何、接触对、数值、judge、限扭值与历史逐字相同。config_id=oomwoo_g25。"
+}

@@ -22,28 +22,30 @@ cd /path/to/mujoco-robot-vacuum
 ## ② 之后直接带参数跑
 
 ```bash
-./scripts/view.sh --case step_20mm --config oomwoo --speed 0.25
+./scripts/view.sh --case step_20mm --config oomwoo_g25 --speed 0.25
 ```
 
 可用工况（`--case`）：
 
-| 预设 | 内容 | h 与 12.5 mm 壳体离地 |
+| 预设 | 内容 | case 文件（参数集） |
 | --- | --- | --- |
-| `flat` | 平地直行，无台阶 | — |
-| `step_10mm` | 正向台阶 10 mm | 低于离地间隙 |
-| `step_20mm` | 正向台阶 20 mm（`oomwoo_step20_casterblock`） | **高于**离地间隙 |
-| `step_30mm` | 正向台阶 30 mm（由 20 mm case 在内存里改高度注入） | **高于**离地间隙 |
-| `step_10mm_lowtorque` | 10 mm + 限扭 0.15 N·m，预期失败 | 低于离地间隙 |
-| `oblique_30deg` | 斜向 30° 接近 20 mm 台阶（原型机 `baseline.xml`，参数集 `proto_v1`） | 原型机离地 40 mm |
-| `slope_30deg` | 30° 等效斜面静置观测（重力绕 +y 旋转，不驱动，`slope_hold.py` 口径） | — |
+| `flat` | 平地直行，无台阶 | `cases/flat.json`（`proto_v1`） |
+| `step_10mm` | 正向台阶 10 mm，低于 12.5 mm 壳体离地，驱动轮主导 | `cases/oomwoo_step10_dt2ms.json`（`oomwoo_g25`） |
+| `step_20mm` | 正向台阶 20 mm，**高于**壳体离地（G2.5 起带参数化前下缘） | `cases/oomwoo_g25_step20.json`（`oomwoo_g25`） |
+| `step_30mm` | 正向台阶 30 mm，**高于**壳体离地 | `cases/oomwoo_g25_step30.json`（`oomwoo_g25`） |
+| `step_10mm_lowtorque` | 10 mm + 轮端限扭 0.15 N·m，预期失败算例 | `cases/oomwoo_step10_lowtorque.json`（`oomwoo_g25`） |
+| `oblique_30deg` | 斜向 30° 接近 20 mm 台阶（原型机 `baseline.xml`，离地 40 mm） | `cases/step_oblique_plus30.json`（`proto_v1`） |
+| `slope_30deg` | 30° 等效斜面静置观测（重力绕 +y 旋转，不驱动，`slope_hold.py` 口径）——**当前不可用** | 指向 `cases/oomwoo_flat.json`，该文件在 main 上不存在 |
 
-也可以直接给一个 case JSON 路径：`--case cases/oomwoo_step10.json`。
+参数集跟 case 走：OOMWOO 工况统一是 `oomwoo_g25`（case 的 `notes` 里写的就是 `config_id=oomwoo_g25`）。旧文档里的 `--config oomwoo` 指 `params/oomwoo.json`，那套装配配置与现在所有 oomwoo case 都对不上，会直接被拒绝运行（见下）。
+
+也可以直接给一个 case JSON 路径：`--case cases/oomwoo_step10_dt2ms.json`。
 
 常用参数：
 
 | 参数 | 默认 | 说明 |
 | --- | --- | --- |
-| `--config` | 跟随 case 声明的 `config_id`（OOMWOO 工况即 `oomwoo`） | 参数集 `params/<config_id>.json`；显式给了就必须与 case 一致，不一致直接报错 |
+| `--config` | 跟随 case 声明的 `config_id`（OOMWOO 工况即 `oomwoo_g25`） | 参数集 `params/<config_id>.json`；显式给了就必须与 case 一致，不一致直接报错 |
 | `--mode` | `live` | `live` 实时 / `step` 按空格单步 |
 | `--speed` | `1` | `live` 倍速：`0.25` 慢放看接触、`1` 实时、`4` 快进 |
 | `--step-size-s` | 1 个时间步（2 ms） | `step` 模式每按一次空格推进的仿真秒数 |
@@ -115,13 +117,13 @@ h > 12.5 mm 时前下缘接触已被建模：viewer 不再显示「未覆盖」�
 **实时看全过程**（推荐先跑这个）：
 
 ```bash
-./scripts/view.sh --case flat --config oomwoo --speed 1
+./scripts/view.sh --case flat --config proto_v1 --speed 1
 ```
 
 **单步看接触瞬间**（轮子刚碰到台阶棱边那一下）：
 
 ```bash
-./scripts/view.sh --case step_10mm --config oomwoo --mode step
+./scripts/view.sh --case step_10mm --config oomwoo_g25 --mode step
 ```
 
 `step` 模式起跑就是暂停的，每按一次空格推进 1 个时间步（2 ms）。想快一点加 `--step-size-s 0.05`（每次 25 步）。
@@ -144,7 +146,7 @@ git pull --ff-only
 git rev-parse HEAD
 
 # 首次同样会自动建 .venv（Windows 用 py -3.13，不加 mjpython）
-scripts\view.bat --case step_10mm --config oomwoo --speed 1
+scripts\view.bat --case step_10mm --config oomwoo_g25 --speed 1
 ```
 
 `view.bat` 与 `view.sh` 逻辑一致：没有 `.venv\Scripts\python.exe` 就先建环境装 `requirements.lock.txt`，然后 `python scripts\view.py`。参数完全相同；`chcp 65001` 已设好，中文 HUD 不会乱码。
@@ -156,6 +158,6 @@ scripts\view.bat --case step_10mm --config oomwoo --speed 1
 - **不开窗口先查链路**：`./scripts/view.sh --case flat --headless 5` 跑 5 s 仿真、打 HUD 和摘要，不开 GL 窗口。
 - **窗口没出现 / 报 `requires mjpython`**：macOS 手动跑时必须用 `.venv/bin/mjpython`；`view.sh` 已自动处理。
 - **黑屏或很卡**：`--speed 0.25` 降速；HD 屏可以缩小窗口。倍速只是目标值，实际受渲染帧率限制——本机实测（macOS 27.2.1 / M 系）`--speed 4` 大约只能跑到 1.5x，`0.25` 和 `1` 都能到位。
-- **`--config` 报不一致**：case 的 `notes` 里写了 `config_id=`，不传 `--config` 时会自动用它；一旦显式传了就必须相同（S21 契约），例如 `--case oblique_30deg --config oomwoo` 会直接报错，去掉 `--config` 或写 `--config proto_v1` 才对。
+- **`--config` 报不一致**：case 的 `notes` 里写了 `config_id=`，不传 `--config` 时会自动用它；一旦显式传了就必须相同（S21 契约），例如 `--case oblique_30deg --config oomwoo_g25` 会直接报错，去掉 `--config` 或写 `--config proto_v1` 才对。**S21 是拒绝运行，不是警告**：`--config` 与 case 的 `config_id` 不一致、参数集 `params/<id>.json` 的 `config_id` 与 case 不一致、或模型文件 sha256 与 case 声明不符，viewer 一律在开窗前抛 `ViewError`、以退出码 2 结束；批运行（`run_cases.py` / `run_oomwoo.py`）同样整批非 0 退出且不产 `summary.csv`。不会悄悄换一套参数或模型继续跑，所以报错时先核对 case 的 `config_id=`，别改数值硬凑。
 - **首次建环境失败**：多半是网络或 Python 版本；`.venv/` 可整个删掉重来，仓库里不会残留其它文件。
 - **判定的`passed`只看 `fail_on`**：`slip`、`torque_limit`、`bottom_out` 不在本 case 的 `fail_on` 里时会出现在 `flags` 但不改变 `passed`，这是契约行为，不是 viewer 的问题。
