@@ -904,6 +904,45 @@ def check_s24():
     )
 
 
+def check_s25():
+    """S25（v1.9.0）：契约枚举 / 取名顺序与代码三处一致，展示标签不入输出列。"""
+    import judge
+    import run_cases
+
+    problems = []
+    doc = read_text(REPO_ROOT / "docs" / "契约" / "G2-接口契约.md")
+    enum_match = re.search(r"枚举冻结（v1\.9\.0 起 12 项）：`([^`]+)`", doc)
+    order_match = re.search(
+        r"（v1\.9\.0 起写进契约，与 `judge\.FAILURE_PRIORITY` 同序）：`([^`]+)`", doc
+    )
+    if not enum_match or not order_match:
+        problems.append("契约缺 v1.9.0 枚举/取名顺序句")
+    else:
+        contract_enum = enum_match.group(1).split()
+        contract_order = [part.strip() for part in order_match.group(1).split("→")]
+        if len(contract_enum) != 12:
+            problems.append(f"契约枚举 {len(contract_enum)} 项（应为 12）")
+        if set(contract_enum) != FAILURE_ENUM:
+            problems.append("契约枚举 != verify_structure.FAILURE_ENUM")
+        if set(contract_enum) != set(run_cases.FAILURE_ENUM):
+            problems.append("契约枚举 != run_cases.FAILURE_ENUM")
+        if set(contract_enum) != set(judge.FAILURE_PRIORITY):
+            problems.append("契约枚举 != judge.FAILURE_PRIORITY")
+        if tuple(contract_order) != judge.FAILURE_PRIORITY:
+            problems.append("契约取名顺序 != judge.FAILURE_PRIORITY")
+    for label in ("cleared", "blocked", "lift_fail", "slip_stall"):
+        if label in run_cases.SUMMARY_COLUMNS or label in run_cases.TIMESERIES_COLUMNS:
+            problems.append(f"展示标签 {label!r} 进了输出列")
+
+    add(
+        "S25",
+        not problems,
+        "契约 12 枚举 == run_cases == judge，取名顺序一致；展示标签未入输出列"
+        if not problems
+        else "；".join(problems),
+    )
+
+
 def check_negative_configs():
     """抽查 2/3：flat 带 obstacle、含 expected 的配置必须报错。"""
     if not HAVE_MUJOCO:
@@ -1128,7 +1167,39 @@ def check_judge_unit_tests():
     if verdict_over["metrics"].get("slip_force_exceeded") is not True:
         problems.append("|Ft|/Fn 超容差仍未触发 slip_force_exceeded")
 
-    add("抽查4/6", not problems, "pitch 单位=度（50° 触发 topple）、绕行/骑棱边不通过、无接触双断言、fail_on 单点生效、|Ft|/Fn=μ+1e-9 不触发且超容差触发" if not problems else "；".join(problems))
+    # 抽查19：belly_contact 默认只诊断；加入 fail_on 后结论必须翻转
+    # （cross_fail 已由 §3.1 越线条件直接令 passed=0，不靠 fail_on 才生效）
+    belly = {name: list(values) for name, values in columns.items()}
+    for i, t in enumerate(belly["t_s"]):
+        for prefix in ("wheel_L--step", "wheel_R--step"):
+            belly[f"contact_{prefix}_active"][i] = "0"
+            belly[f"contact_{prefix}_normal_n"][i] = ""
+            belly[f"contact_{prefix}_tangent_n"][i] = ""
+            belly[f"contact_{prefix}_count"][i] = "0"
+        active = "1" if t >= 0.2 else "0"
+        belly["contact_chassis--step_active"][i] = active
+        belly["contact_chassis--step_normal_n"][i] = "5.0" if active == "1" else ""
+        belly["contact_chassis--step_tangent_n"][i] = "0.5" if active == "1" else ""
+        belly["contact_chassis--step_count"][i] = "1" if active == "1" else "0"
+    verdict_belly = judge.judge_case(belly, params)
+    if verdict_belly["passed"] != 1 or "belly_contact" not in verdict_belly["failure_flags"]:
+        problems.append(
+            f"belly_contact 默认应只诊断：passed={verdict_belly['passed']} "
+            f"flags={verdict_belly['failure_flags']}"
+        )
+    belly_params = dict(params)
+    belly_params["fail_on"] = list(params["fail_on"]) + ["belly_contact"]
+    verdict_belly_fail = judge.judge_case(belly, belly_params)
+    if (
+        verdict_belly_fail["passed"] != 0
+        or verdict_belly_fail["failure_primary"] != "belly_contact"
+    ):
+        problems.append(
+            f"belly_contact 入 fail_on 未翻转：passed={verdict_belly_fail['passed']} "
+            f"primary={verdict_belly_fail['failure_primary']}"
+        )
+
+    add("抽查4/6/19", not problems, "pitch 单位=度（50° 触发 topple）、绕行/骑棱边不通过、无接触双断言、fail_on 单点生效、|Ft|/Fn=μ+1e-9 不触发且超容差触发、belly_contact 入 fail_on 翻转" if not problems else "；".join(problems))
 
 
 def check_run_outputs(root=None):
@@ -1280,6 +1351,7 @@ def main():
     check_s21()
     check_s22()
     check_s24()
+    check_s25()
     check_negative_configs()
     check_judge_unit_tests()
     if args.run:
