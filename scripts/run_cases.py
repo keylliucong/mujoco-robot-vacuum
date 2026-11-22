@@ -1645,6 +1645,15 @@ def main(argv: list[str] | None = None) -> int:
         condim_note = f"condim={condim_used}；未升维"
 
     provenance = [{"param_id": k, **v} for k, v in params["values"].items()]
+    for i, item in enumerate(params.get("missing", [])):
+        provenance.append({
+            "param_id": f"missing.{i}",
+            "value": None,
+            "unit": "-",
+            "label": item.get("label", "缺失"),
+            "ref": item.get("status", "未公开"),
+            "note": item.get("action", ""),
+        })
     labels, level = param_summary(provenance)
     finished = _dt.datetime.now(_dt.timezone.utc).isoformat()
     run_json = {
@@ -1670,7 +1679,11 @@ def main(argv: list[str] | None = None) -> int:
             },
             **{k: v for k, v in model_meta.items() if k not in {"model_sha256", "config_id", "machine"}},
         },
-        "config": {"path": str(config_path), "sha256": cfg_sha},
+        "config": {
+            "path": (str(config_path.relative_to(repo))
+                     if config_path.is_relative_to(repo) else str(config_path)),
+            "sha256": cfg_sha,
+        },
         "python": sys.version.split()[0],
         "mujoco": mujoco.__version__,
         "numpy": np.__version__,
@@ -1686,7 +1699,7 @@ def main(argv: list[str] | None = None) -> int:
             "creep_baseline": creep,
             "condim_note": condim_note,
         },
-        "overrides": [o for c in case_meta for o in c["overrides"]],
+        "overrides": _dedupe_overrides([o for c in case_meta for o in c["overrides"]]),
         "seed": 0,
         "seed_used": False,
         "params": provenance,
@@ -1764,6 +1777,17 @@ def main(argv: list[str] | None = None) -> int:
     print(f"summary: {out_dir / 'summary.csv'}")
     print(f"run.json: {out_dir / 'run.json'}")
     return 0
+
+
+def _dedupe_overrides(items: list[dict]) -> list[dict]:
+    seen = set()
+    out = []
+    for item in items:
+        key = json.dumps(item, sort_keys=True, ensure_ascii=False)
+        if key not in seen:
+            seen.add(key)
+            out.append(item)
+    return out
 
 
 def _unit_of(column: str) -> str:
