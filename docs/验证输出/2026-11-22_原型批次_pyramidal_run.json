@@ -3,7 +3,7 @@
   "schema_version": "1.0",
   "batch_id": "baseline",
   "git": {
-    "commit": "a4c3ac7124b8a89673b72d0f36745d10bf40c4e1",
+    "commit": "e08dc059a64ed995a6a1d5b6992dec2ede552928",
     "branch": "HEAD",
     "dirty": false
   },
@@ -1265,8 +1265,8 @@
     ],
     "differences": {}
   },
-  "started_utc": "2026-11-22T02:58:34.353604+00:00",
-  "finished_utc": "2026-11-22T02:58:43.760729+00:00",
+  "started_utc": "2026-11-22T03:10:07.866088+00:00",
+  "finished_utc": "2026-11-22T03:10:16.753976+00:00",
   "cases": [
     {
       "case_id": "flat_straight",
@@ -1787,7 +1787,7 @@
       "t_climb_s": 10.280000000000102,
       "advance_m": 0.9036270962015822,
       "first_contact_wheel": "L",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.986000000000609,
       "contact_events": [
         {
           "event": "first_robot_step_contact",
@@ -1875,7 +1875,7 @@
       "t_climb_s": 10.280000000000102,
       "advance_m": 0.9036270962016311,
       "first_contact_wheel": "R",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.986000000000609,
       "contact_events": [
         {
           "event": "first_robot_step_contact",

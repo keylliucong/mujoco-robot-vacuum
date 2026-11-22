@@ -3,7 +3,7 @@
   "schema_version": "1.0",
   "batch_id": "baseline_elliptic",
   "git": {
-    "commit": "a4c3ac7124b8a89673b72d0f36745d10bf40c4e1",
+    "commit": "e08dc059a64ed995a6a1d5b6992dec2ede552928",
     "branch": "HEAD",
     "dirty": false
   },
@@ -1270,8 +1270,8 @@
     ],
     "differences": {}
   },
-  "started_utc": "2026-11-22T02:58:54.883515+00:00",
-  "finished_utc": "2026-11-22T02:59:04.827459+00:00",
+  "started_utc": "2026-11-22T03:10:17.295248+00:00",
+  "finished_utc": "2026-11-22T03:10:26.890169+00:00",
   "cases": [
     {
       "case_id": "flat_straight",
@@ -1833,7 +1833,7 @@
       "t_climb_s": 10.06200000000003,
       "advance_m": 0.9298004936841261,
       "first_contact_wheel": "L",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.8280000000005296,
       "contact_events": [
         {
           "event": "first_robot_step_contact",
@@ -1927,7 +1927,7 @@
       "t_climb_s": 10.06200000000003,
       "advance_m": 0.9298004936841328,
       "first_contact_wheel": "R",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.8280000000005296,
       "contact_events": [
         {
           "event": "first_robot_step_contact",
@@ -2021,7 +2021,7 @@
       "t_climb_s": 9.725999999999917,
       "advance_m": 1.0857803794519107,
       "first_contact_wheel": "L",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.8360000000003796,
       "contact_events": [
         {
           "event": "first_robot_step_contact",
@@ -2115,7 +2115,7 @@
       "t_climb_s": 9.725999999999917,
       "advance_m": 1.0857803794519068,
       "first_contact_wheel": "R",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.8360000000003796,
       "contact_events": [
         {
           "event": "first_robot_step_contact",
