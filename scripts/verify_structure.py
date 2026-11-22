@@ -886,7 +886,8 @@ def check_s19():
         f"预算表 {len(budget)} 行（B={b_rows}, pending={pending_rows}）/"
         f"{len(index)} 个 param_id；{machine} 台账 {stats['non_missing']} 行非缺失，"
         f"有 B 覆盖 {stats['covered']}、可忽略 {stats['negligible']}；"
-        f"verified_tol 占位 {placeholder_tol} 行不计入真实容差"
+        f"verified_tol 占位 {placeholder_tol} 行不计入真实容差；"
+        "可忽略自动判定未实现（预算表无 u_A 列），仅认显式 kind=negligible 行"
     )
     if problems:
         add("S19", False, "；".join(problems[:6]) + f"（{detail}）")
