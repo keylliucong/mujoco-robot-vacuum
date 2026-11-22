@@ -83,3 +83,5 @@ front_lip.solimp_d1,models/oomwoo.xml:/worldbody/body[@name='chassis']/geom[@nam
 front_lip.solimp_d2,models/oomwoo.xml:/worldbody/body[@name='chassis']/geom[@name='chassis_front_lip']@solimp[2],0.003,-,待标定,soft 档 solimp 五参数起点；未标定,,,
 front_lip.solimp_d3,models/oomwoo.xml:/worldbody/body[@name='chassis']/geom[@name='chassis_front_lip']@solimp[3],0.5,-,待标定,soft 档 solimp 五参数起点；未标定,,,
 front_lip.solimp_d4,models/oomwoo.xml:/worldbody/body[@name='chassis']/geom[@name='chassis_front_lip']@solimp[4],0.1,-,待标定,soft 档 solimp 五参数起点；未标定,,,
+judge.platform_height_tol_m,cases/_runner_oomwoo.json:tolerances.platform_height_tol_m,0.006,m,工程假设,判据容差沿用 prototype runner（G2 v1.9.0）；末帧上平台判定高度容差,,,
+judge.step_contact_gap_tol_s,cases/_runner_oomwoo.json:tolerances.step_contact_gap_tol_s,0.1,s,工程假设,判据容差沿用 prototype runner（G2 v1.9.0）；跨越证据允许的机体-台阶接触空档,,,

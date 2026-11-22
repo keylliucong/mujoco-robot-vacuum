@@ -29,7 +29,9 @@
     "torque_saturation_rel": 1e-06,
     "susp_bottom_rel": 0.999,
     "climb_height_ratio": 0.9,
-    "climb_hold_s": 0.2
+    "climb_hold_s": 0.2,
+    "platform_height_tol_m": 0.006,
+    "step_contact_gap_tol_s": 0.1
   },
   "repeat": {
     "key_metrics_tol": 0.0
