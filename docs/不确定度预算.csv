@@ -42,3 +42,21 @@ unc.oomwoo.com_x.source_doc,oomwoo.com_x,B,instrument,rect,,mm,inf,pending,meas,
 unc.oomwoo.i_gear.source_doc,oomwoo.i_gear,B,instrument,rect,,1,inf,assumed,meas,第三方单件齿数实测转引；无校准证书/量程,IKsares drive-wheel §5,换件或拆齿复核后重评,machine=oomwoo; 基准机型不实测；rev=0218857#contributions/part-specs/IKsares/drive-wheel/README.md; retrieved=2026-11-22,同文另列 ~190:1 旧推算，不使用
 unc.oomwoo.T_wheel.source_doc,oomwoo.T_wheel,B,instrument,rect,,N·m,inf,pending,meas,URDF joint effort 上限，不是实测轮端扭矩,oomwoo-one urdf/params.xacro,堵转/扭矩实测后重评,machine=oomwoo; 基准机型不实测；rev=a630d1c#urdf/params.xacro; retrieved=2026-11-22,与第三方推算 1.14–2.80 冲突
 unc.oomwoo.m_drive_module_pair.listing,oomwoo.m_drive_module_pair,B,instrument,rect,,kg,inf,pending,meas,商品页 listing 值转引；非实测,OsakaTX part-spec §Wheel Module Weight,称重后重评,machine=oomwoo; 基准机型不实测；rev=0218857#contributions/part-specs/OsakaTX/README.md; retrieved=2026-11-22,listing 值只作量级；不是整机质量
+U001,oomwoo.mass.assembly,B,instrument,normal,,kg,,pending,meas,整机称重 n>=5 取 s_r/s_f/s_day；本轮未称重,室温 20-25 C；整机装配态,换秤/拆装/换电池,,参数行 label=工程假设；没有 verified_tol，故本表不填容差
+U002,oomwoo.com_B_m.x,B,ref_point,normal,,m,,pending,meas,三点称重/倾斜法；本轮未测,整机装配态；空载,换工装/换载荷,,x_cg 由 URDF 注释 CoM +2.2 mm 反推，不是实测
+U003,oomwoo.com_B_m.z,B,ref_point,normal,,m,,pending,meas,三点称重/倾斜法；本轮未测,整机装配态；空载,换工装/换载荷,,z_cg 在台账标【缺失】；占位值为几何中心
+U004,oomwoo.inertia_B.xx,B,ref_point,normal,,kg*m^2,,pending,meas,三线摆/扭摆；本轮未测,轴过质心；d<=5 mm,换工装/换参考点,,图纸/公式换算值，无独立测量
+U005,oomwoo.inertia_B.yy,B,ref_point,normal,,kg*m^2,,pending,meas,三线摆/扭摆；本轮未测,轴过质心；d<=5 mm,换工装/换参考点,,同上
+U006,oomwoo.inertia_B.zz,B,ref_point,normal,,kg*m^2,,pending,meas,三线摆/扭摆；本轮未测,竖直轴过质心,换工装/换参考点,,同上
+U007,oomwoo.geom.wheel_radius_m,B,instrument,normal,,m,,pending,meas,卡尺测轮径 n>=10,装机态；胎压/载荷按实测,换轮胎/换批次,,公开值 0.034 m（URDF）与 0.03575 m（部件实测 71.5 mm 外径）冲突，见清单
+U008,oomwoo.geom.wheel.half_width,B,instrument,normal,,m,,pending,meas,卡尺测轮宽 n>=10,装机态,换轮胎/换批次,,公开值 0.006 m（URDF 12 mm）与 BOM 14 mm 宽不一致
+U009,oomwoo.contact.wheel_floor_s,B,calibration,normal,,1,,pending,meas,斜面法/拉力计测滑动摩擦,干态硬地；橡胶胎,换地面/清洁剂/磨损,,工程假设 0.8；轮-地摩擦是越障一阶参数
+U010,oomwoo.contact.chassis_step_s,B,calibration,normal,,1,,pending,meas,推力计测底盘-门槛摩擦,干态铝/塑料门槛,换材料/表面处理,,工程假设 0.3
+U011,oomwoo.joint.damping,B,calibration,normal,,N*m*s/rad,,pending,meas,自由减速法/台架辨识,空载；轴承温度 20 C,换润滑/换电机,,工程假设 0.002；P 控制稳态跌落对该值敏感
+U012,oomwoo.numerics.timestep_s,B,sim_timestep,rect,0.002,s,,assumed,sim,同一工况 0.002/0.001/0.0005 s 对照,轮-台阶接触；锥形摩擦,换接触参数/几何,,本轮只跑 0.002 s；减半对照未做，不能当已评估
+U013,oomwoo.contact.solref_timeconst_s,B,sim_contact,rect,0.01,s,,assumed,sim,冲击响应标定；本轮用默认起点,轮-地/轮-台阶,换 solimp/材料,,待标定；未做落锤/冲击台
+U014,oomwoo.contact.solimp_d0,B,sim_contact,rect,0.95,1,,assumed,sim,穿透量-力曲线标定；本轮用默认起点,轮-地/轮-台阶,换 solref/材料,,待标定
+U015,oomwoo.geom.chassis.radius,B,sim_geometry,rect,0.172,m,,assumed,sim,24 片保险杠简化为单圆柱,正向/斜向门槛,换真实保险杠网格,,几何简化；对 20 mm 门槛的底盘先触有直接影响
+U016,oomwoo.geom.wheel.radius,B,sim_geometry,rect,0.034,m,,assumed,sim,圆柱轮代替真实胎面,干态硬地,换网格/换胎,,圆柱轮与真实胎面接触斑差异未评估
+U017,oomwoo.mass.chassis,B,instrument,normal,2.5,kg,,pending,meas,拆件称重 n>=5,空载筒身,换电池/线束,,URDF lower_cylinder_mass；不是本机实测
+U018,oomwoo.mass.lidar,B,instrument,normal,0.15,kg,,pending,meas,拆件称重 n>=5,LiDAR 塔,换型号,,URDF laser_puck_mass；不是本机实测
