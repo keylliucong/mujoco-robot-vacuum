@@ -388,7 +388,7 @@ def front_lip_pair_attrs(params_document):
     """
     values = params_document["params"]
     compliance = values.get("front_lip.compliance", {}).get("value", 0.0)
-    if float(compliance) < 0.5:
+    if float(compliance) < 0.5:  # contract-tolerance
         return contact_pair_attrs(params_document)
     keys = ("front_lip.solref_timeconst_s", "front_lip.solref_dampratio") + tuple(
         f"front_lip.solimp_d{i}" for i in range(5)

@@ -766,7 +766,11 @@ def check_s22():
         problems.append("无悬挂时 run.json.columns 未标 missing=true（S22）")
 
     run_json_path, run_json = outputs_run_json()
-    if run_json and "capabilities" in run_json:
+    if (
+        run_json
+        and "capabilities" in run_json
+        and run_json.get("machine") == rendered_model()["header"]["machine"]
+    ):
         declared = run_json["capabilities"].get("has_suspension")
         missing = run_json.get("columns", {}).get("susp_L_travel_m", {}).get("missing")
         if declared != has_suspension or bool(missing) != (declared == 0):
