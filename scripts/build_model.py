@@ -124,8 +124,20 @@ def build_from_files(template_path: Path, params_path: Path,
             import mujoco
         except Exception as exc:  # pragma: no cover - platform dependent
             raise SystemExit(f"mujoco import error; cannot validate: {exc}")
-        model = mujoco.MjModel.from_xml_string(xml)
+        # 结构模板的 <contact> 引用了由 runner 注入的 floor/step/step_edge；
+        # 校验时补一组不参与运动的占位 geom，只验证 MJCF 结构能编译。
+        probe = (
+            '<geom name="floor" type="plane" size="4 4 0.1" pos="0 0 0" '
+            'material="floor" contype="1" conaffinity="3"/>'
+            '<geom name="step" type="box" size="1 1 0.005" pos="1 0 0.005" '
+            'material="step" contype="1" conaffinity="3"/>'
+            '<geom name="step_edge" type="cylinder" size="0.003 1" pos="0.003 0 0.01" '
+            'zaxis="0 1 0" material="step" contype="1" conaffinity="3"/>'
+        )
+        probe_xml = xml.replace("</worldbody>", probe + "\n  </worldbody>", 1)
+        model = mujoco.MjModel.from_xml_string(probe_xml)
         manifest["mujoco_validation"] = {
+            "scenario_xml": "dummy floor/step/step_edge injected for structural check",
             "mujoco_version": mujoco.__version__,
             "nbody": int(model.nbody),
             "ngeom": int(model.ngeom),
