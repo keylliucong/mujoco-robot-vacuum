@@ -1,0 +1,12 @@
+d121b86c6c0b829c6064b022738f48d475970699
+Python:        3.13.1
+MuJoCo:        4.0.1
+NumPy:         2.5.5
+Executable:    E:\mujoco-robot-vacuum\.venv\Scripts\python.exe
+timestep:      0.002
+steps:         1000
+active contacts (ncon): 1
+ball z:        0.0996 m (expected ~0.1 m)
+positive contact force entries: 4
+max contact force: 10.273 N
+SMOKE TEST: PASS
