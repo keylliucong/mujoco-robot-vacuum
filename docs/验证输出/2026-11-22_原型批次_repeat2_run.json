@@ -3,7 +3,7 @@
   "schema_version": "1.0",
   "batch_id": "baseline_repeat2",
   "git": {
-    "commit": "a4c3ac7124b8a89673b72d0f36745d10bf40c4e1",
+    "commit": "f428c197dc2ca48062eb01ad331216824d552ab0",
     "branch": "HEAD",
     "dirty": false
   },
@@ -122,6 +122,10 @@
       "L": 2e-06,
       "R": 2e-06
     }
+  },
+  "cfg_sha256": "9c00c41af46243af9d0be004884021bc47ea2bc9b716aa7a639ad4ef8f692dd5",
+  "cases_sha256": {
+    "cases\\baseline.json": "9c00c41af46243af9d0be004884021bc47ea2bc9b716aa7a639ad4ef8f692dd5"
   },
   "config": {
     "path": "cases\\baseline.json",
@@ -1265,8 +1269,8 @@
     ],
     "differences": {}
   },
-  "started_utc": "2026-11-22T03:00:01.013115+00:00",
-  "finished_utc": "2026-11-22T03:00:19.669889+00:00",
+  "started_utc": "2026-11-22T03:12:41.952792+00:00",
+  "finished_utc": "2026-11-22T03:12:59.832816+00:00",
   "cases": [
     {
       "case_id": "flat_straight",
@@ -2256,7 +2260,7 @@
       "t_climb_s": 10.280000000000102,
       "advance_m": 0.9036270962015822,
       "first_contact_wheel": "L",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.986000000000609,
       "contact_events": [
         {
           "event": "first_robot_step_contact",
@@ -2344,7 +2348,7 @@
       "t_climb_s": 10.280000000000102,
       "advance_m": 0.9036270962015822,
       "first_contact_wheel": "L",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.986000000000609,
       "contact_events": [
         {
           "event": "first_robot_step_contact",
@@ -2432,7 +2436,7 @@
       "t_climb_s": 10.280000000000102,
       "advance_m": 0.9036270962016311,
       "first_contact_wheel": "R",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.986000000000609,
       "contact_events": [
         {
           "event": "first_robot_step_contact",
@@ -2520,7 +2524,7 @@
       "t_climb_s": 10.280000000000102,
       "advance_m": 0.9036270962016311,
       "first_contact_wheel": "R",
-      "contact_dt_s": null,
+      "contact_dt_s": 1.986000000000609,
       "contact_events": [
         {
           "event": "first_robot_step_contact",
