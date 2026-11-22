@@ -146,9 +146,5 @@
     "contact_normal_min_n": 0.5
   },
   "seed": 0,
-  "notes": "G2.5 前缘扩展：正向硬质单级台阶 h=12.5 mm，R3 棱边，平台宽 1.2 m。壳体前下缘 chassis_front_lip 参数化（基线 height=12.5 mm、radius=0、rigid、overhang=0.1745 m）。20/30 mm 时前下缘应成为首次接触来源；若驱动轮整窗未触台阶，judge 判 blocked/belly_contact。config_id=oomwoo_g25。",
-  "regression_expect": {
-    "passed": false,
-    "failure_primary": "retreat"
-  }
+  "notes": "G2.5 前缘扩展：正向硬质单级台阶 h=12.5 mm，R3 棱边，平台宽 1.2 m。壳体前下缘 chassis_front_lip 参数化（基线 height=12.5 mm、radius=0、rigid、overhang=0.1745 m）。20/30 mm 时前下缘应成为首次接触来源；若驱动轮整窗未触台阶，judge 判 blocked/belly_contact。config_id=oomwoo_g25。"
 }

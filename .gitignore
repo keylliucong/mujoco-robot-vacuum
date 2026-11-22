@@ -18,3 +18,6 @@ refs/
 !.env.example
 *.pem
 *.key
+
+# Local generated build artifacts
+build/
