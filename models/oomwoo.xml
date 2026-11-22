@@ -1,0 +1,110 @@
+<mujoco model="oomwoo-step-dryrun">
+  <!--
+    model=oomwoo-step-dryrun; machine=oomwoo; parameter_source=params/oomwoo.json
+
+    machine=oomwoo：makerspet OOMWOO One（开源扫地机），不是原型机，也不是本机实测机型。
+    source=makerspet/oomwoo-cad@266210a47cab931c5891a07c9a29d48388a54b0c
+           + makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd
+    method=公开尺寸链 + lib/ 可信 STEP 的 B-rep 质量属性（轮实体）；无整机 stock STEP，
+           壳体仍用柱体近似；质量/惯量分项见 docs/参数溯源-oomwoo.csv。
+
+    机体系 B = world = chassis 局部系（契约 v1.7 §1.1）：原点 O 在左右驱动轮轴心连线
+    中点在地面的投影，+x 前向、+y 左向、+z 向上。
+    几何：整机 Ø349 × 97（含 18 mm LiDAR 塔），壳体离地 12.5 mm；驱动轮 R=35.805 mm
+    （STEP 轮实体外径 71.61 mm），轮距 235 mm，轮心高 = R。
+    从动轮在车头 +x=0.1445 m（oomwoo-one URDF 的 caster 位置），半径 12.5 mm。
+    OOMWOO 无被动悬挂：susp_* 为 0.5 mm 数值伪行程 + 1e8 N/m 近刚性，只为满足契约
+    定名，不是真实悬挂；真实行程【缺失】。
+
+    台阶几何由 scripts/run_cases.py 注入，不在此出现（S03）。
+    时间步、积分器、求解器、摩擦锥由 cases/*.json 的 numerics 注入（S02/S15）。
+    数值全部来自 params/oomwoo.json，XML 内不写死物理常数。
+  -->
+  <compiler angle="radian" autolimits="true"/>
+  <option gravity="${gravity.x} ${gravity.y} ${gravity.z}"/>
+
+  <default>
+    <geom condim="${contact.condim}"
+          solref="${contact.solref_timeconst_s} ${contact.solref_dampratio}"
+          solimp="${contact.solimp_d0} ${contact.solimp_d1} ${contact.solimp_d2} ${contact.solimp_d3} ${contact.solimp_d4}"
+          friction="${contact.friction_s} ${contact.friction_t} ${contact.friction_r}"/>
+  </default>
+
+  <asset>
+    <material name="floor" rgba="0.75 0.75 0.75 1"/>
+    <material name="step" rgba="0.85 0.70 0.30 1"/>
+    <material name="shell" rgba="0.20 0.22 0.28 1"/>
+    <material name="rubber" rgba="0.08 0.08 0.08 1"/>
+  </asset>
+
+  <worldbody>
+    <geom name="floor_plane" type="plane" size="0 0 0.05" material="floor"/>
+
+    <body name="chassis" pos="0 0 0" quat="1 0 0 0">
+      <freejoint name="chassis_free"/>
+      <inertial pos="${com.chassis.x} ${com.chassis.y} ${com.chassis.z}"
+                mass="${mass.chassis}"
+                fullinertia="${inertia.chassis.xx} ${inertia.chassis.yy} ${inertia.chassis.zz} ${inertia.chassis.xy} ${inertia.chassis.xz} ${inertia.chassis.yz}"/>
+      <geom name="chassis_shell" type="cylinder"
+            size="${geom.chassis.radius} ${geom.chassis.half_height}"
+            pos="0 0 ${geom.chassis.pos_z}" material="shell"/>
+
+      <!-- 车头从动轮（OOMWOO One 的 caster 在 +x）。绕 +y 滚动，v1 不做万向偏转。 -->
+      <body name="caster_front" pos="${pos.caster.x} ${pos.caster.y} ${pos.caster.z}">
+        <joint name="caster_roll" type="hinge" axis="0 1 0" damping="${caster.roll_damping_nms}"/>
+        <inertial pos="0 0 0" mass="${mass.caster}"
+                  diaginertia="${inertia.caster.xx} ${inertia.caster.yy} ${inertia.caster.zz}"/>
+        <geom name="caster_wheel" type="capsule"
+              size="${geom.caster.radius} ${geom.caster.half_width}"
+              quat="0.7071067811865476 0.7071067811865476 0 0" material="rubber"
+              solref="${contact.caster_solref_timeconst_s} ${contact.solref_dampratio}"/>
+      </body>
+
+      <!-- 左驱动轮组：车轮与 chassis 刚性固连（OOMWOO 无被动悬挂），wheel_L_spin 绕 +y。 -->
+      <body name="wheel_L" pos="0 ${pos.susp.y} ${pos.susp.z}">
+        <joint name="wheel_L_spin" type="hinge" axis="0 1 0"
+               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
+        <inertial pos="0 0 0" mass="${mass.wheel_L}"
+                  diaginertia="${inertia.wheel_L.xx} ${inertia.wheel_L.yy} ${inertia.wheel_L.zz}"/>
+        <geom name="wheel_L_tire" type="capsule"
+              size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
+              quat="0.7071067811865476 0.7071067811865476 0 0"
+              material="rubber"/>
+        <!-- OOMWOO 无被动悬挂：车轮与 chassis 刚性固连。susp_L 是无行程
+             阻尼占位铰（damping=1000，无 range），挂在无碰撞小标记体上，只满足名称表；不承载。 -->
+        <body name="susp_L_marker" pos="0 0 0">
+          <joint name="susp_L" type="slide" axis="0 0 1" damping="1000"/>
+          <inertial pos="0 0 0" mass="0.001" diaginertia="1e-09 1e-09 1e-09"/>
+        </body>
+      </body>
+
+      <!-- 右驱动轮组：与左侧镜像，A4 断言两轮心对称且 z=R。 -->
+      <body name="wheel_R" pos="0 -${pos.susp.y} ${pos.susp.z}">
+        <joint name="wheel_R_spin" type="hinge" axis="0 1 0"
+               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
+        <inertial pos="0 0 0" mass="${mass.wheel_R}"
+                  diaginertia="${inertia.wheel_R.xx} ${inertia.wheel_R.yy} ${inertia.wheel_R.zz}"/>
+        <geom name="wheel_R_tire" type="capsule"
+              size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
+              quat="0.7071067811865476 0.7071067811865476 0 0"
+              material="rubber"/>
+        <!-- OOMWOO 无被动悬挂：车轮与 chassis 刚性固连。susp_R 是无行程
+             阻尼占位铰，挂在无碰撞小标记体上，只满足名称表；不承载。 -->
+        <body name="susp_R_marker" pos="0 0 0">
+          <joint name="susp_R" type="slide" axis="0 0 1" damping="1000"/>
+          <inertial pos="0 0 0" mass="0.001" diaginertia="1e-09 1e-09 1e-09"/>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <!-- gear=1：执行器力即轮端 N·m；输出列取 -actuator_force（前进为正） -->
+    <motor name="wheel_L" joint="wheel_L_spin" gear="1"
+           ctrlrange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"
+           forcerange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"/>
+    <motor name="wheel_R" joint="wheel_R_spin" gear="1"
+           ctrlrange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"
+           forcerange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"/>
+  </actuator>
+</mujoco>

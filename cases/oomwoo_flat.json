@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "case_id": "oomwoo_flat",
+  "model": {
+    "path": "models/oomwoo.xml",
+    "sha256": "a74f6da2f9e80c2f5430ef9d52fb9a192cd2b1aa43d131667aee4db5c6e99ee8"
+  },
+  "scenario": {
+    "kind": "flat",
+    "heading_deg": 0.0,
+    "approach": {
+      "speed_mps": 0.15,
+      "start_distance_m": 0.5,
+      "settle_s": 1.0,
+      "settle_tol_mps": 0.02
+    }
+  },
+  "environment": {
+    "pairs": {
+      "wheel_L--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_R--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "caster--floor": {
+        "friction": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--floor": {
+        "friction": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      }
+    }
+  },
+  "drive": {
+    "channels": {
+      "wheel_L": {
+        "torque_limit_nm": 0.5
+      },
+      "wheel_R": {
+        "torque_limit_nm": 0.5
+      }
+    }
+  },
+  "numerics": {
+    "timestep_s": 0.002,
+    "integrator": "implicitfast",
+    "solver": "Newton",
+    "cone": "pyramidal",
+    "iterations": 100
+  },
+  "judge": {
+    "window_s": 8.0,
+    "fail_on": [
+      "topple",
+      "retreat",
+      "timeout",
+      "stall"
+    ],
+    "min_advance_body_lengths": 1.0,
+    "recover_speed_ratio": 0.8,
+    "recover_hold_s": 0.3,
+    "stall": {
+      "speed_mps": 0.01,
+      "duration_s": 1.0
+    },
+    "tilt": {
+      "pitch_deg": 25.0,
+      "roll_deg": 15.0
+    },
+    "slip_ratio": 0.3,
+    "contact_normal_min_n": 0.5
+  },
+  "seed": 0,
+  "notes": "试跑工况 A：平地直行，无台阶。驱动速度 0.15 m/s 为【工程假设】；轮端限扭 0.5 N·m 取公开值。config_id=oomwoo。"
+}
