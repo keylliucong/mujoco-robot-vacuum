@@ -292,7 +292,9 @@ def judge_case(columns, params):
         )
         both_wheels_on_top = bool(wheel_step) and wheel_on_top_count == len(wheel_step)
         floor_keys = [k for k in pair_keys if k.endswith("--floor")]
-        no_floor_contact_at_end = not any(
+        # 没有地面接触对时不能把「查不到」当成「无接触」；此时只认双轮都在
+        # 上平台，避免 all_pairs 漏配 floor 又把骑棱边判成完成跨越。
+        no_floor_contact_at_end = bool(floor_keys) and not any(
             columns[f"contact_{k}_active"][end_index] == "1" for k in floor_keys
         )
         height_ok = end_pos_z >= params["step_height_m"] - params["platform_height_tol_m"]

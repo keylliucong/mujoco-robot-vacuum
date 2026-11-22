@@ -1,0 +1,10 @@
+batch_id: g2_final_v2_oblique_minus30
+contract_version: 1.9.0
+model: models/baseline.xml sha256=153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+params: proto_v1 machine=prototype missing=['prototype.com.chassis.z']
+capabilities: has_suspension=1
+config: E:\mujoco-robot-vacuum\cases\step_oblique_minus30.json sha256=8eec982951df26856e6483cc1d927e5cf1694f1bbfd1fed880a7e3a13c436aa9
+scenario_xml_sha256: b64d97c67f3f062fb58aa23ce4d2473c93f10bd4bb4faff5d4637ae99b4d3386
+git: {'commit': 'a9850804ae1122cae80b8b5bbaa5694a946b8650', 'branch': 'HEAD', 'dirty': True}
+[step_oblique_minus30 r1] creep: drift=0.0000 mm residual=0.0000 mm/s redline=False
+[step_oblique_minus30 r1 base] status=ok passed=False primary=cross_fail flags=cross_fail;bottom_out;torque_limit;slip

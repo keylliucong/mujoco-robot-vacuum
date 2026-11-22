@@ -14,6 +14,7 @@ import argparse
 import ast
 import csv
 import json
+from collections import defaultdict
 import math
 import os
 import re
@@ -483,8 +484,12 @@ def check_s12(run_integration):
             "--out",
             str(target),
         ]
-        first = subprocess.run(command, capture_output=True, text=True)
-        second = subprocess.run(command, capture_output=True, text=True)
+        first = subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
+        second = subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         ok = first.returncode == 0 and second.returncode != 0
         add("S12", ok, f"首次 rc={first.returncode}，重复 rc={second.returncode}（应非 0）")
     finally:
@@ -652,26 +657,251 @@ def budget_rows():
         return list(csv.DictReader(handle))
 
 
+S19_BUDGET_COLUMNS = (
+    "unc_id",
+    "param_id",
+    "kind",
+    "component",
+    "value",
+    "status",
+    "note",
+)
+S19_NEGLIGIBLE_KINDS = {"negligible", "ignore", "可忽略"}
+
+
+def verified_tol_value(text):
+    """只把真实数值容差当作容差；TODO(...) 等占位不是容差（S19 的"空"）。"""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
+def budget_index(budget):
+    """按 param_id 建预算索引，同时做 S19 的结构检查（唯一性 / A+B 互斥 / 枚举）。"""
+    problems = []
+    index = defaultdict(list)
+    seen_unc = set()
+    seen_pairs = set()
+    pair_kinds = defaultdict(set)
+    for lineno, row in enumerate(budget, 2):
+        missing = [name for name in S19_BUDGET_COLUMNS if name not in row]
+        if missing:
+            problems.append(f"预算表第 {lineno} 行缺列 {missing}")
+            continue
+        param_id = row["param_id"].strip()
+        kind = row["kind"].strip()
+        component = row["component"].strip()
+        status = row["status"].strip()
+        unc_id = row["unc_id"].strip()
+        if not param_id:
+            problems.append(f"预算表第 {lineno} 行 param_id 为空")
+            continue
+        if kind not in ("A", "B") and kind.lower() not in S19_NEGLIGIBLE_KINDS:
+            problems.append(f"预算表第 {lineno} 行 kind={kind!r} 不是 A/B/可忽略")
+        if status not in ("evaluated", "assumed", "pending"):
+            problems.append(f"预算表第 {lineno} 行 status={status!r} 不是三值")
+        if not unc_id:
+            problems.append(f"预算表第 {lineno} 行 unc_id 为空")
+        elif unc_id in seen_unc:
+            problems.append(f"预算表 unc_id 重复：{unc_id}")
+        seen_unc.add(unc_id)
+        pair_key = (param_id, component, kind)
+        if pair_key in seen_pairs:
+            problems.append(f"预算表同一 param_id/component/kind 重复：{pair_key}")
+        seen_pairs.add(pair_key)
+        pair_kinds[(param_id, component)].add(kind)
+        index[param_id].append(row)
+    for (param_id, component), kinds in sorted(pair_kinds.items()):
+        if "A" in kinds and "B" in kinds:
+            problems.append(
+                f"{param_id} 的分量 {component} 同时进 A 与 B（不得重计）"
+            )
+    return index, problems
+
+
+def s19_is_negligible(budget_rows_for_param):
+    """显式「可忽略」结论：kind/component 标可忽略，或 note 给出 u_B<0.1·u_A 理由。"""
+    for row in budget_rows_for_param:
+        kind = row["kind"].strip().lower()
+        component = row["component"].strip().lower()
+        note = (row.get("note") or "").strip()
+        if kind in S19_NEGLIGIBLE_KINDS or component in S19_NEGLIGIBLE_KINDS:
+            if note:
+                return True
+        if "可忽略" in note and ("u_B<0.1" in note or "<0.1·u_A" in note or "<0.1*u_A" in note):
+            return True
+    return False
+
+
+def s19_coverage(machine, machine_rows, index):
+    """规则①：非【缺失】参数必有 ≥1 个 B 分量或显式可忽略结论。
+
+    预算表完全没有该机型的行时返回 None（数据未覆盖，无法核验），
+    由调用方显式 SKIP；不把「查不到」当 PASS。
+    """
+    machine_ids = [param_id for param_id in index if param_id.startswith(f"{machine}.")]
+    non_missing = [row for row in machine_rows if row["label"].strip() != "缺失"]
+    stats = {
+        "machine_ids": len(machine_ids),
+        "non_missing": len(non_missing),
+        "covered": 0,
+        "negligible": 0,
+    }
+    if not machine_ids:
+        return None, stats
+    uncovered = []
+    for row in non_missing:
+        budget_rows_for_param = index.get(row["param_id"], [])
+        has_b = any(item["kind"].strip() == "B" for item in budget_rows_for_param)
+        if has_b:
+            stats["covered"] += 1
+            continue
+        if s19_is_negligible(budget_rows_for_param):
+            stats["negligible"] += 1
+            continue
+        uncovered.append(row["param_id"])
+    return uncovered, stats
+
+
+def s19_cross_table(all_rows, index):
+    """规则③④：真实 verified_tol 必须有预算行；有 pending 分量时必须为空。"""
+    problems = []
+    by_id = {row["param_id"]: row for row in all_rows}
+    for param_id, budget_rows_for_param in sorted(index.items()):
+        ledger_row = by_id.get(param_id)
+        if ledger_row is None:
+            continue
+        tol = verified_tol_value(ledger_row["verified_tol"])
+        if tol is None:
+            continue
+        if any(item["status"].strip() == "pending" for item in budget_rows_for_param):
+            problems.append(
+                f"{param_id} 有 pending 分量但 verified_tol={ledger_row['verified_tol']}（容差没刻度）"
+            )
+    for ledger_row in all_rows:
+        tol = verified_tol_value(ledger_row["verified_tol"])
+        if tol is not None and ledger_row["param_id"] not in index:
+            problems.append(
+                f"{ledger_row['param_id']} 有真实 verified_tol 但预算表缺行"
+            )
+    return problems
+
+
+def s19_self_test():
+    """用合成两表证明规则①（缺 B）与规则②（pending 却有容差）真的会报警。"""
+    failures = []
+    ledger = [
+        {"param_id": "t.a", "label": "工程假设", "verified_tol": ""},
+        {"param_id": "t.b", "label": "工程假设", "verified_tol": "0.01"},
+    ]
+    budget = [
+        {
+            "unc_id": "u1",
+            "param_id": "t.a",
+            "kind": "B",
+            "component": "cal",
+            "value": "0.1",
+            "status": "pending",
+            "note": "",
+        },
+        {
+            "unc_id": "u2",
+            "param_id": "t.b",
+            "kind": "B",
+            "component": "cal",
+            "value": "0.1",
+            "status": "pending",
+            "note": "",
+        },
+    ]
+    index, structural = budget_index(budget)
+    if structural:
+        failures.append(f"合成正例不应有结构错误：{structural}")
+    uncovered, _ = s19_coverage("t", ledger, index)
+    if uncovered != []:
+        failures.append(f"规则①正例被误报：{uncovered}")
+    # 删掉 t.b 的 B 行后，规则①必须报 t.b
+    only_a = [row for row in budget if row["param_id"] == "t.a"]
+    index_a, _ = budget_index(only_a)
+    uncovered_a, _ = s19_coverage("t", ledger, index_a)
+    if "t.b" not in (uncovered_a or []):
+        failures.append("规则①负例未报警（无 B 分量的非缺失参数）")
+    # pending + 真实 verified_tol 必须报
+    if not s19_cross_table(ledger, index):
+        failures.append("规则②负例未报警（pending 分量却有 verified_tol）")
+    # A/B 同名分量必须报
+    mixed = budget + [
+        {
+            "unc_id": "u3",
+            "param_id": "t.a",
+            "kind": "A",
+            "component": "cal",
+            "value": "1",
+            "status": "evaluated",
+            "note": "",
+        }
+    ]
+    _, mixed_problems = budget_index(mixed)
+    if not any("同时进 A 与 B" in item for item in mixed_problems):
+        failures.append("A/B 重计负例未报警")
+    return failures
+
+
 def check_s19():
-    """S19：真的打开预算表，逐行核对有 verified_tol 的台账量是否有 B 类分量。"""
-    rows = current_machine_rows()
-    tol_rows = [row["param_id"] for row in rows if row["verified_tol"].strip()]
+    """S19：打开预算表，检查覆盖、A/B 重计、verified_tol↔pending 联动。
+
+    规则①（非缺失参数有 B 分量）只有在预算表覆盖当前机型时才可判；
+    预算表没有该机型时显式 SKIP，不伪装成 PASS。结构规则③④与自测始终执行。
+    """
+    machine = rendered_model()["header"]["machine"]
+    machine_rows = current_machine_rows()
+    all_rows = load_ledger()[1]
     budget = budget_rows()
     if budget is None:
-        add("S19", False, "docs/不确定度预算.csv 不存在，无法核对 verified_tol")
+        add("S19", False, "docs/不确定度预算.csv 不存在，无法核对 S19")
         return
-    budget_ids = {row["param_id"] for row in budget if row.get("param_id")}
-    missing = [param_id for param_id in tol_rows if param_id not in budget_ids]
-    if missing:
-        add("S19", False, f"有 verified_tol 但预算表缺行：{missing[:5]}")
-        return
-    machine = rendered_model()["header"]["machine"]
-    add(
-        "S19",
-        True,
-        f"{machine} 机型 {len(tol_rows)} 行带 verified_tol，预算表已逐行覆盖；"
-        f"预算表共 {len(budget_ids)} 个 param_id（含其他机型）",
+    index, structural = budget_index(budget)
+    cross_problems = s19_cross_table(all_rows, index)
+    self_test = s19_self_test()
+    uncovered, stats = s19_coverage(machine, machine_rows, index)
+    b_rows = sum(1 for row in budget if row.get("kind", "").strip() == "B")
+    pending_rows = sum(
+        1 for row in budget if row.get("status", "").strip() == "pending"
     )
+    placeholder_tol = sum(
+        1
+        for row in all_rows
+        if row["verified_tol"].strip() and verified_tol_value(row["verified_tol"]) is None
+    )
+    problems = structural + cross_problems + self_test
+    if uncovered:
+        problems += [f"规则①：非缺失参数无 B 分量/可忽略行：{pid}" for pid in uncovered[:5]]
+        if len(uncovered) > 5:
+            problems.append(f"规则①另有 {len(uncovered) - 5} 行同类问题")
+    detail = (
+        f"预算表 {len(budget)} 行（B={b_rows}, pending={pending_rows}）/"
+        f"{len(index)} 个 param_id；{machine} 台账 {stats['non_missing']} 行非缺失，"
+        f"有 B 覆盖 {stats['covered']}、可忽略 {stats['negligible']}；"
+        f"verified_tol 占位 {placeholder_tol} 行不计入真实容差；"
+        "可忽略自动判定未实现（预算表无 u_A 列），仅认显式 kind=negligible 行"
+    )
+    if problems:
+        add("S19", False, "；".join(problems[:6]) + f"（{detail}）")
+        return
+    if uncovered is None:
+        add(
+            "S19",
+            None,
+            f"SKIP：规则①未执行——预算表 0 行覆盖 {machine} 机型"
+            f"（{stats['non_missing']} 行非缺失），无法核对 B 分量完整性；"
+            f"规则②③④已执行并自测通过（{detail}）",
+        )
+        return
+    add("S19", True, f"规则①②③④与自测均通过（{detail}）")
 
 
 def check_s20():
@@ -1142,6 +1372,18 @@ def check_judge_unit_tests():
     if "not_ended_on_platform" not in edge_cross.get("cross_fail_reasons", []):
         problems.append("骑棱边未记入 cross_fail 子条件")
 
+    # 负例 3b：all_pairs 没有 floor 对时，不能把「查不到地面接触」当成「末帧离地」；
+    # 否则一轮在上平台、另一轮仍在地面也会被 ended_on_platform 放行。
+    no_floor_columns = {name: list(values) for name, values in one_wheel.items()}
+    verdict_no_floor = judge.judge_case(no_floor_columns, params)
+    no_floor_cross = verdict_no_floor["metrics"].get("crossing") or {}
+    if no_floor_cross.get("no_floor_contact_at_end") is not False:
+        problems.append("缺 floor 对时把「查不到」当「末帧无地面接触」")
+    if no_floor_cross.get("ended_on_platform") is not False:
+        problems.append(
+            f"缺 floor 对时骑棱边仍算 ended_on_platform：{no_floor_cross}"
+        )
+
     # 负例 4：|Ft|/Fn = μ + 1e-9 落在浮点容差内，不得触发 slip_force_exceeded
     friction_edge = {name: list(values) for name, values in columns.items()}
     for i in range(len(friction_edge["t_s"])):
@@ -1181,13 +1423,28 @@ def check_judge_unit_tests():
         belly["contact_chassis--step_normal_n"][i] = "5.0" if active == "1" else ""
         belly["contact_chassis--step_tangent_n"][i] = "0.5" if active == "1" else ""
         belly["contact_chassis--step_count"][i] = "1" if active == "1" else "0"
-    verdict_belly = judge.judge_case(belly, params)
+    # 让「双轮整窗未触台阶」的时程仍满足跨越几何：补一对始终 inactive 的
+    # floor 接触对，走“末帧无地面接触且高度够平台”这一支，避免被 cross_fail
+    # 抢先判负（本例只验 belly_contact 的 fail_on 翻转）。
+    floor_pairs = ["wheel_L--floor", "wheel_R--floor"]
+    belly_params = dict(params)
+    belly_params["all_pairs"] = list(params["all_pairs"]) + floor_pairs
+    belly_params["pair_friction"] = dict(params["pair_friction"])
+    for key in floor_pairs:
+        belly_params["pair_friction"][key] = 0.8
+        for suffix, fill in (
+            ("_active", "0"),
+            ("_normal_n", ""),
+            ("_tangent_n", ""),
+            ("_count", "0"),
+        ):
+            belly[f"contact_{key}{suffix}"] = [fill] * len(belly["t_s"])
+    verdict_belly = judge.judge_case(belly, belly_params)
     if verdict_belly["passed"] != 1 or "belly_contact" not in verdict_belly["failure_flags"]:
         problems.append(
             f"belly_contact 默认应只诊断：passed={verdict_belly['passed']} "
             f"flags={verdict_belly['failure_flags']}"
         )
-    belly_params = dict(params)
     belly_params["fail_on"] = list(params["fail_on"]) + ["belly_contact"]
     verdict_belly_fail = judge.judge_case(belly, belly_params)
     if (
@@ -1237,7 +1494,9 @@ def integration_checks():
             "--repeat",
             "2",
         ]
-        result = subprocess.run(command, capture_output=True, text=True)
+        result = subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         ok = result.returncode == 0
         run_json = json.loads(read_text(base_out / "run.json")) if ok else {}
         add(
@@ -1258,6 +1517,8 @@ def integration_checks():
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         topple_ok = False
         detail = f"topple 负例运行失败 rc={topple_result.returncode}: {topple_result.stderr[-300:]}"
@@ -1302,6 +1563,8 @@ def integration_checks():
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         same_model = True
         if height_result.returncode == 0:
