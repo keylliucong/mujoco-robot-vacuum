@@ -1,0 +1,33 @@
+unc_id,param_id,kind,component,dist,value,unit,nu,status,source,method,condition,invalidate,ref,note
+unc.m_dry.balance_cal,m_dry,B,balance_cal,正态,,g,inf,pending,meas,证书复核,同一台秤、同一点位,换秤/换点位后重算,cert=TODO; valid_until=TODO; range=TODO,证书编号与校准值待补
+unc.m_dry.balance_res,m_dry,B,balance_res,均匀,0.029,g,inf,evaluated,meas,"均匀分布 a/2, u=a/(2√3)",同一台秤、同一点位,换秤/换点位后重算,,"a=0.1 g, u_B=0.029 g"
+unc.m_dry.eccentric_res,m_dry,B,eccentric_res,正态,,g,inf,pending,meas,四角砝码校核后残差,同一点位、同一台秤,校准或点位变更后重算,,
+unc.m_dry.temp_res,m_dry,B,temp_res,正态,,g,inf,pending,meas,20/26 °C 两点日间偏移,20–26 °C,温控条件变更后重算,,
+unc.m_dry.mounting_res,m_dry,B,mounting_res,正态,,g,inf,assumed,meas,装夹模型假设残余,仅 s_f 不可得时启用,获得 s_f 后停用,exclusive_group=mounting,
+unc.com_x.balance_cal,com_x,B,balance_cal,正态,,g,inf,pending,meas,证书复核,同一台秤、同一点位,换秤/换点位后重算,cert=TODO; valid_until=TODO; range=TODO,同整机质量证书
+unc.com_x.pivot_coord,com_x,B,pivot_coord,正态,,mm,inf,pending,meas,卡尺校准证书复核,支点三角形,换尺/换装夹后重算,,
+unc.com_x.floor_level,com_x,B,floor_level,正态,,mm,inf,pending,meas,水平仪 0.1° 折算,地面水平 ≤0.1°,水平条件变更后重算,,
+unc.com_x.mounting_res,com_x,B,mounting_res,正态,,mm,inf,assumed,meas,装夹模型假设残余,仅 s_f 不可得时启用,获得 s_f 后停用,exclusive_group=mounting,
+unc.Ixx.timer_res,Ixx,B,timer_res,均匀,0.29,ms,inf,evaluated,meas,"均匀分布 a/2, u=a/(2√3); 单周期; 10 周期平均再除 √10",光电计时 ≥1 kHz,换计时设备后重算,,a=1 ms
+unc.Ixx.fixture_inertia,Ixx,B,fixture_inertia,正态,,kg·mm²,inf,pending,meas,空载标定后残差,同一工装,换工装后重算,,
+unc.Ixx.air_damping,Ixx,B,air_damping,正态,,kg·mm²,inf,pending,meas,对数衰减法修正后残差,同一摆动条件,环境变更后重算,,
+unc.r_wheel.caliper_cal,r_wheel,B,caliper_cal,正态,,mm,inf,pending,meas,块规核验证书复核,同一把卡尺,换尺/证书到期后重算,cert=TODO; valid_until=TODO; range=TODO,
+unc.r_wheel.caliper_res,r_wheel,B,caliper_res,均匀,0.0058,mm,inf,evaluated,meas,"均匀分布 a/2, u=a/(2√3)",同一把卡尺,换尺后重算,,"a=0.02 mm, u_B=0.0058 mm"
+unc.r_wheel.load_mismatch,r_wheel,B,load_mismatch,正态,,mm,inf,assumed,meas,实际载荷与标称载荷之差,空/满载两态,载荷谱变更后重算,,两态各自算 s_r，两态差本身不进 σ 池
+unc.clearance_min.height_cal,clearance_min,B,height_cal,正态,,mm,inf,pending,meas,证书复核,同一高度规/激光位移,换仪器后重算,cert=TODO; valid_until=TODO; range=TODO,
+unc.clearance_min.height_res,clearance_min,B,height_res,均匀,0.0058,mm,inf,evaluated,meas,"均匀分布 a/2, u=a/(2√3)",同一高度规,换仪器后重算,,a=0.02 mm
+unc.clearance_min.laser_res,clearance_min,B,laser_res,均匀,0.0029,mm,inf,evaluated,meas,"均匀分布 a/2, u=a/(2√3)",同一激光位移,换仪器后重算,,a=0.01 mm
+unc.clearance_min.feeler_res,clearance_min,B,feeler_res,均匀,0.0029,mm,inf,evaluated,meas,"均匀分布 a/2, u=a/(2√3)",同一塞尺,换量具后重算,,a=0.01 mm
+unc.clearance_min.plate_flatness,clearance_min,B,plate_flatness,正态,,mm,inf,pending,meas,台面板平整度实测,同一台面板,换板后重算,,
+unc.clearance_min.body_level,clearance_min,B,body_level,正态,,mm,inf,pending,meas,水平仪 0.1° 折算,车身水平 ≤0.1°,水平条件变更后重算,,
+unc.k_susp.machine_force,k_susp,B,machine_force,正态,,N,inf,pending,meas,"正态, k=2 → u=0.25%×FS",同一试验机,换机/换量程后重算,cert=TODO; valid_until=TODO; range=TODO,半宽=0.25%×FS（待量程）
+unc.k_susp.disp_res,k_susp,B,disp_res,均匀,0.0029,mm,inf,evaluated,meas,"均匀分布 a/2, u=a/(2√3)",同一试验机位移,换机后重算,,a=0.01 mm
+unc.k_susp.guide_friction,k_susp,B,guide_friction,正态,,N,inf,pending,meas,上下行迟滞差,同一装夹,装夹变更后重算,,
+unc.c_susp.disp_res,c_susp,B,disp_res,均匀,0.0029,mm,inf,evaluated,meas,"均匀分布 a/2, u=a/(2√3)",同一激光位移,换仪器后重算,,a=0.01 mm
+unc.c_susp.init_disp,c_susp,B,init_disp,正态,,mm,inf,pending,meas,释放机构重复性,同一释放机构,机构变更后重算,,
+unc.travel.force_cal,travel,B,force_cal,正态,,N,inf,pending,meas,证书复核,同一力传感器,换传感器后重算,cert=TODO; valid_until=TODO; range=TODO,
+unc.travel.plastic,travel,B,plastic,正态,,mm,inf,pending,meas,累计撞击次数与行程零点漂移,同一加载机,行程零点变化后重算,,
+unc.m_ballast.mass_cal,m_ballast,B,mass_cal,正态,,g,inf,pending,meas,按总成（底板+叠块+销+螺栓）标定,同一总成,换叠块组合后重算,,
+unc.m_ballast.com_cal,m_ballast,B,com_cal,正态,,mm,inf,pending,meas,目标 ±1 mm,同一总成,换叠块组合后重算,,
+unc.m_ballast.install_repeat,m_ballast,B,install_repeat,正态,,g,inf,assumed,meas,销定位 H7/g6,同一底板与销,换工装后重算,exclusive_group=s_f,
+unc.torque_wheel.sensor,torque_wheel,B,sensor,正态,,N·m,inf,pending,meas,"正态, k=2 → u=0.1%×FS",同一扭矩传感器,换传感器/换量程后重算,cert=TODO; valid_until=TODO; range=TODO,半宽=0.1%×FS（待量程）
