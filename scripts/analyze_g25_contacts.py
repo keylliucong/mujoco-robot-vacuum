@@ -29,9 +29,9 @@ def timeseries_path(batch_dir: Path, case_id: str, repeat: str, total_repeats: i
 
 
 def first_active(columns, _unused, predicate):
-    indices = [i for i, name in enumerate(columns) if predicate(name)]
+    names = [name for name in columns if predicate(name)]
     for row_index in range(len(next(iter(columns.values())))):
-        for name in indices:
+        for name in names:
             if columns[name][row_index] == "1":
                 return name, float(columns["t_s"][row_index])
     return "", None
