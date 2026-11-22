@@ -9,10 +9,16 @@
 | 仓库 | 用途 | HEAD SHA | 本地路径（仓库外） |
 |---|---|---|---|
 | `makerspet/oomwoo` | BOM、设计文档、部件实测笔记 | `0218857b2ecc53fb8e289b097b3bdf7a9e184386` | `~/orca/tmp/oomwoo/oomwoo` |
-| `makerspet/oomwoo-cad`（原名 oomwoo-one-cad） | CAD / STEP / RV02 报告 | 见 §3（clone 完成后回填） | `~/orca/tmp/oomwoo/oomwoo-cad` |
-| `makerspet/oomwoo-one` | URDF / xacro 参数（本轮数值来源） | `a630d1c77255072d280a2a41a7a2bd1a1c98cadd` | 见 §3 |
+| `makerspet/oomwoo-cad`（原名 oomwoo-one-cad） | CAD / STEP / RV02 报告 | `266210a47cab931c5891a07c9a29d48388a54b0c` | 未完整 clone（见下） |
+| `makerspet/oomwoo-one` | URDF / xacro 参数（本轮数值来源） | `a630d1c77255072d280a2a41a7a2bd1a1c98cadd` | 未 clone；按 SHA 引用，见 §3 |
 
-> 两个上游仓库均**未提交**进本仓库；STEP（约 16 MB）与 PDF 留在仓库外临时目录。
+> 两个上游仓库均**未提交**进本仓库；STEP（15.6 MB）与 PDF 不进入本仓库。
+
+**clone 记录**：`oomwoo` 已 `git clone --depth 1`（HEAD `0218857`）。`oomwoo-cad` 的
+clone 在 96 MB 处报 `fetch-pack: unexpected disconnect while reading sideband packet`，
+重试前已终止；改用 `git ls-remote` pin 到 HEAD `266210a`，并按该 SHA 读取
+`designs/one/agentic/july-2026/README.md` 的 raw 文件核对 RV02 自述。`oomwoo-one`
+HEAD 经 `git ls-remote` 确认为 `a630d1c`，与 `params.xacro` 引用一致。
 
 ## 2. 来源分级与撤回
 
