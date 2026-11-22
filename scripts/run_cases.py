@@ -29,7 +29,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-CONTRACT_VERSION = "1.10.0"  # S14：等于契约文档版本；v1.10.0 末态窗口 + invalid 后缀
+CONTRACT_VERSION = "1.10.1"  # S14：等于契约文档版本；v1.10.1 增 invalid 词表一项
 SCHEMA_VERSION = "1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -1013,6 +1013,8 @@ def build_judge_params(
         "end_hold_s": defaults["end_hold_s"],
         "end_duty_min": defaults["end_duty_min"],
         "end_duty_ambiguous": defaults["end_duty_ambiguous"],
+        # v1.10.1：横向漂移不可信门（先扣 advance·tan|heading| 再比）。
+        "lateral_drift_untrusted_ratio": defaults["lateral_drift_untrusted_ratio"],
         "heading_rad": math.radians(config["scenario"]["heading_deg"]),
         "com_offset_x_m": MODEL_CONSTANTS["com_offset_B_m"][0],
         "contact_gap_tol_s": defaults["tolerances"]["step_contact_gap_tol_s"],
@@ -1352,7 +1354,8 @@ def main(argv=None):
         bench_half_width_m = float(defaults["obstacle_half_width_m"])
         if bench_half_width_m < need_half_width_m:
             raise ContractError(
-                "step_too_narrow_for_heading：台架横向半宽不足，整批拒绝运行且不产 summary.csv；"
+                'invalid_reason="step_too_narrow_for_heading"：'
+                "台架横向半宽不足，整批拒绝运行且不产 summary.csv；"
                 f"所需半宽 need={need_half_width_m:.6f} m > 实际半宽 actual={bench_half_width_m:.6f} m"
                 f"（heading={stage['heading_deg']:g}°, min_advance={min_advance_m:.6f} m, "
                 f"body_length={body_length_m:.6f} m, body_half_width={body_half_width_m:.6f} m, "
