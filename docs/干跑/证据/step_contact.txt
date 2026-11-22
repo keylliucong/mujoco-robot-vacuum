@@ -1,9 +1,0 @@
-rows=13501
-wheel_step_active_rows=0
-chassis_step_active_first_s=12.638000000
-chassis_step_active_last_s=27.002000000
-chassis_step_max_normal_n=28.456579521
-final_chassis_x_m=0.500396375
-chassis_front_x_m=0.6723963749999999
-step_front_face_x_m=0.672
-conclusion=车轮从未接触台阶；底盘前缘先触，judge 记 invalid/no_contact

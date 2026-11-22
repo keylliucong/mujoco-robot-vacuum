@@ -1,24 +1,6 @@
+> 摘自 dryrun/oomwoo-step @ 76e57a0785060e7f7754a44e9d44079a1ca6312b，报告原文未改；该分支已关闭，证据留存于此。
+
 # OOMWOO One 全流程试跑报告
-
-## 引用核对（摘录说明）
-
-> **来源**：`origin/dryrun/oomwoo-step`（PR #17），摘录时分支提交 `ac597d1`。本轮**只摘报告类文档**；该分支的 `cases/`、`scripts/`、`models/`、`params/` 与 `docs/试跑/` 下的 CSV/JSON **均未摘入**，main 上的实现以 #15 `f712289` 为准。以下逐项核对文中引用在 main 上的状态。
-
-| 文中引用 | main 现状 | 处理 |
-|---|---|---|
-| rebase 基线 `origin/main = ae1124c`、Windows 实跑提交 `325e543` | 两者都**不是 main 祖先**；main 现为 `f712289` | 引用核对：此项对应提交在本轮未合并，仅作历史记录 |
-| 契约版本 `1.8.1` | main 为 `1.8.3` | 版本描述已过期，原文保留 |
-| `models/oomwoo.xml`、`params/oomwoo.json` | main 未合并（`models/` 只有 `baseline.xml`，`params/` 只有 `prototype.json`） | 引用核对：此项对应文件在本轮未合并，仅作历史记录 |
-| `cases/oomwoo_flat.json` / `oomwoo_step10.json` / `oomwoo_step10_lowtorque.json` / `oomwoo_step20_casterblock.json` / `_runner_oomwoo.json` | main 均无 | 引用核对：此项对应文件在本轮未合并，仅作历史记录 |
-| `scripts/run_oomwoo.py`、`scripts/step_mass_properties.py`、`scripts/slope_hold.py` | main 均无 | 引用核对：此项对应文件在本轮未合并，仅作历史记录 |
-| `judge.py` 的 `belly_contact`、`t_wheel_touch_s`、`t_trigger` 三处（`:170-207`、`:258-266`、`:295-300`） | main 的 `judge.py` **没有** `belly_contact` / `t_wheel_touch`；`t_trigger` 在 194 行，语义仍是轮-台阶首次接触 | 行号与内容均对不上，属该分支实现 |
-| `run_cases.py:126-160` / `:520-530` / `:590-605` / `:773-780` / `:785-814` / `:791-814` / `:1258-1262`、`model_checks.py:123-163`（S22） | 文件都在，但行号不同（`check_capabilities` 在 60 行、`data_quality` 在 762 行附近），且无本轮新增的 `belly_contact` 等 | 行号漂移 |
-| `docs/试跑/step-质量属性-oomwoo.csv`、`step-质量属性-逐实体-oomwoo.csv`、`参数溯源-oomwoo.csv` | **本轮未摘入**（属数据/参数表，按「只取报告类文档」排除） | 引用核对：此项对应文件在本轮未合并，仅作历史记录；§3.2/§9 的数值只能按原文引用 |
-| §7-B「单张台账不能装两个机型」 | main 已按 v1.8.1 把键迁成 `machine.` 前缀（`own.*` / `prototype.*` / `oomwoo.*`），同名 `param_id` 互相覆盖的前提不再成立 | 该卡点描述已部分失效 |
-| `models/oomwoo.xml` sha256 `9323a473…` | 文件未合并 | 不可核 |
-| `outputs/oomwoo-*-win/**`、`E:\mujoco-robot-vacuum` | 输出未入库；远端路径属本项目 Windows 约定 | 不可在 main 复核 |
-| `Top_Assembly_110926.f3z`、`lib/**` STEP、`designs/one/stock/` | 仓库外 CAD，未入库 | 只能按 sha 向持有人索取 |
-| `outcome = cleared / blocked`、`passed=1/0`、`invalid` | — | **判定级措辞按原文保留，不调整等级**；原文已自述「没有判定结论」，判据未冻结，只作历史记录 |
 
 - 日期：2026-11-22
 - 任务分支：`dryrun/oomwoo-step`
