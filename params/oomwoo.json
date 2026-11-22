@@ -378,39 +378,39 @@
       "note": "wheel_width 0.012/2"
     },
     "susp.travel_neg": {
-      "value": -0.004,
+      "value": -1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 未公开悬挂",
-      "note": "压缩为正；下行 4 mm"
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
     "susp.travel_pos": {
-      "value": 0.004,
+      "value": 1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 未公开悬挂",
-      "note": "上行 4 mm；超过即限位"
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
     "susp.stiffness": {
-      "value": 20000.0,
+      "value": 0.0,
       "unit": "N/m",
       "label": "工程假设",
       "ref": "URDF 未公开悬挂",
-      "note": "等效刚度，未做力-位移试验"
+      "note": "首版固定铰，不启用弹簧/阻尼"
     },
     "susp.springref": {
-      "value": -0.0007,
+      "value": 0.0,
       "unit": "m",
       "label": "工程假设",
       "ref": "由静载反推",
-      "note": "预压使 q=0 时每轮约 14 N；m=2.9 kg、CoM +2.2 mm"
+      "note": "首版固定铰，不启用弹簧/阻尼"
     },
     "susp.damping": {
-      "value": 400.0,
+      "value": 0.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "URDF 未公开悬挂",
-      "note": "等效阻尼，按 c≈2√(k·m_eff) 取临界阻尼量级；未辨识"
+      "note": "首版固定铰，不启用弹簧/阻尼"
     },
     "caster.x": {
       "value": 0.1445,
@@ -427,39 +427,39 @@
       "note": "caster_diameter/2；URDF base_link + (r-floor_clearance)"
     },
     "caster.travel_neg": {
-      "value": -0.012,
+      "value": -1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 固定球",
-      "note": "为允许 10 mm 级门槛顶起，加入竖向行程"
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
     "caster.travel_pos": {
-      "value": 0.012,
+      "value": 1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 固定球",
-      "note": "上行 12 mm"
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
     "caster.stiffness": {
-      "value": 500.0,
+      "value": 0.0,
       "unit": "N/m",
       "label": "工程假设",
       "ref": "URDF 固定球",
-      "note": "软弹簧，使前支撑可被门槛顶起"
+      "note": "首版固定铰，不启用弹簧/阻尼"
     },
     "caster.springref": {
-      "value": -0.00087,
+      "value": 0.0,
       "unit": "m",
       "label": "工程假设",
       "ref": "由静载反推",
-      "note": "预压使 q=0 时约 0.43 N"
+      "note": "首版固定铰，不启用弹簧/阻尼"
     },
     "caster.damping": {
-      "value": 20.0,
+      "value": 0.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "URDF 固定球",
-      "note": "等效阻尼，按 c≈2√(k·m_eff) 取临界阻尼量级；未辨识"
+      "note": "首版固定铰，不启用弹簧/阻尼"
     },
     "caster.mass": {
       "value": 0.05,
@@ -756,39 +756,39 @@
       "note": "后从动支撑，镜像前支撑；为数值稳定新增"
     },
     "caster_rear.travel_neg": {
-      "value": -0.012,
+      "value": -1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
-      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
     "caster_rear.travel_pos": {
-      "value": 0.012,
+      "value": 1e-06,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
-      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
     },
     "caster_rear.stiffness": {
-      "value": 500.0,
+      "value": 0.0,
       "unit": "N/m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
-      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+      "note": "首版固定铰，不启用弹簧/阻尼"
     },
     "caster_rear.springref": {
-      "value": -0.00087,
+      "value": 0.0,
       "unit": "m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
-      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+      "note": "首版固定铰，不启用弹簧/阻尼"
     },
     "caster_rear.damping": {
-      "value": 20.0,
+      "value": 0.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "URDF 无后支撑",
-      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+      "note": "首版固定铰，不启用弹簧/阻尼"
     },
     "caster_rear.mass": {
       "value": 0.05,
