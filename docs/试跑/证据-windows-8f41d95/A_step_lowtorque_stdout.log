@@ -1,0 +1,12 @@
+﻿batch_id: A_step_lowtorque
+contract_version: 1.9.0
+model: models/baseline.xml sha256=153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+params: proto_v1 machine=prototype missing=['prototype.proto_v1.com.chassis.z']
+capabilities: has_suspension=1
+config: E:\mujoco-robot-vacuum\cases\step_forward_20mm_low_torque.json sha256=ceb2561704df76ba96fb2be9780d09630f5d964aa2688b9fd8365ff39a0bef9e
+scenario_xml_sha256: b6eea90119b10b0843117b83874f84b1696a652f89b9f862f76c82484bbb6b83
+git: {'commit': '8f41d95924f8a85b7303d60ea76e0644e08809a4', 'branch': 'HEAD', 'dirty': False}
+[step_forward_20mm_low_torque r1] creep: drift=0.0000 mm residual=0.0000 mm/s redline=False
+[step_forward_20mm_low_torque r1 base] status=ok passed=False primary=retreat flags=retreat;cross_fail;stall;torque_limit;slip
+[step_forward_20mm_low_torque r2] creep: drift=0.0000 mm residual=0.0000 mm/s redline=False
+[step_forward_20mm_low_torque r2 base] status=ok passed=False primary=retreat flags=retreat;cross_fail;stall;torque_limit;slip
