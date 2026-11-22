@@ -48,7 +48,7 @@
   <default>
     <default class="wheel">
       <geom condim="{{contact.condim}}"
-            friction="{{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_t}} {{contact.mu_wheel_floor_r}}"
+            friction="{{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_t}} {{contact.mu_wheel_floor_r}} {{contact.mu_wheel_floor_r}}"
             solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
             solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
       <joint damping="{{default.joint_damping}}" armature="{{default.joint_armature}}"/>
@@ -73,7 +73,7 @@
             size="{{chassis.radius}} {{chassis.height_half}}"
             pos="0 0 {{chassis.center_z}}" material="body"
             contype="2" conaffinity="0" condim="{{contact.condim}}"
-            friction="{{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_t}} {{contact.mu_chassis_step_r}}"
+            friction="{{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_t}} {{contact.mu_chassis_step_r}} {{contact.mu_chassis_step_r}}"
             solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
             solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
 
@@ -117,7 +117,7 @@
                   diaginertia="{{caster.ixx}} {{caster.iyy}} {{caster.izz}}"/>
         <geom name="caster_ball" type="sphere" size="{{caster.radius}}"
               condim="{{contact.condim}}"
-              friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}}"
+              friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}} {{contact.mu_caster_floor_r}}"
               solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
               solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"
               material="tire" contype="1" conaffinity="1"/>
@@ -133,7 +133,7 @@
                   diaginertia="{{caster_rear.ixx}} {{caster_rear.iyy}} {{caster_rear.izz}}"/>
         <geom name="caster_rear_ball" type="sphere" size="{{caster_rear.radius}}"
               condim="{{contact.condim}}"
-              friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}}"
+              friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}} {{contact.mu_caster_floor_r}}"
               solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
               solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"
               material="tire" contype="1" conaffinity="1"/>
@@ -152,59 +152,59 @@
 
   <contact>
     <pair geom1="wheel_L_tire" geom2="floor"
-          friction="{{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_t}} {{contact.mu_wheel_floor_r}}"
+          friction="{{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_t}} {{contact.mu_wheel_floor_r}} {{contact.mu_wheel_floor_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="wheel_R_tire" geom2="floor"
-          friction="{{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_t}} {{contact.mu_wheel_floor_r}}"
+          friction="{{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_s}} {{contact.mu_wheel_floor_t}} {{contact.mu_wheel_floor_r}} {{contact.mu_wheel_floor_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="wheel_L_tire" geom2="step"
-          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}}"
+          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}} {{contact.mu_wheel_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="wheel_R_tire" geom2="step"
-          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}}"
+          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}} {{contact.mu_wheel_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="wheel_L_tire" geom2="step_edge"
-          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}}"
+          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}} {{contact.mu_wheel_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="wheel_R_tire" geom2="step_edge"
-          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}}"
+          friction="{{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_s}} {{contact.mu_wheel_step_t}} {{contact.mu_wheel_step_r}} {{contact.mu_wheel_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="caster_ball" geom2="floor"
-          friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}}"
+          friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}} {{contact.mu_caster_floor_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="caster_ball" geom2="step"
-          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}}"
+          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}} {{contact.mu_caster_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="caster_ball" geom2="step_edge"
-          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}}"
+          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}} {{contact.mu_caster_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="caster_rear_ball" geom2="floor"
-          friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}}"
+          friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}} {{contact.mu_caster_floor_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="caster_rear_ball" geom2="step"
-          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}}"
+          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}} {{contact.mu_caster_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="caster_rear_ball" geom2="step_edge"
-          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}}"
+          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}} {{contact.mu_caster_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="chassis_body" geom2="step"
-          friction="{{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_t}} {{contact.mu_chassis_step_r}}"
+          friction="{{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_t}} {{contact.mu_chassis_step_r}} {{contact.mu_chassis_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="chassis_body" geom2="step_edge"
-          friction="{{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_t}} {{contact.mu_chassis_step_r}}"
+          friction="{{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_s}} {{contact.mu_chassis_step_t}} {{contact.mu_chassis_step_r}} {{contact.mu_chassis_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
   </contact>

@@ -4,7 +4,7 @@
   "batch_notes": "基准机型 oomwoo 的通用样机工况。结构来自 makerspet/oomwoo-one URDF（公开参考），数值来自 params/oomwoo.json，逐项带来源标签；目标机型未做本机实测，不得把本批结果写成产品越障能力。本批为单级台阶（带足够长度平台），obstacle.top_width_m 表示台面沿 x 的长度，不采用 IEC 62849 的 40 mm 矩形门槛顶宽。基准机型 oomwoo 的 12.5 mm 离地间隙意味着 20 mm 及以上门槛会先触发底盘接触；10 mm 工况用于观察轮-台阶接触时序。",
   "model": {
     "template_path": "models/baseline.xml",
-    "template_sha256": "f02510c159df54c2c01fcd475eee7b26b0b82c1343bb83b3a5c2d1615f4dc569",
+    "template_sha256": "004f74418dddac94d5c5d49a714bc06bf7dd41156052e12070e0da2aa965b1a9",
     "params_path": "params/oomwoo.json",
     "params_sha256": "582c0f40db346caff440cdce71d2a37dbd055f8b80986cec9a49ff3adf3e1c82",
     "config_id": "oomwoo_public_v1"
