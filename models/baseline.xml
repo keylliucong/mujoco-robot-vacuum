@@ -20,7 +20,7 @@
     chassis 在 world 中恒为 pos="0 0 0" quat="1 0 0 0"。
 
   名称表（runner 只按名字取）：
-    body      chassis / wheel_L / wheel_R / caster / lidar
+    body      chassis / wheel_L / wheel_R / caster / caster_rear / lidar
     joint     chassis_free / wheel_L_spin / wheel_R_spin / susp_L / susp_R / caster_susp
     actuator  wheel_L / wheel_R（gear=1，单位 N·m，轮端）
     geom      chassis_body / wheel_L_tire / wheel_R_tire / caster_ball / lidar_body
@@ -123,6 +123,22 @@
               material="tire" contype="1" conaffinity="1"/>
       </body>
 
+      <!-- 后从动支撑：oomwoo URDF 只有前支撑；后支撑是数值稳定用的工程假设 -->
+      <body name="caster_rear" pos="{{caster_rear.x}} 0 {{caster_rear.z}}">
+        <joint name="caster_rear_susp" type="slide" axis="0 0 1"
+               range="{{caster_rear.travel_neg}} {{caster_rear.travel_pos}}"
+               stiffness="{{caster_rear.stiffness}}" springref="{{caster_rear.springref}}"
+               damping="{{caster_rear.damping}}"/>
+        <inertial pos="0 0 0" mass="{{caster_rear.mass}}"
+                  diaginertia="{{caster_rear.ixx}} {{caster_rear.iyy}} {{caster_rear.izz}}"/>
+        <geom name="caster_rear_ball" type="sphere" size="{{caster_rear.radius}}"
+              condim="{{contact.condim}}"
+              friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}}"
+              solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+              solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"
+              material="tire" contype="1" conaffinity="1"/>
+      </body>
+
       <!-- LiDAR 罩：结构配重，不参与接触 -->
       <body name="lidar" pos="{{lidar.x}} 0 {{lidar.z}}">
         <inertial pos="0 0 0" mass="{{lidar.mass}}"
@@ -168,6 +184,18 @@
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
     <pair geom1="caster_ball" geom2="step_edge"
+          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="caster_rear_ball" geom2="floor"
+          friction="{{contact.mu_caster_floor_s}} {{contact.mu_caster_floor_t}} {{contact.mu_caster_floor_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="caster_rear_ball" geom2="step"
+          friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}}"
+          condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
+          solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>
+    <pair geom1="caster_rear_ball" geom2="step_edge"
           friction="{{contact.mu_caster_step_s}} {{contact.mu_caster_step_t}} {{contact.mu_caster_step_r}}"
           condim="{{contact.condim}}" solref="{{contact.solref_timeconst}} {{contact.solref_dampratio}}"
           solimp="{{contact.solimp_0}} {{contact.solimp_1}} {{contact.solimp_2}} {{contact.solimp_3}} {{contact.solimp_4}}"/>

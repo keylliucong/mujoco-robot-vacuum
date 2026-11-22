@@ -740,6 +740,90 @@
       "label": "公开参考",
       "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
       "note": "LiDAR 塔居中时的 x_cg；用于敏感性对照"
+    },
+    "caster_rear.x": {
+      "value": -0.1445,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑位置；为数值稳定新增"
+    },
+    "caster_rear.z": {
+      "value": 0.0125,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.travel_neg": {
+      "value": -0.012,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.travel_pos": {
+      "value": 0.012,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.stiffness": {
+      "value": 500.0,
+      "unit": "N/m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.springref": {
+      "value": -0.00087,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.damping": {
+      "value": 20.0,
+      "unit": "N*s/m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.mass": {
+      "value": 0.05,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.ixx": {
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.iyy": {
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.izz": {
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "caster_rear.radius": {
+      "value": 0.0125,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
     }
   },
   "missing": [

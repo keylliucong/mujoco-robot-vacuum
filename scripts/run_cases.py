@@ -129,6 +129,8 @@ TIMESERIES_COLUMNS = [
     "contact_wheel_R_step_tangent_n", "contact_wheel_R_step_count",
     "contact_caster_floor_active", "contact_caster_floor_normal_n",
     "contact_caster_floor_tangent_n", "contact_caster_floor_count",
+    "contact_caster_rear_floor_active", "contact_caster_rear_floor_normal_n",
+    "contact_caster_rear_floor_tangent_n", "contact_caster_rear_floor_count",
     "contact_chassis_step_active", "contact_chassis_step_normal_n",
     "contact_chassis_step_tangent_n", "contact_chassis_step_count",
     "wheel_L_normal_n", "wheel_R_normal_n",
@@ -143,6 +145,7 @@ PAIR_COLUMNS = {
     "contact_wheel_L_step": ("wheel_L_step",),
     "contact_wheel_R_step": ("wheel_R_step",),
     "contact_caster_floor": ("caster_floor",),
+    "contact_caster_rear_floor": ("caster_rear_floor",),
     "contact_chassis_step": ("chassis_step",),
 }
 
@@ -438,6 +441,7 @@ def read_contacts(model: mujoco.MjModel, data: mujoco.MjData, gid: dict) -> dict
     step_ids = {gid.get("step"), gid.get("step_edge")}
     step_ids.discard(None)
     caster_id = gid["caster_ball"]
+    caster_rear_id = gid["caster_rear_ball"]
     chassis_geoms = gid["chassis_geoms"]
 
     out = {
@@ -450,6 +454,7 @@ def read_contacts(model: mujoco.MjModel, data: mujoco.MjData, gid: dict) -> dict
         "wheel_R_step_normal": 0.0,
         "chassis_step_normal": 0.0,
         "caster_floor_normal": 0.0,
+        "caster_rear_floor_normal": 0.0,
         "all_normal": 0.0,
         "max_penetration": 0.0,
         "ncon": int(data.ncon),
@@ -458,7 +463,7 @@ def read_contacts(model: mujoco.MjModel, data: mujoco.MjData, gid: dict) -> dict
     }
     for key in (
         "wheel_L_floor", "wheel_R_floor", "wheel_L_step", "wheel_R_step",
-        "caster_floor", "chassis_step",
+        "caster_floor", "caster_rear_floor", "chassis_step",
     ):
         out["pairs"][key] = {"active": 0, "normal": 0.0, "tangent": 0.0, "count": 0}
 
@@ -497,6 +502,14 @@ def read_contacts(model: mujoco.MjModel, data: mujoco.MjData, gid: dict) -> dict
                 out[f"wheel_{side}_tangent"] += ft
                 if other in step_ids:
                     out[f"wheel_{side}_step_normal"] += fn
+
+        if caster_rear_id in pair and floor_id in pair:
+            p = out["pairs"]["caster_rear_floor"]
+            p["active"] = 1
+            p["normal"] += fn
+            p["tangent"] += ft
+            p["count"] += 1
+            out["caster_rear_floor_normal"] += fn
 
         if caster_id in pair and floor_id in pair:
             p = out["pairs"]["caster_floor"]
@@ -579,6 +592,7 @@ def geom_index(model: mujoco.MjModel) -> dict:
     gid = {
         "floor": _geom_id(model, "floor"),
         "caster_ball": _geom_id(model, "caster_ball"),
+        "caster_rear_ball": _geom_id(model, "caster_rear_ball"),
         "chassis_geoms": set(),
     }
     for name in ("step", "step_edge"):
@@ -591,7 +605,7 @@ def geom_index(model: mujoco.MjModel) -> dict:
     for g in range(model.ngeom):
         if int(model.geom_bodyid[g]) == cid:
             gid["chassis_geoms"].add(g)
-    if gid["floor"] < 0 or gid["caster_ball"] < 0:
+    if gid["floor"] < 0 or gid["caster_ball"] < 0 or gid["caster_rear_ball"] < 0:
         raise SystemExit("scenario XML missing floor / caster geom")
     return gid
 
