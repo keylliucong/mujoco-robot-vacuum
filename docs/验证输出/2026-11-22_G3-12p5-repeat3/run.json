@@ -1,0 +1,1765 @@
+{
+  "contract_version": "1.9.0",
+  "schema_version": "1.0",
+  "batch_id": "repeat3-12p5",
+  "command": [
+    "E:\\mujoco-robot-vacuum\\.venv\\Scripts\\python.exe",
+    "scripts\\run_oomwoo.py",
+    "--config",
+    "cases\\oomwoo_step12p5_dt2ms.json",
+    "--out",
+    "outputs\\g3-timestep\\repeat3-12p5",
+    "--repeat",
+    "3",
+    "--control-period-s",
+    "0.002"
+  ],
+  "cwd": "E:\\mujoco-robot-vacuum\\.tools\\worktrees\\g3-timestep",
+  "host": "DESKTOP-RGG6DMC",
+  "git": {
+    "commit": "aeae6d2557055b896981087918c2bfcb249d1015",
+    "branch": "HEAD",
+    "dirty": false
+  },
+  "model": {
+    "path": "models/oomwoo.xml",
+    "sha256": "0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e",
+    "rendered_sha256": "193fe7811519f30226eee4911a4e25fae239e8c432e0fd5dba2fcfa337adcfe7",
+    "structure_only": true
+  },
+  "machine": "oomwoo",
+  "capabilities": {
+    "has_suspension": 0
+  },
+  "parameter_set": {
+    "path": "params/oomwoo_g25.json",
+    "sha256": "b4f6c0c0481d821d0647649ecea68e99c37a4a35d49f4d115e455be58d7ce710",
+    "config_id": "oomwoo_g25",
+    "missing": [
+      "oomwoo.oomwoo_g25.com.chassis.z"
+    ]
+  },
+  "config": {
+    "path": [
+      "cases/oomwoo_step12p5_dt2ms.json"
+    ],
+    "sha256": "b906727edaa838fc844f8d0898ac00f44aef9b96ebced8177b9f730a541beb99",
+    "cases": [
+      {
+        "case_id": "oomwoo_step12p5_dt2ms",
+        "path": "cases/oomwoo_step12p5_dt2ms.json",
+        "sha256": "17948fe5892d3da1565b9d060aca8579be4063ffac00e3c6a0a8cad5cf5e5048"
+      }
+    ]
+  },
+  "scenario_xml_sha256": "9f2e12580a81eadf542da9b092537acbaa46d7b8e965b9391529c3147ccaca7b",
+  "com_offset_B_m": {
+    "x": 0.006340472088,
+    "y": 0.0,
+    "z": 0.046669162646
+  },
+  "frame": {
+    "cad_to_B": {
+      "yaw_deg": 0.0,
+      "origin_B_m": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    }
+  },
+  "python": "3.13.0",
+  "mujoco": "4.0.1",
+  "numpy": "2.5.5",
+  "os": "nt",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numerics": {
+    "timestep_s": 0.002,
+    "integrator": "implicitfast",
+    "solver": "Newton",
+    "cone": "pyramidal",
+    "iterations": 100,
+    "effective": {
+      "timestep_s": 0.002,
+      "integrator": 3,
+      "solver": 2,
+      "cone": 0,
+      "iterations": 100
+    }
+  },
+  "overrides": [
+    {
+      "path": "drive.update_period_s",
+      "requested": 0.002,
+      "source": "cli"
+    }
+  ],
+  "seed": 0,
+  "seed_used": false,
+  "params": [
+    {
+      "id": "actuator.torque_limit_nm",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "caster.roll_damping_nms",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "com.chassis.x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "com.chassis.y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "com.chassis.z",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "com_B_m.x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "com_B_m.y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "com_B_m.z",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.caster_floor_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.caster_solref_timeconst_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.caster_step_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.chassis_floor_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.chassis_step_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.condim",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.friction_r",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.friction_t",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.solimp_d0",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.solimp_d1",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.solimp_d2",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.solimp_d3",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.solimp_d4",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.solref_dampratio",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.solref_timeconst_s",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.wheel_floor_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "contact.wheel_step_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "frame.cad_to_B.origin_x_m",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "frame.cad_to_B.origin_y_m",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "frame.cad_to_B.origin_z_m",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "frame.cad_to_B.yaw_deg",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.center_x_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.center_z_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.compliance",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.geom_radius_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.half_width_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.height_m",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.overhang_m",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.radius_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.solimp_d0",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.solimp_d1",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.solimp_d2",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.solimp_d3",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.solimp_d4",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.solref_dampratio",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "front_lip.solref_timeconst_s",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "geom.caster.half_width",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "geom.caster.radius",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "geom.chassis.half_height",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "geom.chassis.pos_z",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "geom.chassis.radius",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "geom.wheel_half_width_m",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "geom.wheel_radius_m",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "gravity.x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "gravity.y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "gravity.z",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.caster.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.caster.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.caster.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.chassis.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.chassis.xy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.chassis.xz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.chassis.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.chassis.yz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.chassis.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.wheel_L.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.wheel_L.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.wheel_L.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.wheel_R.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.wheel_R.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia.wheel_R.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia_B.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia_B.xy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia_B.xz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia_B.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia_B.yz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "inertia_B.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "judge.platform_height_tol_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "judge.step_contact_gap_tol_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "mass.assembly",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "mass.caster",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "mass.chassis",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "mass.residual",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "mass.wheel_L",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "mass.wheel_R",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "pos.caster.x",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "pos.caster.y",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "pos.caster.z",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "pos.susp.y",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "pos.susp.z",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "runner.control_update_period_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "susp.travel_limit_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "wheel.armature_kgm2",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "wheel.damping_nms",
+      "label": "工程假设",
+      "verified_by": ""
+    }
+  ],
+  "param_labels": {
+    "工程假设": 43,
+    "缺失": 1,
+    "公开参考": 12,
+    "图纸推算": 3,
+    "待标定": 14
+  },
+  "conclusion_level_inputs": {
+    "rule": "v1.7.6：只取绑定 xpath 的台账行；v1.7.4：本字段是结论等级，参数等级见 params[].label",
+    "rows_bound_to_xpath": 73
+  },
+  "conclusion_level": "mechanism",
+  "repeat": {
+    "consistent": true,
+    "key_metrics_tol": 0.0,
+    "excluded_columns": [
+      "repeat",
+      "output_dir"
+    ]
+  },
+  "started_utc": "2026-11-22T14:10:33.960399+00:00",
+  "finished_utc": "2026-11-22T14:10:36.409225+00:00",
+  "cases": [
+    {
+      "case_id": "oomwoo_step12p5_dt2ms",
+      "config": "cases/oomwoo_step12p5_dt2ms.json",
+      "config_sha256": "17948fe5892d3da1565b9d060aca8579be4063ffac00e3c6a0a8cad5cf5e5048",
+      "scenario_xml_sha256": "06e53f557550c0954793578cac2245c9b73c63a7a67eef0b83e881d60fbd68be",
+      "trigger_source": "caster--step",
+      "friction_readback": {
+        "caster--floor": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "caster--step": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "chassis--floor": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "chassis--step": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "wheel_L--floor": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "wheel_L--step": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "wheel_R--floor": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "wheel_R--step": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001,
+          0.0001
+        ]
+      },
+      "repeats": [
+        {
+          "repeat": 1,
+          "output_dir": "oomwoo_step12p5_dt2ms_r1",
+          "creep": {
+            "settle_s": 1.0,
+            "window_s": 10.0,
+            "drift_m": 5.4400466431572935e-06,
+            "residual_speed_mps": 3.184856040600491e-08,
+            "max_residual_speed_mps": 0.001,
+            "max_drift_m": 0.0005,
+            "redline": false,
+            "wheel_radius_m": 0.035805
+          },
+          "summary_signature": [
+            [
+              "case_id",
+              "oomwoo_step12p5_dt2ms"
+            ],
+            [
+              "status",
+              "ok"
+            ],
+            [
+              "passed",
+              "0"
+            ],
+            [
+              "failure_primary",
+              "stall"
+            ],
+            [
+              "failure_flags",
+              "cross_fail;bottom_out;stall;torque_limit;slip"
+            ],
+            [
+              "t_trigger_s",
+              "3.976"
+            ],
+            [
+              "t_climb_s",
+              ""
+            ],
+            [
+              "t_recover_s",
+              ""
+            ],
+            [
+              "advance_m",
+              "0.121141642"
+            ],
+            [
+              "v_recover_mps",
+              ""
+            ],
+            [
+              "pitch_max_deg",
+              "6.869588352054363"
+            ],
+            [
+              "roll_max_deg",
+              "0.0"
+            ],
+            [
+              "slip_max_L",
+              "12.239547170256825"
+            ],
+            [
+              "slip_max_R",
+              "12.239547170256825"
+            ],
+            [
+              "torque_max_L_nm",
+              "0.5"
+            ],
+            [
+              "torque_max_R_nm",
+              "0.5"
+            ],
+            [
+              "susp_travel_max_L_m",
+              ""
+            ],
+            [
+              "susp_travel_max_R_m",
+              ""
+            ],
+            [
+              "contact_normal_max_n",
+              "655.351993602"
+            ],
+            [
+              "timestep_s",
+              "0.002"
+            ],
+            [
+              "integrator",
+              "implicitfast"
+            ],
+            [
+              "cone",
+              "pyramidal"
+            ],
+            [
+              "seed",
+              "0"
+            ],
+            [
+              "model_sha256",
+              "0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e"
+            ],
+            [
+              "config_sha256",
+              "17948fe5892d3da1565b9d060aca8579be4063ffac00e3c6a0a8cad5cf5e5048"
+            ],
+            [
+              "conclusion_level",
+              "mechanism"
+            ]
+          ],
+          "tiers": [
+            {
+              "tier": "base",
+              "timestep_s": 0.002,
+              "dir": "oomwoo_step12p5_dt2ms_r1",
+              "trigger_source": "caster--step",
+              "friction_readback": {
+                "caster--floor": [
+                  0.3,
+                  0.3,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "caster--step": [
+                  0.3,
+                  0.3,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "chassis--floor": [
+                  0.5,
+                  0.5,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "chassis--step": [
+                  0.5,
+                  0.5,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_L--floor": [
+                  0.8,
+                  0.8,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_L--step": [
+                  0.6,
+                  0.6,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_R--floor": [
+                  0.8,
+                  0.8,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_R--step": [
+                  0.6,
+                  0.6,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ]
+              },
+              "verdict": {
+                "status": "ok",
+                "invalid_reason": "",
+                "passed": false,
+                "failure_primary": "stall",
+                "failure_flags": [
+                  "cross_fail",
+                  "bottom_out",
+                  "stall",
+                  "torque_limit",
+                  "slip"
+                ],
+                "metrics": {
+                  "t_trigger_s": 3.976,
+                  "t_wheel_touch_s": 5.118,
+                  "t_climb_s": null,
+                  "t_recover_s": null,
+                  "advance_m": 0.121141642,
+                  "v_recover_mps": null,
+                  "pitch_max_deg": 6.869588352054363,
+                  "roll_max_deg": 0.0,
+                  "slip_max_L": 12.239547170256825,
+                  "slip_max_R": 12.239547170256825,
+                  "torque_max_L_nm": 0.5,
+                  "torque_max_R_nm": 0.5,
+                  "susp_travel_max_L_m": null,
+                  "susp_travel_max_R_m": null,
+                  "contact_normal_max_n": 655.351993602,
+                  "end_pos_z_m": 0.001208207,
+                  "on_platform": false,
+                  "slip_force_exceeded": false,
+                  "trigger_source": "caster--step",
+                  "crossing": {
+                    "end_progress_m": 0.639115642,
+                    "end_lateral_m": 0.0,
+                    "com_progress_m": 0.6454561140880001,
+                    "max_pos_z_m": 0.039958418,
+                    "wheel_on_top_count": 0,
+                    "both_wheels_on_top": false,
+                    "no_floor_contact_at_end": false,
+                    "ended_on_platform": false,
+                    "reached_platform": true,
+                    "crossed_front": false,
+                    "within_width": true,
+                    "contact_gap_max_s": 0.1580000000000001,
+                    "contact_ok": false,
+                    "cross_fail_reasons": [
+                      "front_edge_not_passed",
+                      "not_ended_on_platform",
+                      "step_contact_gap_too_long"
+                    ],
+                    "crossed": false
+                  }
+                },
+                "conclusion_level_inputs": {
+                  "fail_on": [
+                    "topple",
+                    "retreat",
+                    "belly_contact",
+                    "timeout",
+                    "stall"
+                  ],
+                  "window_s": 8.0
+                },
+                "trigger_source": "caster--step",
+                "timestep_s": 0.002,
+                "warnings": {
+                  "numbers": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "nonzero": 0
+                }
+              }
+            }
+          ]
+        },
+        {
+          "repeat": 2,
+          "output_dir": "oomwoo_step12p5_dt2ms_r2",
+          "creep": {
+            "settle_s": 1.0,
+            "window_s": 10.0,
+            "drift_m": 5.4400466431572935e-06,
+            "residual_speed_mps": 3.184856040600491e-08,
+            "max_residual_speed_mps": 0.001,
+            "max_drift_m": 0.0005,
+            "redline": false,
+            "wheel_radius_m": 0.035805
+          },
+          "summary_signature": [
+            [
+              "case_id",
+              "oomwoo_step12p5_dt2ms"
+            ],
+            [
+              "status",
+              "ok"
+            ],
+            [
+              "passed",
+              "0"
+            ],
+            [
+              "failure_primary",
+              "stall"
+            ],
+            [
+              "failure_flags",
+              "cross_fail;bottom_out;stall;torque_limit;slip"
+            ],
+            [
+              "t_trigger_s",
+              "3.976"
+            ],
+            [
+              "t_climb_s",
+              ""
+            ],
+            [
+              "t_recover_s",
+              ""
+            ],
+            [
+              "advance_m",
+              "0.121141642"
+            ],
+            [
+              "v_recover_mps",
+              ""
+            ],
+            [
+              "pitch_max_deg",
+              "6.869588352054363"
+            ],
+            [
+              "roll_max_deg",
+              "0.0"
+            ],
+            [
+              "slip_max_L",
+              "12.239547170256825"
+            ],
+            [
+              "slip_max_R",
+              "12.239547170256825"
+            ],
+            [
+              "torque_max_L_nm",
+              "0.5"
+            ],
+            [
+              "torque_max_R_nm",
+              "0.5"
+            ],
+            [
+              "susp_travel_max_L_m",
+              ""
+            ],
+            [
+              "susp_travel_max_R_m",
+              ""
+            ],
+            [
+              "contact_normal_max_n",
+              "655.351993602"
+            ],
+            [
+              "timestep_s",
+              "0.002"
+            ],
+            [
+              "integrator",
+              "implicitfast"
+            ],
+            [
+              "cone",
+              "pyramidal"
+            ],
+            [
+              "seed",
+              "0"
+            ],
+            [
+              "model_sha256",
+              "0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e"
+            ],
+            [
+              "config_sha256",
+              "17948fe5892d3da1565b9d060aca8579be4063ffac00e3c6a0a8cad5cf5e5048"
+            ],
+            [
+              "conclusion_level",
+              "mechanism"
+            ]
+          ],
+          "tiers": [
+            {
+              "tier": "base",
+              "timestep_s": 0.002,
+              "dir": "oomwoo_step12p5_dt2ms_r2",
+              "trigger_source": "caster--step",
+              "friction_readback": {
+                "caster--floor": [
+                  0.3,
+                  0.3,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "caster--step": [
+                  0.3,
+                  0.3,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "chassis--floor": [
+                  0.5,
+                  0.5,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "chassis--step": [
+                  0.5,
+                  0.5,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_L--floor": [
+                  0.8,
+                  0.8,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_L--step": [
+                  0.6,
+                  0.6,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_R--floor": [
+                  0.8,
+                  0.8,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_R--step": [
+                  0.6,
+                  0.6,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ]
+              },
+              "verdict": {
+                "status": "ok",
+                "invalid_reason": "",
+                "passed": false,
+                "failure_primary": "stall",
+                "failure_flags": [
+                  "cross_fail",
+                  "bottom_out",
+                  "stall",
+                  "torque_limit",
+                  "slip"
+                ],
+                "metrics": {
+                  "t_trigger_s": 3.976,
+                  "t_wheel_touch_s": 5.118,
+                  "t_climb_s": null,
+                  "t_recover_s": null,
+                  "advance_m": 0.121141642,
+                  "v_recover_mps": null,
+                  "pitch_max_deg": 6.869588352054363,
+                  "roll_max_deg": 0.0,
+                  "slip_max_L": 12.239547170256825,
+                  "slip_max_R": 12.239547170256825,
+                  "torque_max_L_nm": 0.5,
+                  "torque_max_R_nm": 0.5,
+                  "susp_travel_max_L_m": null,
+                  "susp_travel_max_R_m": null,
+                  "contact_normal_max_n": 655.351993602,
+                  "end_pos_z_m": 0.001208207,
+                  "on_platform": false,
+                  "slip_force_exceeded": false,
+                  "trigger_source": "caster--step",
+                  "crossing": {
+                    "end_progress_m": 0.639115642,
+                    "end_lateral_m": 0.0,
+                    "com_progress_m": 0.6454561140880001,
+                    "max_pos_z_m": 0.039958418,
+                    "wheel_on_top_count": 0,
+                    "both_wheels_on_top": false,
+                    "no_floor_contact_at_end": false,
+                    "ended_on_platform": false,
+                    "reached_platform": true,
+                    "crossed_front": false,
+                    "within_width": true,
+                    "contact_gap_max_s": 0.1580000000000001,
+                    "contact_ok": false,
+                    "cross_fail_reasons": [
+                      "front_edge_not_passed",
+                      "not_ended_on_platform",
+                      "step_contact_gap_too_long"
+                    ],
+                    "crossed": false
+                  }
+                },
+                "conclusion_level_inputs": {
+                  "fail_on": [
+                    "topple",
+                    "retreat",
+                    "belly_contact",
+                    "timeout",
+                    "stall"
+                  ],
+                  "window_s": 8.0
+                },
+                "trigger_source": "caster--step",
+                "timestep_s": 0.002,
+                "warnings": {
+                  "numbers": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "nonzero": 0
+                }
+              }
+            }
+          ]
+        },
+        {
+          "repeat": 3,
+          "output_dir": "oomwoo_step12p5_dt2ms_r3",
+          "creep": {
+            "settle_s": 1.0,
+            "window_s": 10.0,
+            "drift_m": 5.4400466431572935e-06,
+            "residual_speed_mps": 3.184856040600491e-08,
+            "max_residual_speed_mps": 0.001,
+            "max_drift_m": 0.0005,
+            "redline": false,
+            "wheel_radius_m": 0.035805
+          },
+          "summary_signature": [
+            [
+              "case_id",
+              "oomwoo_step12p5_dt2ms"
+            ],
+            [
+              "status",
+              "ok"
+            ],
+            [
+              "passed",
+              "0"
+            ],
+            [
+              "failure_primary",
+              "stall"
+            ],
+            [
+              "failure_flags",
+              "cross_fail;bottom_out;stall;torque_limit;slip"
+            ],
+            [
+              "t_trigger_s",
+              "3.976"
+            ],
+            [
+              "t_climb_s",
+              ""
+            ],
+            [
+              "t_recover_s",
+              ""
+            ],
+            [
+              "advance_m",
+              "0.121141642"
+            ],
+            [
+              "v_recover_mps",
+              ""
+            ],
+            [
+              "pitch_max_deg",
+              "6.869588352054363"
+            ],
+            [
+              "roll_max_deg",
+              "0.0"
+            ],
+            [
+              "slip_max_L",
+              "12.239547170256825"
+            ],
+            [
+              "slip_max_R",
+              "12.239547170256825"
+            ],
+            [
+              "torque_max_L_nm",
+              "0.5"
+            ],
+            [
+              "torque_max_R_nm",
+              "0.5"
+            ],
+            [
+              "susp_travel_max_L_m",
+              ""
+            ],
+            [
+              "susp_travel_max_R_m",
+              ""
+            ],
+            [
+              "contact_normal_max_n",
+              "655.351993602"
+            ],
+            [
+              "timestep_s",
+              "0.002"
+            ],
+            [
+              "integrator",
+              "implicitfast"
+            ],
+            [
+              "cone",
+              "pyramidal"
+            ],
+            [
+              "seed",
+              "0"
+            ],
+            [
+              "model_sha256",
+              "0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e"
+            ],
+            [
+              "config_sha256",
+              "17948fe5892d3da1565b9d060aca8579be4063ffac00e3c6a0a8cad5cf5e5048"
+            ],
+            [
+              "conclusion_level",
+              "mechanism"
+            ]
+          ],
+          "tiers": [
+            {
+              "tier": "base",
+              "timestep_s": 0.002,
+              "dir": "oomwoo_step12p5_dt2ms_r3",
+              "trigger_source": "caster--step",
+              "friction_readback": {
+                "caster--floor": [
+                  0.3,
+                  0.3,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "caster--step": [
+                  0.3,
+                  0.3,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "chassis--floor": [
+                  0.5,
+                  0.5,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "chassis--step": [
+                  0.5,
+                  0.5,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_L--floor": [
+                  0.8,
+                  0.8,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_L--step": [
+                  0.6,
+                  0.6,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_R--floor": [
+                  0.8,
+                  0.8,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_R--step": [
+                  0.6,
+                  0.6,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ]
+              },
+              "verdict": {
+                "status": "ok",
+                "invalid_reason": "",
+                "passed": false,
+                "failure_primary": "stall",
+                "failure_flags": [
+                  "cross_fail",
+                  "bottom_out",
+                  "stall",
+                  "torque_limit",
+                  "slip"
+                ],
+                "metrics": {
+                  "t_trigger_s": 3.976,
+                  "t_wheel_touch_s": 5.118,
+                  "t_climb_s": null,
+                  "t_recover_s": null,
+                  "advance_m": 0.121141642,
+                  "v_recover_mps": null,
+                  "pitch_max_deg": 6.869588352054363,
+                  "roll_max_deg": 0.0,
+                  "slip_max_L": 12.239547170256825,
+                  "slip_max_R": 12.239547170256825,
+                  "torque_max_L_nm": 0.5,
+                  "torque_max_R_nm": 0.5,
+                  "susp_travel_max_L_m": null,
+                  "susp_travel_max_R_m": null,
+                  "contact_normal_max_n": 655.351993602,
+                  "end_pos_z_m": 0.001208207,
+                  "on_platform": false,
+                  "slip_force_exceeded": false,
+                  "trigger_source": "caster--step",
+                  "crossing": {
+                    "end_progress_m": 0.639115642,
+                    "end_lateral_m": 0.0,
+                    "com_progress_m": 0.6454561140880001,
+                    "max_pos_z_m": 0.039958418,
+                    "wheel_on_top_count": 0,
+                    "both_wheels_on_top": false,
+                    "no_floor_contact_at_end": false,
+                    "ended_on_platform": false,
+                    "reached_platform": true,
+                    "crossed_front": false,
+                    "within_width": true,
+                    "contact_gap_max_s": 0.1580000000000001,
+                    "contact_ok": false,
+                    "cross_fail_reasons": [
+                      "front_edge_not_passed",
+                      "not_ended_on_platform",
+                      "step_contact_gap_too_long"
+                    ],
+                    "crossed": false
+                  }
+                },
+                "conclusion_level_inputs": {
+                  "fail_on": [
+                    "topple",
+                    "retreat",
+                    "belly_contact",
+                    "timeout",
+                    "stall"
+                  ],
+                  "window_s": 8.0
+                },
+                "trigger_source": "caster--step",
+                "timestep_s": 0.002,
+                "warnings": {
+                  "numbers": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "nonzero": 0
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "regression": {
+        "checked": false
+      }
+    }
+  ],
+  "columns": {
+    "t_s": {
+      "unit": "s",
+      "missing": false
+    },
+    "pos_x_m": {
+      "unit": "m",
+      "missing": false
+    },
+    "pos_y_m": {
+      "unit": "m",
+      "missing": false
+    },
+    "pos_z_m": {
+      "unit": "m",
+      "missing": false
+    },
+    "quat_w": {
+      "unit": "-",
+      "missing": false
+    },
+    "quat_x": {
+      "unit": "-",
+      "missing": false
+    },
+    "quat_y": {
+      "unit": "-",
+      "missing": false
+    },
+    "quat_z": {
+      "unit": "-",
+      "missing": false
+    },
+    "pitch_rad": {
+      "unit": "rad",
+      "missing": false
+    },
+    "roll_rad": {
+      "unit": "rad",
+      "missing": false
+    },
+    "yaw_rad": {
+      "unit": "rad",
+      "missing": false
+    },
+    "vel_x_mps": {
+      "unit": "m/s",
+      "missing": false
+    },
+    "vel_y_mps": {
+      "unit": "m/s",
+      "missing": false
+    },
+    "vel_z_mps": {
+      "unit": "m/s",
+      "missing": false
+    },
+    "wheel_L_speed_radps": {
+      "unit": "rad/s",
+      "missing": false
+    },
+    "wheel_R_speed_radps": {
+      "unit": "rad/s",
+      "missing": false
+    },
+    "wheel_L_torque_nm": {
+      "unit": "N*m",
+      "missing": false
+    },
+    "wheel_R_torque_nm": {
+      "unit": "N*m",
+      "missing": false
+    },
+    "susp_L_travel_m": {
+      "unit": "m",
+      "missing": true
+    },
+    "susp_R_travel_m": {
+      "unit": "m",
+      "missing": true
+    },
+    "contact_wheel_L--floor_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_wheel_L--floor_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_L--floor_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_L--floor_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_wheel_R--floor_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_wheel_R--floor_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_R--floor_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_R--floor_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_caster--floor_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_caster--floor_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_caster--floor_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_caster--floor_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_chassis--floor_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_chassis--floor_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_chassis--floor_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_chassis--floor_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_wheel_L--step_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_wheel_L--step_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_L--step_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_L--step_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_wheel_R--step_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_wheel_R--step_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_R--step_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_R--step_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_caster--step_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_caster--step_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_caster--step_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_caster--step_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_chassis--step_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_chassis--step_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_chassis--step_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_chassis--step_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "chassis_min_z_m": {
+      "unit": "m",
+      "missing": false
+    }
+  },
+  "data_quality": {
+    "contact_force_readout": "mj_contactForce",
+    "missing_representation": "empty_field",
+    "condim_quoted": 3,
+    "rolling_resistance": "not_modelled(condim=3)",
+    "torque_axis": "wheel_end_-y_forward_positive",
+    "frame": "B=world=chassis_local",
+    "bottoming": {
+      "criterion": "contact_only(chassis--step active)；未实现最小间隙时程，chassis_min_z_m 不作间隙判据",
+      "applicability_max_step_height_m": 0.012499999999999997
+    },
+    "pair_friction_readback": {
+      "caster--floor": [
+        0.3,
+        0.3,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "caster--step": [
+        0.3,
+        0.3,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "chassis--floor": [
+        0.5,
+        0.5,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "chassis--step": [
+        0.5,
+        0.5,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "wheel_L--floor": [
+        0.8,
+        0.8,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "wheel_L--step": [
+        0.6,
+        0.6,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "wheel_R--floor": [
+        0.8,
+        0.8,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "wheel_R--step": [
+        0.6,
+        0.6,
+        0.001,
+        0.0001,
+        0.0001
+      ]
+    },
+    "peak_contact_force": {
+      "identity": "numerical_peak_determined_by_solref_and_timestep",
+      "physical_meaning": false,
+      "allowed_comparison": "同机型、同 h、同 solref 下比较不同几何/摩擦/限扭配置（相对）",
+      "forbidden": [
+        "跨 h 或跨 solref 当物理量比较",
+        "作强度/保险杠输入",
+        "使用“冲击力”表述"
+      ],
+      "timestep_study": {
+        "performed": false,
+        "tiers_s": [
+          0.002
+        ],
+        "converged": null,
+        "note": "未证明时步收敛前，峰值只能 relative-only"
+      },
+      "load_spectrum_export": "relative-only"
+    },
+    "warnings": {
+      "numbers": [
+        0
+      ],
+      "nonzero": 0,
+      "batch_valid": true
+    }
+  }
+}

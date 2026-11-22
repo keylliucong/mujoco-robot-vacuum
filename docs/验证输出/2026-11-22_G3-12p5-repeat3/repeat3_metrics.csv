@@ -1,0 +1,4 @@
+repeat,failure_primary,failure_flags,chassis_step_active_frames,chassis_step_count_sum,chassis_step_count_max,wheel_step_touched,wheel_L_frames,wheel_R_frames,torque_sat_frames,window_frames,torque_sat_fraction,window_start_s,window_end_s,torque_limit_nm
+1,stall,cross_fail;bottom_out;stall;torque_limit;slip,5,30,6,true,11,11,3964,4001,0.990752,3.976,11.976,0.5
+2,stall,cross_fail;bottom_out;stall;torque_limit;slip,5,30,6,true,11,11,3964,4001,0.990752,3.976,11.976,0.5
+3,stall,cross_fail;bottom_out;stall;torque_limit;slip,5,30,6,true,11,11,3964,4001,0.990752,3.976,11.976,0.5
