@@ -169,6 +169,7 @@ judge.slip_ratio,cases/baseline.json:judge.slip_ratio,0.3,-,工程假设,machine
 judge.contact_normal_min_n,cases/baseline.json:judge.contact_normal_min_n,0.5,N,工程假设,machine=prototype; 接地判据,,,
 drive.torque_limit_nm,cases/baseline.json:drive.channels.*.torque_limit_nm,0.8,N*m,工程假设,machine=prototype; 基线轮端限扭；低扭矩负例为 0.05,,,
 runner.speed_kp_nm_per_mps,cases/_runner.json:drive.speed_kp_nm_per_mps,6.0,N*m/(m/s),工程假设,machine=prototype; 机体速度 P 控制增益（轮心速度的稳态等价）,,,
+runner.yaw_damping_nm_per_radps,cases/_runner.json:drive.yaw_damping_nm_per_radps,0.2,N*m*s/rad,工程假设,machine=prototype; 偏航率差动阻尼；模拟差速底盘航向保持，抑制左右轮先后触台阶造成的偏航,,,
 runner.creep.window_s,cases/_runner.json:creep.window_s,10.0,s,工程假设,machine=prototype; 静置蠕滑基线测量窗,,,
 runner.creep.max_residual_speed_mps,cases/_runner.json:creep.max_residual_speed_mps,0.001,m/s,工程假设,machine=prototype; 蠕滑红线：残余速度,,,
 runner.creep.max_drift_m,cases/_runner.json:creep.max_drift_m,0.0005,m,工程假设,machine=prototype; 蠕滑红线：10 s 漂移,,,
