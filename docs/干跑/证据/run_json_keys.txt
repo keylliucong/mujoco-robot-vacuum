@@ -1,0 +1,9 @@
+missing_keys=[]
+git={"commit": "d91741192e6c350137394938aa72f537a817068a", "branch": "dryrun/oomwoo", "dirty": false}
+model={"path": "models/baseline.xml", "sha256": "ff3dff5d892e96d44bbe81a50cce0c1d07796fe6b2a8de96940f01c3c001231b", "rendered_sha256": "2529ed8e1745ee385dbc139915c65d4e899ac52be59f3405d600b367d1126cdd", "structure_only": true}
+config.sha256=f4e9b08b4ede0cac75e3cf5310fd9be748fa5d1f6c6dfc6cd9c477f78ad18920
+scenario_xml_sha256=f957115bcd13bbf3c078e7e079d446d98f8cd38258039a90111109a1f10d2af9
+repeat={"consistent": true, "key_metrics_tol": 0.0}
+param_labels={"工程假设": 78, "待标定": 7, "公开参考": 16, "缺失": 1}
+conclusion_level=mechanism
+cases=[["flat", "05a6ec0edfbd6bf425556ae9b4c969645ad612de816bb9cc6cc523a83fde9f41", "ok"], ["step", "baf34bd56c29c8583369c34ca70c2652655234791d47b38352e0bda9631694c6", "invalid"]]
