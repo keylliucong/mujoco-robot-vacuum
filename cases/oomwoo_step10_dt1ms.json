@@ -3,7 +3,7 @@
   "case_id": "oomwoo_step10_dt1ms",
   "model": {
     "path": "models/oomwoo.xml",
-    "sha256": "9323a473c6d814a914cfb91fd0ac7772441ccf2b38112d468547df723b8be2e7"
+    "sha256": "0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e"
   },
   "scenario": {
     "kind": "step",
