@@ -109,31 +109,21 @@ def inject(model_text, config, chassis_front_m, defaults):
             value = default_geom.get(attr)
             if value:
                 pair_contact_attrs[attr] = value
-    # MuJoCo 4.0.1 实测：给 <pair> 写显式 friction 后，切向力恒为 0（滚动体只滑不滚）。
-    # 因此 friction 落到机器侧 geom 上，pair 只负责 condim 与 solref/solimp；接触摩擦
-    # 由 pair 两侧 geom friction 的最大值生效。该行为记入抽查报告。
-    geom_friction = {}
+    pair_elements = []
     for key, spec in config["environment"]["pairs"].items():
         names_a, names_b = pair_geom_names(key, kind)
         if not any(name in geom_names for name in names_a):
             raise ObstacleError(f"接触对 {key} 的侧 {names_a} 在模型里不存在")
-        for name_a in names_a:
-            value = tuple(float(v) for v in spec["friction"][:3])
-            if name_a in geom_friction and geom_friction[name_a] != value:
-                raise ObstacleError(
-                    f"同一 geom {name_a} 被多个接触对要求不同摩擦："
-                    f"{geom_friction[name_a]} vs {value}"
-                )
-            geom_friction[name_a] = value
-    for name_a, value in geom_friction.items():
-        for geom in root.iter("geom"):
-            if geom.get("name") == name_a:
-                geom.set("friction", " ".join(str(v) for v in value))
-                break
-
-    pair_elements = []
-    for key, spec in config["environment"]["pairs"].items():
-        names_a, names_b = pair_geom_names(key, kind)
+        friction = [float(v) for v in spec["friction"]]
+        if len(friction) != 5:
+            raise ObstacleError(
+                f"{key}.friction 必须是 5 分量 [slide1, slide2, spin, roll1, roll2]；"
+                f"实际 {len(friction)} 个，禁止用单值/3 分量让其余分量回落默认"
+            )
+        if friction[0] != friction[1]:
+            raise ObstacleError(
+                f"{key}.friction 非各向同性：slide1={friction[0]} slide2={friction[1]}"
+            )
         for name_a in names_a:
             for name_b in names_b:
                 if name_a not in geom_names or name_b not in geom_names:
@@ -142,6 +132,7 @@ def inject(model_text, config, chassis_front_m, defaults):
                     "geom1": name_a,
                     "geom2": name_b,
                     "condim": str(spec["condim"]),
+                    "friction": " ".join(str(v) for v in friction),
                 }
                 attrs.update(pair_contact_attrs)
                 pair_elements.append(attrs)

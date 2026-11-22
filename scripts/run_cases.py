@@ -312,8 +312,16 @@ def load_case(path):
                 raise ContractError(f"未知接触对成员：{side}")
         if set(spec) != {"friction", "condim"}:
             raise ContractError(f"{key} 只允许 friction/condim")
-        if len(spec["friction"]) != 4:
-            raise ContractError(f"{key}.friction 必须是 [μ_s, μ_t, μ_r, μ_roll] 四个值")
+        if len(spec["friction"]) != 5:
+            raise ContractError(
+                f"{key}.friction 必须是 5 分量 [slide1, slide2, spin, roll1, roll2]；"
+                f"实际 {len(spec['friction'])} 个。单值/3 分量会让其余分量回落默认，禁止"
+            )
+        if float(spec["friction"][0]) != float(spec["friction"][1]):
+            raise ContractError(
+                f"{key}.friction 非各向同性：slide1={spec['friction'][0]} "
+                f"slide2={spec['friction'][1]}（S24 要求相等）"
+            )
         if spec["condim"] not in (1, 3, 4, 6):
             raise ContractError(f"{key}.condim 非法：{spec['condim']}")
         if side_a.startswith("wheel") and spec["condim"] in (4, 6):
@@ -430,6 +438,103 @@ def build_pair_lookup(config, obstacle_shape):
         if found:
             ordered.append(key)
     return lookup, ordered
+
+
+def _expand_friction(values, where):
+    """把 geom 的 3 分量 friction 展开成 pair 的 5 分量。
+
+    MuJoCo 的 pair friction 是 [slide1, slide2, spin, roll1, roll2]；geom friction
+    是 [slide, spin, roll]。无 pair 时接触 friction 由两侧 geom 逐分量取最大，
+    因此先把 geom 侧展开成 slide1=slide2、roll1=roll2。
+    """
+    vals = [float(v) for v in values]
+    if len(vals) == 5:
+        return tuple(vals)
+    if len(vals) == 3:
+        slide, spin, roll = vals
+        return (slide, slide, spin, roll, roll)
+    raise ContractError(f"{where} friction 必须是 3 或 5 分量，实际 {len(vals)}")
+
+
+def build_contact_spec(root, config, obstacle_shape):
+    """从注入后的 XML 与 case JSON 建期望接触表；断言只读 d.contact[i].friction。"""
+    default_geom = root.find("./default/geom")
+    default_friction = None
+    default_condim = 3
+    if default_geom is not None:
+        if default_geom.get("friction"):
+            default_friction = _expand_friction(
+                default_geom.get("friction").split(), "default/geom"
+            )
+        if default_geom.get("condim"):
+            default_condim = int(default_geom.get("condim"))
+    geom_spec = {}
+    for geom in root.iter("geom"):
+        name = geom.get("name")
+        if not name:
+            continue
+        raw = geom.get("friction")
+        friction = (
+            _expand_friction(raw.split(), f"geom {name}")
+            if raw
+            else default_friction
+        )
+        if friction is None:
+            raise ContractError(f"geom {name} 无 friction 且无 default 可继承")
+        geom_spec[name] = (
+            int(geom.get("condim", default_condim)),
+            friction,
+        )
+
+    pair_spec = {}
+    for key, spec in config["environment"]["pairs"].items():
+        names_a, names_b = pair_geom_names(key, obstacle_shape)
+        friction = tuple(float(v) for v in spec["friction"])
+        for name_a in names_a:
+            for name_b in names_b:
+                if name_a in geom_spec and name_b in geom_spec:
+                    pair_spec[frozenset((name_a, name_b))] = (
+                        int(spec["condim"]),
+                        friction,
+                    )
+    return {"pairs": pair_spec, "geoms": geom_spec}
+
+
+def assert_contact_friction(data, geom_names, contact_spec, where):
+    """S24：dim、各向同性、期望 slide 三条逐接触断言；真值只读 d.contact.friction。"""
+    for i in range(data.ncon):
+        contact = data.contact[i]
+        name1 = geom_names.get(int(contact.geom1))
+        name2 = geom_names.get(int(contact.geom2))
+        key = frozenset((name1, name2))
+        if key in contact_spec["pairs"]:
+            expected_dim, expected_friction = contact_spec["pairs"][key]
+            source = "pair"
+        else:
+            g1 = contact_spec["geoms"].get(name1)
+            g2 = contact_spec["geoms"].get(name2)
+            if g1 is None or g2 is None:
+                raise ContractError(f"{where}: 接触 geom {name1}/{name2} 不在期望表")
+            expected_dim = max(g1[0], g2[0])
+            expected_friction = tuple(
+                max(g1[1][j], g2[1][j]) for j in range(5)
+            )
+            source = "geom-max"
+        actual = tuple(float(v) for v in contact.friction)
+        if int(contact.dim) != expected_dim:
+            raise ContractError(
+                f"{where}: {name1}/{name2} dim={contact.dim} != 期望 {expected_dim}"
+            )
+        if abs(actual[0] - actual[1]) > 1e-12:  # arithmetic
+            raise ContractError(
+                f"{where}: {name1}/{name2} friction 非各向同性 "
+                f"slide1={actual[0]} slide2={actual[1]}"
+            )
+        for j, (got, exp) in enumerate(zip(actual, expected_friction)):
+            if abs(got - exp) > 1e-12:  # arithmetic
+                raise ContractError(
+                    f"{where}: {name1}/{name2} friction[{j}]={got} != {exp}（{source}）"
+                )
 
 
 def contact_columns(ordered_pairs):
@@ -580,7 +685,18 @@ def run_creep(model, data, defaults, wheel_radius_m):
     }
 
 
-def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, geom_names, radius):
+def run_case(
+    model,
+    data,
+    config,
+    defaults,
+    limits,
+    ordered_pairs,
+    pair_lookup,
+    geom_names,
+    radius,
+    contact_spec,
+):
     approach = config["scenario"]["approach"]
     speed = approach["speed_mps"]
     window = config["judge"]["window_s"]
@@ -589,6 +705,7 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     ki = defaults["drive"]["speed_ki_nm_per_mps_s"]
     integral = {"wheel_L": 0.0, "wheel_R": 0.0}
     reset_state(model, data)
+    assert_contact_friction(data, geom_names, contact_spec, "t=0")
     columns = make_columns(ordered_pairs)
     rows = []
     wheel_step = [k for k in ordered_pairs if k.startswith("wheel_") and k.endswith("--step")]
@@ -603,6 +720,9 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     for _ in range(max_steps):
         set_drive(model, data, limits, kp, ki, integral, speed, radius, step)
         step_once(model, data)
+        assert_contact_friction(
+            data, geom_names, contact_spec, f"{config['case_id']} t={data.time:.6f}"
+        )
         row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names)
         rows.append(row)
         if trigger_time is None:
@@ -978,6 +1098,9 @@ def main(argv=None):
         scenario_xml = build_scenario_xml(model_text, config, chassis_front_m, defaults)
         scenario_sha = sha256_text(scenario_xml)
         scenario_shas.append(scenario_sha)
+        contact_spec = build_contact_spec(
+            ET.fromstring(scenario_xml), config, config["scenario"]["kind"]
+        )
         print(f"[{config['case_id']}] config: {config_path} sha256={config_sha}")
         print(f"[{config['case_id']}] scenario_xml_sha256: {scenario_sha}")
 
@@ -1036,6 +1159,7 @@ def main(argv=None):
                     pair_lookup,
                     geom_names,
                     radius,
+                    contact_spec,
                 )
                 write_timeseries(tier_dir / "timeseries.csv", columns, table)
                 params = build_judge_params(
