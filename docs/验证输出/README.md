@@ -24,3 +24,14 @@
 - 批次记录的解释与限制见[仿真环境安装与版本记录](../仿真环境安装与版本.md)附录。
 - 所有力读数只用 `mj_contactForce`；`efc_force` 不进入本目录任何输出列。
 - 本目录没有大型二进制、没有受限 CAD/实测数据，因此全部入库；若后续出现时程 CSV 或 `outputs/` 原始目录，按项目 `.gitignore` 与 AGENTS.md 处理，只留本索引和路径说明。
+
+## 3. 原型批次冻结快照（ADR README 第 4 条）
+
+`2026-11-22_原型批次_{pyramidal,elliptic,repeat2}_run.json` 与对应 `_summary.csv`：
+
+```text
+frozen_at=2026-11-22
+ref=PR #13 @ f428c197dc2ca48062eb01ad331216824d552ab0
+```
+
+这批文件是**冻结快照**，只用于重建当时那批判定，**不参与现行裁决**，也不随契约版本追新。三个 run.json 顶层已写入 `frozen_at` / `ref` / `frozen_note`；`summary.csv` 由同批 run.json 约束。现行结论请用当前 `run_cases` 生成的 `2026-11-22_G2-返工二轮/` 与 `2026-11-22_G2-浮点容差/`。
