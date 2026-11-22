@@ -10,7 +10,7 @@ from xml.parsers import expat
 
 ROOT_FIELDS = (
     "schema_version", "machine_id", "payload_state", "config_id",
-    "base_link", "drive_wheels", "has_suspension", "assembly",
+    "base_link", "drive_wheels", "capabilities", "support_points", "assembly",
 )
 MASS_FIELDS = (
     "mass_kg", "com_x_m", "com_y_m", "com_z_m",
@@ -144,7 +144,7 @@ class PackCheck:
             return False
         return True
 
-    def quantity(self, obj, field, *, positive=False, length_hint=False):
+    def quantity(self, obj, field, *, positive=False, length_hint=False, optional_value=False):
         if not self.fields(obj, field, ("value", "source", "note")):
             return
         source, value = obj.get("source"), obj.get("value")
@@ -157,7 +157,7 @@ class PackCheck:
         if value is None:
             if source != "missing":
                 self.issue(f"{field}.source", 'value 是 null 时，请填 "missing"，并在 note 说明缺项。')
-            else:
+            elif not optional_value:
                 self.missing_values += 1
                 self.issue(f"{field}.value", "已登记缺值，使用该数计算前请按 note 补数据。", "缺什么", advisory=True)
             return
@@ -204,11 +204,52 @@ class PackCheck:
                     self.quantity(wheel[key], f"{item}.{key}", positive=True, length_hint=key == "radius_m")
         return seen_joints
 
-    def suspension(self, obj, drive_joints):
+    def capabilities(self, obj):
+        field = "$.capabilities"
+        if not isinstance(obj, dict):
+            self.issue(field, "请用一对大括号填写能力名称和声明。")
+            return None
+        if "suspension" not in obj:
+            self.issue(f"{field}.suspension", "请声明机型是否有悬挂。", "缺什么")
+        for key, enabled in obj.items():
+            if not re.fullmatch(r"[a-z][a-z0-9]*(?:_[a-z0-9]+)*", key) or key.startswith("has_"):
+                self.issue(f"{field}.{key}", "请用小写英文名称，下划线分词，去掉 has_ 前缀。")
+            if type(enabled) is not bool:
+                self.issue(f"{field}.{key}", "请填 true（有）或 false（无），不加引号。")
+        return obj.get("suspension")
+
+    def support_points(self, entries):
+        field = "$.support_points"
+        if not isinstance(entries, list):
+            self.issue(field, "请用方括号列出从动支撑点。")
+            return
+        for index, entry in enumerate(entries):
+            item = f"{field}[{index}]"
+            if not self.fields(entry, item, ("link", "type", "radius_m", "position")):
+                continue
+            if "link" in entry:
+                self.name(entry["link"], f"{item}.link", self.links)
+            kind = entry.get("type")
+            if "type" in entry and kind not in ("caster", "skid"):
+                self.issue(f"{item}.type", '请填 "caster"（从动轮）或 "skid"（滑橇）。')
+            if "radius_m" in entry:
+                self.quantity(entry["radius_m"], f"{item}.radius_m", positive=True,
+                              length_hint=True, optional_value=kind == "skid")
+            if "position" not in entry or entry["position"] == "urdf_link_origin":
+                continue
+            position = entry["position"]
+            position_field = f"{item}.position"
+            if not isinstance(position, dict):
+                self.issue(position_field, '请填 "urdf_link_origin"，或填写 B 系三个坐标。')
+                continue
+            axes = ("x_m", "y_m", "z_m")
+            self.fields(position, position_field, axes)
+            for axis in axes:
+                if axis in position:
+                    self.quantity(position[axis], f"{position_field}.{axis}")
+
+    def suspension(self, obj, drive_joints, exists):
         field = "$.suspension_joints"
-        exists = obj.get("has_suspension")
-        if "has_suspension" in obj and type(exists) is not bool:
-            self.issue("$.has_suspension", "请填 true（有悬挂）或 false（无悬挂），不加引号。")
         if "suspension_joints" not in obj:
             if exists is True:
                 self.issue(field, "有悬挂时请从模板补回悬挂关节清单。", "缺什么")
@@ -256,7 +297,10 @@ class PackCheck:
         drive_joints = set()
         if "drive_wheels" in obj:
             drive_joints = self.drive_wheels(obj["drive_wheels"], "$.drive_wheels")
-        self.suspension(obj, drive_joints)
+        if "support_points" in obj:
+            self.support_points(obj["support_points"])
+        has_suspension = self.capabilities(obj["capabilities"]) if "capabilities" in obj else None
+        self.suspension(obj, drive_joints, has_suspension)
 
 
 def main():

@@ -20,7 +20,19 @@
       "speed_limit_radps": {"value": null, "source": "missing", "note": "示例缺少轮端转速上限，实际机型请查规格书"}
     }
   ],
-  "has_suspension": false,
+  "capabilities": {
+    "suspension": false,
+    "steering": false,
+    "lift": false
+  },
+  "support_points": [
+    {
+      "link": "rear_support",
+      "type": "caster",
+      "radius_m": {"value": 0.01, "source": "assumed", "note": "示例后支撑球半径"},
+      "position": "urdf_link_origin"
+    }
+  ],
   "assembly": {
     "mass_kg": {"value": 3.0, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
     "com_x_m": {"value": -0.0016, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
