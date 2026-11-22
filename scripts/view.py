@@ -117,7 +117,8 @@ CASE_PRESETS = {
     },
 }
 
-WHEEL_BODIES = ("wheel_L", "wheel_R", "caster_front")
+WHEEL_BODIES = ("wheel_L", "wheel_R")
+CASTER_NAMES = ("caster_front", "caster_rear")
 CHASSIS_BODIES = ("chassis",)
 
 
@@ -405,6 +406,22 @@ class Session:
                 + "，已按 cases/_runner.json 补齐（仅判定常量，不动物理）"
             )
 
+        # 从动轮体名随模型版本变（caster_front / caster_rear），有的模型干脆没有；
+        # HUD 按实际存在的体名取行，缺体就明说 n/a，不硬编码。
+        self.caster_body = next(
+            (
+                name
+                for name in CASTER_NAMES
+                if mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, name) >= 0  # ui-constant
+            ),
+            None,
+        )
+        self.caster_joint = (
+            "caster_roll"
+            if mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "caster_roll") >= 0
+            else None
+        )
+
         self.clearance_m, self.clearance_source = floor_clearance_m(
             stack["base_model"], stack["base_data"], self.params_document
         )
@@ -620,13 +637,19 @@ class Session:
             f"mode={'step' if self.args.mode == 'step' else 'live'}"
             f"{'/paused' if self.paused else ''}  speed={self.args.speed:g}x"
         )
-        for body in WHEEL_BODIES + CHASSIS_BODIES:
+        wheel_bodies = list(WHEEL_BODIES)
+        if self.caster_body is not None:
+            wheel_bodies.append(self.caster_body)
+        for body in wheel_bodies + list(CHASSIS_BODIES):
             row = table.get(body)
             if body in WHEEL_BODIES:
-                if body == "caster_front":
-                    label = "从动轮  "
+                label = f"驱动轮{body[-1]}"
+                if row and row["count"]:
+                    load = f"Fn={row['fn']:7.3f} N  Ft={row['ft']:6.3f} N  (n={row['count']})"
                 else:
-                    label = f"驱动轮{body[-1]}"
+                    load = "Fn=—        Ft=—     (n=0 无接触)"
+            elif body == self.caster_body:
+                label = "从动轮  "
                 if row and row["count"]:
                     load = f"Fn={row['fn']:7.3f} N  Ft={row['ft']:6.3f} N  (n={row['count']})"
                 else:
@@ -637,15 +660,20 @@ class Session:
                     load = f"Fn={row['fn']:7.3f} N  Ft={row['ft']:6.3f} N  (n={row['count']}) ← 托底"
                 else:
                     load = "Fn=—        Ft=—     (n=0 无接触)"
-            if body in WHEEL_BODIES and body != "caster_front":
+            if body in WHEEL_BODIES:
                 joint = f"{body}_spin"
                 spin = float(np.asarray(data.joint(joint).qvel).reshape(-1)[0])
                 torque = float(np.asarray(data.actuator(body).force).reshape(-1)[0])
                 load += f"  ω={spin:+7.3f} rad/s  τ={torque:+6.3f} N·m"
-            elif body == "caster_front":
-                spin = float(np.asarray(data.joint("caster_roll").qvel).reshape(-1)[0])
-                load += f"  ω={spin:+7.3f} rad/s"
+            elif body == self.caster_body:
+                if self.caster_joint is not None:
+                    spin = float(np.asarray(data.joint(self.caster_joint).qvel).reshape(-1)[0])
+                    load += f"  ω={spin:+7.3f} rad/s"
+                else:
+                    load += "  ω=n/a（模型无 caster_roll）"
             lines.append(f"  {label}: {load}")
+        if self.caster_body is None:
+            lines.append("  从动轮  : n/a（模型无 caster 体）")
 
         lines.append(
             f"  z_cg={com[2]:.4f} m  离地间隙={clearance * 1000:6.2f} mm   "
