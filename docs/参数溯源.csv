@@ -179,7 +179,7 @@ prototype.judge.platform_height_tol_m,cases/_runner.json:tolerances.platform_hei
 prototype.judge.step_contact_gap_tol_s,cases/_runner.json:tolerances.step_contact_gap_tol_s,0.1,s,工程假设,machine=prototype; 跨越证据：首触到重心越过台阶前缘之间，机体-台阶接触允许的最长空档,,,
 prototype.drive.torque_limit_nm,cases/baseline.json:drive.channels.*.torque_limit_nm,0.8,N*m,工程假设,machine=prototype; 基线轮端限扭；低扭矩负例为 0.05,,,
 prototype.runner.speed_kp_nm_per_mps,cases/_runner.json:drive.speed_kp_nm_per_mps,6.0,N*m/(m/s),工程假设,machine=prototype; 机体速度 P 控制增益（轮心速度的稳态等价）,,,
-prototype.runner.control_update_period_s,cases/_runner.json:drive.update_period_s,0.002,s,工程假设,machine=prototype; 速度/偏航控制固定 2 ms 更新一次（=base 步长，500 Hz），步间 ctrl 保持；避免控制带宽随 h 变化,,,
+prototype.runner.control_update_period_s,cases/_runner.json:drive.update_period_s,0.002,s,工程假设,machine=prototype; 速度/偏航控制固定 2 ms（500 Hz）绝对周期更新，与物理步长解耦，步间 ctrl 保持；20 ms 试跑 base 末帧横移 2.02 m 判 cross_fail，故不采用 20 ms，见返工记录,,,
 prototype.runner.yaw_damping_nm_per_radps,cases/_runner.json:drive.yaw_damping_nm_per_radps,0.2,N*m*s/rad,工程假设,machine=prototype; 偏航率差动阻尼；模拟差速底盘航向保持，抑制左右轮先后触台阶造成的偏航,,,
 prototype.runner.creep.window_s,cases/_runner.json:creep.window_s,10.0,s,工程假设,machine=prototype; 静置蠕滑基线测量窗,,,
 prototype.runner.creep.max_residual_speed_mps,cases/_runner.json:creep.max_residual_speed_mps,0.001,m/s,工程假设,machine=prototype; 蠕滑红线：残余速度,,,

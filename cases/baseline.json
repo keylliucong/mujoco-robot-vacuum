@@ -103,8 +103,7 @@
       "retreat",
       "timeout",
       "stall",
-      "cross_fail",
-      "bottom_out"
+      "cross_fail"
     ],
     "min_advance_body_lengths": 1.0,
     "recover_speed_ratio": 0.8,
