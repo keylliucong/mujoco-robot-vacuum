@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0",
+  "case_id": "oomwoo_step12p5_dt2ms",
+  "model": {
+    "path": "models/oomwoo.xml",
+    "sha256": "9323a473c6d814a914cfb91fd0ac7772441ccf2b38112d468547df723b8be2e7"
+  },
+  "scenario": {
+    "kind": "step",
+    "obstacle": {
+      "shape": "box",
+      "height_m": 0.0125,
+      "edge_radius_m": 0.0,
+      "top_width_m": 1.2
+    },
+    "heading_deg": 0.0,
+    "approach": {
+      "speed_mps": 0.15,
+      "start_distance_m": 0.5,
+      "settle_s": 1.0,
+      "settle_tol_mps": 0.02
+    }
+  },
+  "environment": {
+    "pairs": {
+      "wheel_L--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_R--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "caster--floor": {
+        "friction": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--floor": {
+        "friction": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_L--step": {
+        "friction": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_R--step": {
+        "friction": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "caster--step": {
+        "friction": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--step": {
+        "friction": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001
+        ],
+        "condim": 3
+      }
+    }
+  },
+  "drive": {
+    "channels": {
+      "wheel_L": {
+        "torque_limit_nm": 0.5
+      },
+      "wheel_R": {
+        "torque_limit_nm": 0.5
+      }
+    }
+  },
+  "numerics": {
+    "timestep_s": 0.002,
+    "integrator": "implicitfast",
+    "solver": "Newton",
+    "cone": "pyramidal",
+    "iterations": 100
+  },
+  "judge": {
+    "window_s": 8.0,
+    "fail_on": [
+      "topple",
+      "retreat",
+      "belly_contact",
+      "timeout",
+      "stall"
+    ],
+    "min_advance_body_lengths": 1.0,
+    "recover_speed_ratio": 0.8,
+    "recover_hold_s": 0.3,
+    "stall": {
+      "speed_mps": 0.01,
+      "duration_s": 1.0
+    },
+    "tilt": {
+      "pitch_deg": 25.0,
+      "roll_deg": 15.0
+    },
+    "slip_ratio": 0.3,
+    "contact_normal_min_n": 0.5
+  },
+  "seed": 0,
+  "notes": "G3 时步收敛变体：正向硬质单级台阶 12.5 mm，等于壳体离地间隙 12.5 mm，临界（从动轮与壳体前下缘同时可达）；timestep_s=0.002 s。config_id=oomwoo。"
+}
