@@ -1,0 +1,19 @@
+{
+  "generated_by": "scripts/step_mass_properties.py@e2952e93fcdb",
+  "method": "occt-gprop-brep-exact",
+  "tessellation": "none (B-rep volume integration)",
+  "python": "3.13.18",
+  "ocp": "7.9.3.1",
+  "numpy": "2.5.5",
+  "os": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "generated_utc": "2026-11-22T03:15:17.477596+00:00",
+  "note": "oomwoo-cad@266210a47cab931c5891a07c9a29d48388a54b0c; 密度为工程假设，不是 CAD 数据",
+  "input_sha256": {
+    "drive_wheel": "101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2",
+    "caster": "6176fd70f7a348a9bc8e2fcd24686ee523928fe42ada4634b3d96e96561fae12",
+    "suction_fan": "ca408a1fff075b88dae7f29b027e515831843cc9ed064df212aafadba8f65fa5",
+    "battery": "24dc84ece86ed267b838b176ad7f9c7d6edd4fd7bb1462cf658e29907e0a53d1",
+    "motor_gearbox": "4fb018e3b2713f79d230090c0ee7669367d2a7fa0e821f6d851d69b9c2821b9b",
+    "main_brush_gearbox": "63ea46bcb2ba845a31d281fef5fa4eb469dc565344cd5ef3c089c684d6e4da37"
+  }
+}
