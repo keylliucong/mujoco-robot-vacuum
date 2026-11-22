@@ -151,7 +151,9 @@ def body_metrics(model, data):
         mass = masses[bid]
         if mass == 0.0:
             continue
-        rot = np.asarray(data.xmat[bid], dtype=float).reshape(3, 3)
+        # body_inertia 是主轴矩（MuJoCo 降序排列），配 body_iquat 才是 body 系张量；
+        # 用 ximat（惯性主轴系在 world 的朝向）搬到 world，不能用 xmat。
+        rot = np.asarray(data.ximat[bid], dtype=float).reshape(3, 3)
         diag = np.diag(np.asarray(model.body_inertia[bid], dtype=float))
         inertia += rot @ diag @ rot.T
         r = np.asarray(data.xipos[bid], dtype=float) - np.zeros(3)
