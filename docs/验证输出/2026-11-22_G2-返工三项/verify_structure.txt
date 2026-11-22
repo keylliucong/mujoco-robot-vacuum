@@ -1,0 +1,34 @@
+[PASS] S01: 名称表齐全；无 qpos/qvel 等数字下标
+[PASS] S02: 脚本内无物理字面量（0/1 与标注 arithmetic/tolerance 的算法常量除外；verify_env.py 归 G1）
+[PASS] S03: 模型中无台阶几何
+[PASS] S04: judge.py 无 mujoco / 配置对象 / 期望结果引用
+[PASS] S05: 时程与摘要表头等于冻结集合
+[PASS] S06: 无接触/零值双向断言通过
+[PASS] S07: 输出路径只用 mj_contactForce
+[PASS] S08: 时程列名均带单位后缀或 flag/count/_ratio
+[PASS] S09: 配置无期望结果键，judge 不读 regression_expect
+[PASS] S10: 台账↔params↔渲染后 XML 数值一致
+[PASS] S11: g2_final_v2_oblique_minus30/run.json 必备键齐全
+[PASS] S12: 首次 rc=0，重复 rc=2（应非 0）
+[PASS] S13: 目录所有权正确
+[PASS] S14: run_cases=1.9.0 judge=1.9.0 契约文档=1.9.0（版本串相等；判据集冻结在 v1.7）
+[PASS] S15: 数值注入后回读断言、覆盖即 raise
+[PASS] S16: A1–A5 全过；三类故意错位均报警
+[PASS] S17: 22 行【图纸推算】未放行，等级按 sensitivity 封顶
+[PASS] S18: 无 verified_tol / 无相对容差 / 诊断量不进判定
+[SKIP] S19: SKIP：规则①未执行——预算表 0 行覆盖 prototype 机型（114 行非缺失），无法核对 B 分量完整性；规则②③④已执行并自测通过（预算表 43 行（B=43, pending=27）/21 个 param_id；prototype 台账 114 行非缺失，有 B 覆盖 0、可忽略 0；verified_tol 占位 40 行不计入真实容差；可忽略自动判定未实现（预算表无 u_A 列），仅认显式 kind=negligible 行）
+[SKIP] S20: SKIP：当前机型无实测↔仿真比对行；u_sim 三项五要素未实现，需实测数据后留 G5
+[PASS] S21: 载荷状态成套、参考点/坐标系齐备、case 与参数集同 ID
+[PASS] S22: has_suspension=1、行程>0；声明 0 保留关节/写 0 均报警、空列可判
+[PASS] S24: 逐 contact 三条断言通过（2 个接触对）；3 分量 pair 被拦；轮-台阶 μ=0.6 留在 pair（geom=0.8）
+[PASS] S25: 契约 12 枚举 == run_cases == judge，取名顺序一致；展示标签未入输出列
+[PASS] 抽查2/3: flat+obstacle 与 expected 键均被拒绝
+[PASS] 抽查4/6/19: pitch 单位=度（50° 触发 topple）、绕行/骑棱边不通过、无接触双断言、fail_on 单点生效、|Ft|/Fn=μ+1e-9 不触发且超容差触发、belly_contact 入 fail_on 翻转
+[PASS] 抽查5: --repeat 2 两次 timeseries 与判定逐位一致
+[PASS] 抽查9(topple): 60 mm 台阶实跑 pitch_max=89.84°，passed=False primary=topple
+[PASS] S06: 无接触/零值双向断言通过
+[PASS] S11: baseline/run.json 必备键齐全
+[PASS] 抽查5/7: run.json 关键项齐全、两次逐位一致
+[PASS] 抽查8: 改台阶高度只换配置：模型哈希不变、场景哈希变化
+
+32 项检查，0 项失败
