@@ -32,6 +32,62 @@ REQUIRED_NAMES = {
 }
 REQUIRED_GEOM_PREFIXES = ("chassis_", "wheel_L_", "wheel_R_")
 
+def read_capability(model, name):
+    """读 MJCF <custom><numeric name="has_*">（契约 v1.8.0 §1.2）。"""
+    nid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_NUMERIC, name)
+    if nid < 0:
+        raise ModelCheckError(
+            f"模型缺少能力声明 <custom><numeric name=\"{name}\">（契约 v1.8.0 §1.2）"
+        )
+    data = np.asarray(model.numeric_data[nid], dtype=float).reshape(-1)
+    if data.size < 1:
+        raise ModelCheckError(f"能力声明 {name} 没有数值")
+    value = float(data[0])
+    if value not in (0.0, 1.0):
+        raise ModelCheckError(f"能力声明 {name}={value}，只允许 0 或 1")
+    return int(value)
+
+
+def joint_travel(model, joint_name):
+    jid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
+    if jid < 0:
+        raise ModelCheckError(f"缺关节：{joint_name}")
+    if model.jnt_limited[jid]:
+        return float(model.jnt_range[jid][1] - model.jnt_range[jid][0])
+    return float("inf")
+
+
+def check_capabilities(model):
+    """S22：声明与模型两端一致；有悬挂时行程必须 > 0（不得用 0/占位值蒙混）。"""
+    problems = []
+    has_suspension = read_capability(model, "has_suspension")
+    joint_names = [model.joint(i).name for i in range(model.njnt)]
+    actuator_names = [model.actuator(i).name for i in range(model.nu)]
+    susp_joints = [n for n in joint_names if n.startswith("susp")]
+    susp_actuators = [n for n in actuator_names if n.startswith("susp")]
+    if has_suspension == 0:
+        if susp_joints or susp_actuators:
+            problems.append(
+                f"has_suspension=0 但模型仍有悬挂关节/执行器：{susp_joints + susp_actuators}（S22）"
+            )
+    else:
+        for name in ("susp_L", "susp_R"):
+            if name not in joint_names:
+                problems.append(f"has_suspension=1 但缺关节 {name}（S22）")
+                continue
+            travel = joint_travel(model, name)
+            if travel <= 0.0:
+                problems.append(f"{name} 行程 {travel} 不为正；不得用 0 行程假铰（S22/抽查 16）")
+    return problems, has_suspension
+
+
+def required_names(model):
+    names = {kind: list(values) for kind, values in REQUIRED_NAMES.items()}
+    if read_capability(model, "has_suspension") == 0:
+        names["joint"] = [n for n in names["joint"] if not n.startswith("susp")]
+    return names
+
+
 
 class ModelCheckError(AssertionError):
     """A1–A5 任一不过。"""
@@ -122,7 +178,7 @@ def xml_attr(root, xpath):
 
 def check_required_names(model):
     problems = []
-    for kind, names in REQUIRED_NAMES.items():
+    for kind, names in required_names(model).items():
         obj = getattr(model, kind)
         for name in names:
             try:
@@ -248,13 +304,15 @@ def evaluate(model, data, ledger, model_root=None):
 
 def run_checks(model, data, ledger, model_root=None):
     problems = check_required_names(model)
+    capability_problems, _ = check_capabilities(model)
+    problems.extend(capability_problems)
     if model_root is not None:
         problems.extend(check_ledger_against_xml(model_root, ledger))
     results = evaluate(model, data, ledger, model_root=model_root)
     failed = [name for name, ok, _ in results if not ok]
     if problems or failed:
         detail = "；".join(problems + [f"{name} 失败" for name in failed])
-        raise ModelCheckError(f"A1–A5、名称表或台账比对不过：{detail}")
+        raise ModelCheckError(f"A1–A5、名称表、能力声明或台账比对不过：{detail}")
     return results
 
 

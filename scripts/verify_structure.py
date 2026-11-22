@@ -24,7 +24,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-CONTRACT_VERSION = "1.7.7"
+CONTRACT_VERSION = "1.8.0"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
 PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
@@ -664,6 +664,100 @@ def check_s21():
 # ---------------------------------------------------------------- 交付抽查
 
 
+def check_s22():
+    """S22 / 抽查 16：能力声明与模型两端一致；无该自由度时整列为空且不进 flags。"""
+    if not HAVE_MUJOCO:
+        add("S22", None, "SKIP：需要 MuJoCo 才能跑能力声明与空列断言")
+        return
+    import model_checks
+
+    problems = []
+    rendered = rendered_model()
+    model = mujoco.MjModel.from_xml_string(rendered["text"])
+    cap_problems, has_suspension = model_checks.check_capabilities(model)
+    problems.extend(cap_problems)
+    if has_suspension != 1:
+        problems.append(f"本模型的 has_suspension={has_suspension}，基线原型应为 1")
+
+    def capability_tree(value, drop_susp=False):
+        tree = ET.fromstring(rendered["text"])
+        for numeric in tree.iter("numeric"):
+            if numeric.get("name") == "has_suspension":
+                numeric.set("data", str(value))
+        if drop_susp:
+            for body in tree.iter("body"):
+                for child in list(body):
+                    if child.tag == "joint" and (child.get("name") or "").startswith("susp"):
+                        body.remove(child)
+        return tree
+
+    # 抽查 16a：声明 0 但保留 susp 关节必须失败
+    mutated = capability_tree(0)
+    model_zero = mujoco.MjModel.from_xml_string(ET.tostring(mutated, encoding="unicode"))
+    negative, _ = model_checks.check_capabilities(model_zero)
+    if not negative:
+        problems.append("声明 has_suspension=0 但保留 susp_* 关节未报警（抽查 16a）")
+
+    # 抽查 16b：声明 0 且删除 susp 关节应可编译并通过
+    mutated_ok = capability_tree(0, drop_susp=True)
+    model_no_susp = mujoco.MjModel.from_xml_string(
+        ET.tostring(mutated_ok, encoding="unicode")
+    )
+    ok_problems, cap_ok = model_checks.check_capabilities(model_no_susp)
+    if ok_problems or cap_ok != 0:
+        problems.append(f"声明 0 且无 susp 关节仍报错：{ok_problems}")
+
+    # 抽查 16c：无悬挂时 susp 列必须整列为空；写 0 必须失败
+    import judge
+
+    columns, params = synthetic_case(
+        flags=["topple", "retreat", "timeout", "stall"], bottom_out=False
+    )
+    params_no_susp = dict(params)
+    params_no_susp["has_suspension"] = False
+    params_no_susp["susp_range_m"] = 0.0
+    empty_columns = {name: list(values) for name, values in columns.items()}
+    empty_columns["susp_L_travel_m"] = [""] * len(columns["t_s"])
+    empty_columns["susp_R_travel_m"] = [""] * len(columns["t_s"])
+    try:
+        verdict = judge.judge_case(empty_columns, params_no_susp)
+        if "suspension_bottom" in verdict["failure_flags"]:
+            problems.append("无悬挂时仍产生 suspension_bottom（抽查 16c）")
+        if verdict["metrics"]["susp_travel_max_L_m"] is not None:
+            problems.append("无悬挂时 susp 指标不是空")
+    except judge.JudgeError as error:
+        problems.append(f"无悬挂空列被误判为错：{error}")
+    zero_columns = {name: list(values) for name, values in empty_columns.items()}
+    zero_columns["susp_L_travel_m"] = ["0.0"] * len(columns["t_s"])
+    try:
+        judge.judge_case(zero_columns, params_no_susp)
+        problems.append("无悬挂时把 susp 列写 0 未报错（抽查 16c）")
+    except judge.JudgeError:
+        pass
+
+    # 列元数据：无悬挂时 missing=true
+    import run_cases
+
+    meta = run_cases.column_metadata(list(columns), has_suspension=False)
+    if not meta["susp_L_travel_m"]["missing"] or not meta["susp_R_travel_m"]["missing"]:
+        problems.append("无悬挂时 run.json.columns 未标 missing=true（S22）")
+
+    run_json_path, run_json = outputs_run_json()
+    if run_json and "capabilities" in run_json:
+        declared = run_json["capabilities"].get("has_suspension")
+        missing = run_json.get("columns", {}).get("susp_L_travel_m", {}).get("missing")
+        if declared != has_suspension or bool(missing) != (declared == 0):
+            problems.append("run.json.capabilities 与 columns.missing 不自洽（S22）")
+
+    add(
+        "S22",
+        not problems,
+        "has_suspension=1、行程>0；声明 0 保留关节/写 0 均报警、空列可判"
+        if not problems
+        else "；".join(problems),
+    )
+
+
 def check_negative_configs():
     """抽查 2/3：flat 带 obstacle、含 expected 的配置必须报错。"""
     if not HAVE_MUJOCO:
@@ -748,6 +842,7 @@ def synthetic_case(flags, bottom_out):
         "slip_eps_mps": 0.000001,
         "climb_height_ratio": 0.9,
         "climb_hold_s": 0.2,
+        "has_suspension": True,
         "wheel_step_pairs": ["wheel_L--step", "wheel_R--step"],
         "bottom_out_pairs": ["chassis--step"],
         "all_pairs": pairs,
@@ -890,6 +985,7 @@ def main():
     check_s19()
     check_s20()
     check_s21()
+    check_s22()
     check_negative_configs()
     check_judge_unit_tests()
     check_run_outputs()

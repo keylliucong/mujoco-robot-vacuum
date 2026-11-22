@@ -29,7 +29,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-CONTRACT_VERSION = "1.7.7"  # S14：等于契约文档版本；判据集仍冻结在 v1.7
+CONTRACT_VERSION = "1.8.0"  # S14：等于契约文档版本；判据集仍冻结在 v1.7
 SCHEMA_VERSION = "1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -549,7 +549,7 @@ def make_columns(ordered_pairs):
     return TIMESERIES_COLUMNS + contact_columns(ordered_pairs) + TIMESERIES_TAIL
 
 
-def sample_row(model, data, pair_lookup, ordered_pairs, geom_names):
+def sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspension):
     xpos = np.array(data.body("chassis").xpos, dtype=float)
     xquat = np.array(data.body("chassis").xquat, dtype=float)
     qvel = np.array(data.joint("chassis_free").qvel, dtype=float)
@@ -578,8 +578,13 @@ def sample_row(model, data, pair_lookup, ordered_pairs, geom_names):
     row["wheel_R_speed_radps"] = spin_r
     row["wheel_L_torque_nm"] = float(np.asarray(data.actuator("wheel_L").force).reshape(-1)[0])
     row["wheel_R_torque_nm"] = float(np.asarray(data.actuator("wheel_R").force).reshape(-1)[0])
-    row["susp_L_travel_m"] = float(np.asarray(data.joint("susp_L").qpos).reshape(-1)[0])
-    row["susp_R_travel_m"] = float(np.asarray(data.joint("susp_R").qpos).reshape(-1)[0])
+    if has_suspension:
+        row["susp_L_travel_m"] = float(np.asarray(data.joint("susp_L").qpos).reshape(-1)[0])
+        row["susp_R_travel_m"] = float(np.asarray(data.joint("susp_R").qpos).reshape(-1)[0])
+    else:
+        # v1.8.0 §1.2：没有该自由度时整列为空，不是 0
+        row["susp_L_travel_m"] = None
+        row["susp_R_travel_m"] = None
 
     counts = {key: 0 for key in ordered_pairs}
     normals = {key: 0.0 for key in ordered_pairs}
@@ -679,7 +684,7 @@ def run_creep(model, data, defaults, wheel_radius_m):
     }
 
 
-def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, geom_names, radius):
+def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, geom_names, radius, has_suspension):
     approach = config["scenario"]["approach"]
     speed = approach["speed_mps"]
     window = config["judge"]["window_s"]
@@ -703,7 +708,7 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
         ramp = min(1.0, float(data.time) / ramp_s)
         set_drive(model, data, limits, kp, speed, ramp, yaw_damping)
         step_once(model, data)
-        row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names)
+        row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspension)
         rows.append(row)
         if trigger_time is None:
             for key in wheel_step:
@@ -749,17 +754,17 @@ def unit_for(column):
     return "-"
 
 
-def column_metadata(columns):
+def column_metadata(columns, has_suspension=True):
     meta = {}
     for column in columns:
-        meta[column] = {
-            "unit": unit_for(column),
-            "missing": column.endswith("_normal_n") or column.endswith("_tangent_n"),
-        }
+        missing = column.endswith("_normal_n") or column.endswith("_tangent_n")
+        if not has_suspension and column.endswith("_travel_m"):
+            missing = True
+        meta[column] = {"unit": unit_for(column), "missing": missing}
     return meta
 
 
-def build_judge_params(config, defaults, model, limits, ordered_pairs, body_length_m, radius):
+def build_judge_params(config, defaults, model, limits, ordered_pairs, body_length_m, radius, has_suspension):
     approach = config["scenario"]["approach"]
     judge_cfg = config["judge"]
     kind = config["scenario"]["kind"]
@@ -784,7 +789,8 @@ def build_judge_params(config, defaults, model, limits, ordered_pairs, body_leng
         "settle_end_s": approach["settle_s"],
         "wheel_radius_m": radius,
         "step_height_m": height,
-        "susp_range_m": MODEL_CONSTANTS["susp_range_m"],
+        "has_suspension": bool(has_suspension),
+        "susp_range_m": MODEL_CONSTANTS["susp_range_m"] if has_suspension else 0.0,
         "susp_bottom_rel": defaults["tolerances"]["susp_bottom_rel"],
         "torque_limit_L_nm": limits["wheel_L"],
         "torque_limit_R_nm": limits["wheel_R"],
@@ -1020,6 +1026,7 @@ def main(argv=None):
     mujoco.mj_forward(base_model, base_data)
     model_root = ET.fromstring(model_text)
     model_checks.run_checks(base_model, base_data, ledger, model_root=model_root)
+    has_suspension = model_checks.read_capability(base_model, "has_suspension")
     body_length_m = model_checks.body_length(base_model)
     chassis_front_m = chassis_front(base_model)
 
@@ -1033,6 +1040,7 @@ def main(argv=None):
     print(f"contract_version: {CONTRACT_VERSION}")
     print(f"model: {model_rel} sha256={model_sha}")
     print(f"params: {params_document['config_id']} machine={params_document['machine']} missing={params_io.missing_ids(params_document)}")
+    print(f"capabilities: has_suspension={has_suspension}")
     print(f"config: {config_path} sha256={config_sha}")
     print(f"scenario_xml_sha256: {scenario_sha}")
     print(f"git: {git_info()}")
@@ -1093,13 +1101,21 @@ def main(argv=None):
                 pair_lookup,
                 geom_names,
                 radius,
+                has_suspension,
             )
             write_timeseries(tier_dir / "timeseries.csv", columns, table)
             judge_table = {
                 column: [format_value(value) for value in table[column]] for column in columns
             }
             params = build_judge_params(
-                config, defaults, tier_model, tier_limits, ordered_pairs, body_length_m, radius
+                config,
+                defaults,
+                tier_model,
+                tier_limits,
+                ordered_pairs,
+                body_length_m,
+                radius,
+                has_suspension,
             )
             verdict = judge.judge_case(judge_table, params)
             verdict["timestep_s"] = float(tier_model.opt.timestep)
@@ -1167,6 +1183,7 @@ def main(argv=None):
             "structure_only": True,
         },
         "machine": params_document["machine"],
+        "capabilities": {"has_suspension": has_suspension},
         "parameter_set": {
             "path": path_for_report(rendered["params_path"]),
             "sha256": sha256_file(rendered["params_path"]),
@@ -1235,7 +1252,7 @@ def main(argv=None):
                 "regression": regression,
             }
         ],
-        "columns": column_metadata(actual_columns),
+        "columns": column_metadata(actual_columns, has_suspension),
         "data_quality": {
             "contact_force_readout": "mj_contactForce",
             "missing_representation": "empty_field",
@@ -1279,6 +1296,6 @@ def main(argv=None):
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except ContractError as error:
+    except (ContractError, params_io.ParamError, model_checks.ModelCheckError, judge.JudgeError) as error:
         print(f"CONTRACT ERROR: {error}", file=sys.stderr)
         raise SystemExit(2)
