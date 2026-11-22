@@ -1,0 +1,2180 @@
+{
+  "contract_version": "1.8.3",
+  "schema_version": "1.0",
+  "batch_id": "g2_slipfix_baseline",
+  "command": [
+    "E:\\mujoco-robot-vacuum\\.venv\\Scripts\\python.exe",
+    "scripts\\run_cases.py",
+    "--config",
+    "cases\\baseline.json",
+    "--out",
+    "outputs\\g2_slipfix_baseline"
+  ],
+  "cwd": "E:\\mujoco-robot-vacuum",
+  "host": "DESKTOP-RGG6DMC",
+  "git": {
+    "commit": "c2dbcf124b8bf26ee80bd9bf27a9854f8424ed5c",
+    "branch": "HEAD",
+    "dirty": true
+  },
+  "model": {
+    "path": "models/baseline.xml",
+    "sha256": "153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01",
+    "rendered_sha256": "591793f9f648e3de8dd2d361893f4dc1a626dc061bcb7f6f92d9124b8746f8f9",
+    "structure_only": true
+  },
+  "machine": "prototype",
+  "capabilities": {
+    "has_suspension": 1
+  },
+  "parameter_set": {
+    "path": "params/prototype.json",
+    "sha256": "a3d2f65b10d2f1bd47b68ea7ab3ef2c5102060b5793a49b4fc5f2a986d434f90",
+    "config_id": "proto_v1",
+    "missing": [
+      "prototype.com.chassis.z"
+    ]
+  },
+  "config": {
+    "path": [
+      "cases/baseline.json"
+    ],
+    "sha256": "af1641de63cd02b086abb60ea0d39efb6f3ef75dd43cdb68085215719aaecf0f",
+    "cases": [
+      {
+        "case_id": "step_forward_20mm",
+        "path": "cases/baseline.json",
+        "sha256": "d900f3aa1f2d9cf4c07beb36d8b1a37997c9a6895db52c460de3eadaf125650b"
+      }
+    ]
+  },
+  "scenario_xml_sha256": "e8fd1c69c64bb1d7748a3d567e26c880a24c72dbd2cfa96ca6ecfb05f7499b00",
+  "com_offset_B_m": {
+    "x": -0.020448430493273547,
+    "y": 0.0,
+    "z": 0.05376681614349777
+  },
+  "frame": {
+    "cad_to_B": {
+      "yaw_deg": 0.0,
+      "origin_B_m": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    }
+  },
+  "python": "3.13.1",
+  "mujoco": "4.0.1",
+  "numpy": "2.5.5",
+  "os": "nt",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numerics": {
+    "timestep_s": 0.002,
+    "integrator": "implicitfast",
+    "solver": "Newton",
+    "cone": "pyramidal",
+    "iterations": 100,
+    "effective": {
+      "timestep_s": 0.002,
+      "integrator": 3,
+      "solver": 2,
+      "cone": 0,
+      "iterations": 100
+    }
+  },
+  "overrides": [],
+  "seed": 0,
+  "seed_used": false,
+  "params": [
+    {
+      "id": "oomwoo.F0",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.Ixx",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.Ixy",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.Ixz",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.Iyy",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.Iyz",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.Izz",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.T_wheel",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.body_diameter",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.body_height",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.body_mass",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.c_susp",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.damping",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.ixx",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.iyy",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.izz",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.mass",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.radius",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.springref",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.stiffness",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.travel_neg",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.travel_pos",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.x",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster.z",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_diameter",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.damping",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.ixx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.iyy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.izz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.mass",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.radius",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.springref",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.stiffness",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.travel_neg",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.travel_pos",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.caster_rear.z",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.center_z",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.com_B_x_lidar_centered",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.com_B_x_public",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.height_half",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.ipos_x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.ipos_z",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.ixx",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.iyy",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.izz",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.mass",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.chassis.radius",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.clearance_min",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.com_x",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.com_y",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.com_z",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.condim",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_caster_floor_r",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_caster_floor_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_caster_floor_t",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_caster_step_r",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_caster_step_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_caster_step_t",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_chassis_step_r",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_chassis_step_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_chassis_step_t",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_wheel_floor_r",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_wheel_floor_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_wheel_floor_t",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_wheel_step_r",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_wheel_step_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.mu_wheel_step_t",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.solimp_0",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.solimp_1",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.solimp_2",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.solimp_3",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.solimp_4",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.solref_dampratio",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.contact.solref_timeconst",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.control.approach_accel_mps2",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.control.integral_clamp_nm",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.control.ki_nm_per_rad",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.control.kp_nm_per_radps",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.control.torque_filter_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.control.torque_rate_limit_nm_per_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.default.joint_armature",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.default.joint_damping",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.drive.torque_limit",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.drive_group_mass",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.eta",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.hub_z",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.i_gear",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.k_susp",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.lidar.height_half",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.lidar.ixx",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.lidar.iyy",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.lidar.izz",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.lidar.mass",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.lidar.radius",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.lidar.x",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.lidar.z",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.m_drive_module_pair",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.m_dry",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.m_full",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.mu_s",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.mu_step",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.numerics.cone",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.numerics.gravity_z",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.numerics.integrator",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.numerics.iterations",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.numerics.solver",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.numerics.timestep_downgrade_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.numerics.timestep_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.numerics.tolerance",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.r_wheel",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.r_wheel_lib_step",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.base_diameter",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.body_height",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.body_height_with_lidar",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.caster_diameter",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.caster_inset",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.caster_mass",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.floor_clearance",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.laser_puck_diameter",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.laser_puck_height",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.laser_puck_mass",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.lower_cylinder_height",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.lower_cylinder_mass",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.max_linear_acceleration",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.motor_stall_torque",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.wheel_base",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.wheel_diameter",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.wheel_mass",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.ref.wheel_width",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.susp.damping",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.susp.springref",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.susp.stiffness",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.susp.travel_neg",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.susp.travel_pos",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.suspension_mass",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.travel",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel.halfwidth",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel.ixx",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel.iyy",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel.izz",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel.mass",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel.radius",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel.track_half",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel.x",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel.z",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel_Ixx_lib_step",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel_Izz_lib_step",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel_mass_lib_step",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel_track",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheel_width_lib_step",
+      "label": "图纸推算",
+      "verified_by": ""
+    },
+    {
+      "id": "oomwoo.wheelbase",
+      "label": "公开参考",
+      "verified_by": ""
+    },
+    {
+      "id": "own.F0",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.F_limit",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.I",
+      "label": "待标定",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.I1",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.I2",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.I3",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.I_att_equiv_ballast",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.I_att_full_witness",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.I_att_sealed_full_water",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.Ixx",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.Ixy",
+      "label": "待标定",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.Ixz",
+      "label": "待标定",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.Iyy",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.Iyz",
+      "label": "待标定",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.Izz",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.L_track",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.L_wb",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.U",
+      "label": "待标定",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.c_susp",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.clearance_min",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.com_ballast",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.com_full_x",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.com_full_z",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.com_x",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.com_y",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.com_z",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.hub_z",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.i_gear",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.k_susp",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.m_ballast",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.m_dry",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.m_full",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.mu_s",
+      "label": "待标定",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.mu_step",
+      "label": "待标定",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.omega_wheel",
+      "label": "待标定",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.r_roll",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.r_wheel",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.s_zero",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.torque_wheel",
+      "label": "待标定",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "own.travel",
+      "label": "缺失",
+      "verified_by": "TODO(试验标定)"
+    },
+    {
+      "id": "prototype.actuator.torque_limit_nm",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.approach.speed_mps",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.caster.frictionloss_nm",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.caster.roll_damping_nms",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.com.chassis.x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.com.chassis.y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.com.chassis.z",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.com_B_m.x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.com_B_m.y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.com_B_m.z",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.caster_solref_timeconst_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.chassis_floor_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.chassis_step_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.condim",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.friction_r",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.friction_t",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.solimp_d0",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.solimp_d1",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.solimp_d2",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.solimp_d3",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.solimp_d4",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.solref_dampratio",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.solref_timeconst_s",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.wheel_floor_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.contact.wheel_step_friction_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.drive.torque_limit_nm",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.frame.cad_to_B.origin_x_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.frame.cad_to_B.origin_y_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.frame.cad_to_B.origin_z_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.frame.cad_to_B.yaw_deg",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.geom.caster.half_width",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.geom.caster.radius",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.geom.chassis.half_x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.geom.chassis.half_y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.geom.chassis.half_z",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.geom.chassis.pos_z",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.geom.wheel_half_width_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.geom.wheel_radius_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.gravity.x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.gravity.y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.gravity.z",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.caster.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.caster.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.caster.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.chassis.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.chassis.xy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.chassis.xz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.chassis.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.chassis.yz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.chassis.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.wheel_L.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.wheel_L.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.wheel_L.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.wheel_R.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.wheel_R.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia.wheel_R.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia_B.xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia_B.xy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia_B.xz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia_B.yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia_B.yz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.inertia_B.zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.contact_normal_min_n",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.min_advance_body_lengths",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.platform_height_tol_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.recover_hold_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.recover_speed_ratio",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.slip_ratio",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.stall.duration_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.stall.speed_mps",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.step_contact_gap_tol_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.tilt.pitch_deg",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.tilt.roll_deg",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.judge.window_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.mass.assembly",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.mass.caster",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.mass.chassis",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.mass.residual",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.mass.wheel_L",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.mass.wheel_R",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.numerics.iterations",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.numerics.timestep_s",
+      "label": "待标定",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.payload.empty.com_x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.payload.empty.com_y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.payload.empty.com_z",
+      "label": "缺失",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.payload.empty.inertia_xx",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.payload.empty.inertia_yy",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.payload.empty.inertia_zz",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.payload.empty.m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.pos.caster.x",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.pos.caster.y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.pos.caster.z",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.pos.susp.y",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.pos.susp.z",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.approach_margin_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.climb_height_ratio",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.climb_hold_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.control_update_period_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.creep.max_drift_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.creep.max_residual_speed_mps",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.creep.window_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.max_sim_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.obstacle_half_width_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.settle_check_window_s",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.slip_eps_mps",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.speed_kp_nm_per_mps",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.susp_bottom_rel",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.torque_saturation_rel",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.runner.yaw_damping_nm_per_radps",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.scenario.obstacle.height_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.susp.damping_ns_per_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.susp.stiffness_n_per_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.susp.travel_limit_m",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.wheel.armature_kgm2",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.wheel.damping_nms",
+      "label": "工程假设",
+      "verified_by": ""
+    },
+    {
+      "id": "prototype.wheel.frictionloss_nm",
+      "label": "待标定",
+      "verified_by": ""
+    }
+  ],
+  "param_labels": {
+    "工程假设": 84,
+    "缺失": 1,
+    "待标定": 10
+  },
+  "conclusion_level_inputs": {
+    "rule": "v1.7.6：只取绑定 xpath 的台账行；v1.7.4：本字段是结论等级，参数等级见 params[].label",
+    "rows_bound_to_xpath": 95
+  },
+  "conclusion_level": "mechanism",
+  "repeat": {
+    "consistent": true,
+    "key_metrics_tol": 0.0,
+    "excluded_columns": [
+      "repeat",
+      "output_dir"
+    ]
+  },
+  "started_utc": "2026-11-22T10:01:43.907933+00:00",
+  "finished_utc": "2026-11-22T10:01:44.721503+00:00",
+  "cases": [
+    {
+      "case_id": "step_forward_20mm",
+      "config": "cases/baseline.json",
+      "config_sha256": "d900f3aa1f2d9cf4c07beb36d8b1a37997c9a6895db52c460de3eadaf125650b",
+      "scenario_xml_sha256": "b6eea90119b10b0843117b83874f84b1696a652f89b9f862f76c82484bbb6b83",
+      "trigger_source": "wheel_L--step",
+      "friction_readback": {
+        "wheel_L--floor": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "wheel_L--step": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "wheel_R--floor": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "wheel_R--step": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001,
+          0.0001
+        ]
+      },
+      "repeats": [
+        {
+          "repeat": 1,
+          "output_dir": "step_forward_20mm",
+          "creep": {
+            "settle_s": 1.0,
+            "window_s": 10.0,
+            "drift_m": 1.987827350218514e-10,
+            "residual_speed_mps": 2.8910839799614644e-11,
+            "max_residual_speed_mps": 0.001,
+            "max_drift_m": 0.0005,
+            "redline": false,
+            "wheel_radius_m": 0.035
+          },
+          "summary_signature": [
+            [
+              "case_id",
+              "step_forward_20mm"
+            ],
+            [
+              "status",
+              "ok"
+            ],
+            [
+              "passed",
+              "1"
+            ],
+            [
+              "failure_primary",
+              ""
+            ],
+            [
+              "failure_flags",
+              "torque_limit;slip"
+            ],
+            [
+              "t_trigger_s",
+              "4.788"
+            ],
+            [
+              "t_climb_s",
+              "0.9219999999999997"
+            ],
+            [
+              "t_recover_s",
+              "0.7439999999999998"
+            ],
+            [
+              "advance_m",
+              "1.13614806"
+            ],
+            [
+              "v_recover_mps",
+              "0.14369447655921053"
+            ],
+            [
+              "pitch_max_deg",
+              "6.953104571033355"
+            ],
+            [
+              "roll_max_deg",
+              "3.952075914683867"
+            ],
+            [
+              "slip_max_L",
+              "1.0077705681336067"
+            ],
+            [
+              "slip_max_R",
+              "7.3246507117499995"
+            ],
+            [
+              "torque_max_L_nm",
+              "0.8"
+            ],
+            [
+              "torque_max_R_nm",
+              "0.8"
+            ],
+            [
+              "susp_travel_max_L_m",
+              "0.007066042"
+            ],
+            [
+              "susp_travel_max_R_m",
+              "0.00854542"
+            ],
+            [
+              "contact_normal_max_n",
+              "174.778019156"
+            ],
+            [
+              "timestep_s",
+              "0.002"
+            ],
+            [
+              "integrator",
+              "implicitfast"
+            ],
+            [
+              "cone",
+              "pyramidal"
+            ],
+            [
+              "seed",
+              "0"
+            ],
+            [
+              "model_sha256",
+              "153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01"
+            ],
+            [
+              "config_sha256",
+              "d900f3aa1f2d9cf4c07beb36d8b1a37997c9a6895db52c460de3eadaf125650b"
+            ],
+            [
+              "conclusion_level",
+              "mechanism"
+            ]
+          ],
+          "tiers": [
+            {
+              "tier": "base",
+              "timestep_s": 0.002,
+              "dir": "step_forward_20mm",
+              "trigger_source": "wheel_L--step",
+              "friction_readback": {
+                "wheel_L--floor": [
+                  0.8,
+                  0.8,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_L--step": [
+                  0.6,
+                  0.6,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_R--floor": [
+                  0.8,
+                  0.8,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ],
+                "wheel_R--step": [
+                  0.6,
+                  0.6,
+                  0.001,
+                  0.0001,
+                  0.0001
+                ]
+              },
+              "verdict": {
+                "status": "ok",
+                "invalid_reason": "",
+                "passed": true,
+                "failure_primary": "",
+                "failure_flags": [
+                  "torque_limit",
+                  "slip"
+                ],
+                "metrics": {
+                  "t_trigger_s": 4.788,
+                  "t_wheel_touch_s": 4.788,
+                  "t_climb_s": 0.9219999999999997,
+                  "t_recover_s": 0.7439999999999998,
+                  "advance_m": 1.13614806,
+                  "v_recover_mps": 0.14369447655921053,
+                  "pitch_max_deg": 6.953104571033355,
+                  "roll_max_deg": 3.952075914683867,
+                  "slip_max_L": 1.0077705681336067,
+                  "slip_max_R": 7.3246507117499995,
+                  "torque_max_L_nm": 0.8,
+                  "torque_max_R_nm": 0.8,
+                  "susp_travel_max_L_m": 0.007066042,
+                  "susp_travel_max_R_m": 0.00854542,
+                  "contact_normal_max_n": 174.778019156,
+                  "end_pos_z_m": 0.011892611,
+                  "on_platform": true,
+                  "slip_force_exceeded": false,
+                  "trigger_source": "wheel_L--step",
+                  "crossing": {
+                    "end_progress_m": 1.774233532,
+                    "end_lateral_m": 0.409390737,
+                    "com_progress_m": 1.7537851015067265,
+                    "max_pos_z_m": 0.014806114,
+                    "wheel_on_top_count": 2,
+                    "both_wheels_on_top": true,
+                    "no_floor_contact_at_end": true,
+                    "ended_on_platform": true,
+                    "reached_platform": true,
+                    "crossed_front": true,
+                    "within_width": true,
+                    "contact_gap_max_s": 0.07800000000000006,
+                    "contact_ok": true,
+                    "cross_fail_reasons": [],
+                    "crossed": true
+                  }
+                },
+                "conclusion_level_inputs": {
+                  "fail_on": [
+                    "topple",
+                    "retreat",
+                    "timeout",
+                    "stall",
+                    "cross_fail"
+                  ],
+                  "window_s": 8.0
+                },
+                "trigger_source": "wheel_L--step",
+                "timestep_s": 0.002,
+                "warnings": {
+                  "numbers": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "nonzero": 0
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "regression": {
+        "checked": false
+      }
+    }
+  ],
+  "columns": {
+    "t_s": {
+      "unit": "s",
+      "missing": false
+    },
+    "pos_x_m": {
+      "unit": "m",
+      "missing": false
+    },
+    "pos_y_m": {
+      "unit": "m",
+      "missing": false
+    },
+    "pos_z_m": {
+      "unit": "m",
+      "missing": false
+    },
+    "quat_w": {
+      "unit": "-",
+      "missing": false
+    },
+    "quat_x": {
+      "unit": "-",
+      "missing": false
+    },
+    "quat_y": {
+      "unit": "-",
+      "missing": false
+    },
+    "quat_z": {
+      "unit": "-",
+      "missing": false
+    },
+    "pitch_rad": {
+      "unit": "rad",
+      "missing": false
+    },
+    "roll_rad": {
+      "unit": "rad",
+      "missing": false
+    },
+    "yaw_rad": {
+      "unit": "rad",
+      "missing": false
+    },
+    "vel_x_mps": {
+      "unit": "m/s",
+      "missing": false
+    },
+    "vel_y_mps": {
+      "unit": "m/s",
+      "missing": false
+    },
+    "vel_z_mps": {
+      "unit": "m/s",
+      "missing": false
+    },
+    "wheel_L_speed_radps": {
+      "unit": "rad/s",
+      "missing": false
+    },
+    "wheel_R_speed_radps": {
+      "unit": "rad/s",
+      "missing": false
+    },
+    "wheel_L_torque_nm": {
+      "unit": "N*m",
+      "missing": false
+    },
+    "wheel_R_torque_nm": {
+      "unit": "N*m",
+      "missing": false
+    },
+    "susp_L_travel_m": {
+      "unit": "m",
+      "missing": false
+    },
+    "susp_R_travel_m": {
+      "unit": "m",
+      "missing": false
+    },
+    "contact_wheel_L--floor_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_wheel_L--floor_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_L--floor_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_L--floor_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_wheel_R--floor_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_wheel_R--floor_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_R--floor_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_R--floor_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_wheel_L--step_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_wheel_L--step_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_L--step_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_L--step_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_wheel_R--step_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_wheel_R--step_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_R--step_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_wheel_R--step_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_chassis--floor_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_chassis--floor_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_chassis--floor_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_chassis--floor_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "contact_chassis--step_active": {
+      "unit": "flag",
+      "missing": false
+    },
+    "contact_chassis--step_normal_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_chassis--step_tangent_n": {
+      "unit": "N",
+      "missing": true
+    },
+    "contact_chassis--step_count": {
+      "unit": "count",
+      "missing": false
+    },
+    "chassis_min_z_m": {
+      "unit": "m",
+      "missing": false
+    }
+  },
+  "data_quality": {
+    "contact_force_readout": "mj_contactForce",
+    "missing_representation": "empty_field",
+    "condim_quoted": 3,
+    "rolling_resistance": "not_modelled(condim=3)",
+    "torque_axis": "wheel_end_-y_forward_positive",
+    "frame": "B=world=chassis_local",
+    "bottoming": {
+      "criterion": "contact_only(chassis--step active)；未实现最小间隙时程，chassis_min_z_m 不作间隙判据",
+      "applicability_max_step_height_m": -0.15440139493908922
+    },
+    "pair_friction_readback": {
+      "wheel_L--floor": [
+        0.8,
+        0.8,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "wheel_L--step": [
+        0.6,
+        0.6,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "wheel_R--floor": [
+        0.8,
+        0.8,
+        0.001,
+        0.0001,
+        0.0001
+      ],
+      "wheel_R--step": [
+        0.6,
+        0.6,
+        0.001,
+        0.0001,
+        0.0001
+      ]
+    },
+    "peak_contact_force": {
+      "identity": "numerical_peak_determined_by_solref_and_timestep",
+      "physical_meaning": false,
+      "allowed_comparison": "同机型、同 h、同 solref 下比较不同几何/摩擦/限扭配置（相对）",
+      "forbidden": [
+        "跨 h 或跨 solref 当物理量比较",
+        "作强度/保险杠输入",
+        "使用“冲击力”表述"
+      ],
+      "timestep_study": {
+        "performed": false,
+        "tiers_s": [
+          0.002
+        ],
+        "converged": null,
+        "note": "未证明时步收敛前，峰值只能 relative-only"
+      },
+      "load_spectrum_export": "relative-only"
+    },
+    "warnings": {
+      "numbers": [
+        0
+      ],
+      "nonzero": 0,
+      "batch_valid": true
+    }
+  }
+}
