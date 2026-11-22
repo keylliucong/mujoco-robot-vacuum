@@ -1,0 +1,15 @@
+case,repeat,column,mac,windows,delta_win_minus_mac
+flat,1,output_dir,<mac batch>,<windows batch>,
+flat,2,output_dir,<mac batch>,<windows batch>,
+step,1,slip_max_L,0.637269360,0.622210526,-0.015058833999999965
+step,1,slip_max_R,0.622210526,0.637269360,0.015058833999999965
+step,1,susp_travel_max_L_m,0.004567495,0.004562930,-4.565000000000645e-06
+step,1,susp_travel_max_R_m,0.004562930,0.004567495,4.565000000000645e-06
+step,1,contact_normal_max_n,22.008084477,22.008084473,-4.000000330961484e-09
+step,1,output_dir,<mac batch>,<windows batch>,
+step,2,slip_max_L,0.637269360,0.622210526,-0.015058833999999965
+step,2,slip_max_R,0.622210526,0.637269360,0.015058833999999965
+step,2,susp_travel_max_L_m,0.004567495,0.004562930,-4.565000000000645e-06
+step,2,susp_travel_max_R_m,0.004562930,0.004567495,4.565000000000645e-06
+step,2,contact_normal_max_n,22.008084477,22.008084473,-4.000000330961484e-09
+step,2,output_dir,<mac batch>,<windows batch>,

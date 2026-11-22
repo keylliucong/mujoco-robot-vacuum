@@ -1,0 +1,8 @@
+batch win_verify_5380699_flat
+contract 1.8.0
+git {'commit': '53806998a1d12bfef22f0df77213b396fa6fede2', 'branch': 'HEAD', 'dirty': False}
+model models/baseline.xml 153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+config E:\mujoco-robot-vacuum\cases\flat.json 9302f20659cd2c51bdd18eb21df3be2da3ace595ede279c142be828288c65a39
+scenario_xml_sha256 468ebe1a73616a3047959f3e6fff19e00d74e7a12330100b7be471a8025faa72
+repeat_consistent True
+conclusion_level mechanism
