@@ -406,11 +406,11 @@
       "note": "预压使 q=0 时每轮约 14 N；m=2.9 kg、CoM +2.2 mm"
     },
     "susp.damping": {
-      "value": 30.0,
+      "value": 400.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "URDF 未公开悬挂",
-      "note": "等效阻尼，未辨识"
+      "note": "等效阻尼，按 c≈2√(k·m_eff) 取临界阻尼量级；未辨识"
     },
     "caster.x": {
       "value": 0.1445,
@@ -455,11 +455,11 @@
       "note": "预压使 q=0 时约 0.43 N"
     },
     "caster.damping": {
-      "value": 5.0,
+      "value": 20.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "URDF 固定球",
-      "note": "等效阻尼"
+      "note": "等效阻尼，按 c≈2√(k·m_eff) 取临界阻尼量级；未辨识"
     },
     "caster.mass": {
       "value": 0.05,
