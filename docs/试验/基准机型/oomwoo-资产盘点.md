@@ -69,13 +69,13 @@
 
 | 项 | 状态 | 证据 |
 |---|---|---|
-| 推导脚本 | 有（组件级） | `oomwoo-baseline` 工作区 `docs/基准机型/scripts/step_component_properties.py` @ `3ba546c`（上游分支；输出表未推送）；只处理单个组件，不处理整机 |
+| 推导脚本 | 有（组件级） | `docs/基准机型/scripts/step_component_properties.py` @ `bdf5be2`，随 `b996dc0` 推送；只处理单个组件，不处理整机 |
 | 输入 `sha256` | 有（驱动轮） | `OOM-W01-drive-wheel-assembly.stp` = `101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2` |
-| 输出尺寸表 | 有（组件级，已本地入库、**未推送**） | `docs/基准机型/oomwoo-drive-wheel-dimensions.{md,csv}` 已在上游分支 `keylliucong/oomwoo-baseline-params`（最新 `a5e5ff7`）；该分支未推送；表头 `table_rev=0b73eda` 是 blob，不是 commit |
+| 输出尺寸表 | 有（组件级，已推送） | `docs/基准机型/oomwoo-drive-wheel-dimensions.{md,csv}` 在 `keylliucong/oomwoo-baseline-params@b996dc0`；引用 `rev=b996dc0#docs/基准机型/oomwoo-drive-wheel-dimensions.md` 可解析；表头 `table_rev=0b73eda` 是 CSV 的 blob sha，不是 commit（语义待修正） |
 | 环境声明 | 有 | Python 3.13.18 / gmsh 4.15.2 / NumPy 2.5.5；OCC 由 gmsh 内置；方法 `brep_exact`，无 mesh |
 | 整机级四项 | **不齐** | 没有正式整机 STEP；实验件没有整机尺寸表；没有密度来源；没有整机脚本 |
 
-> 因此：**组件级轮径/轮宽可以走【图纸推算】**（待表入库后）；**整机 `m/com/I` 最高只能【工程假设】**，且实验件本身还不是正式设计。
+> 因此：**组件级轮径/轮宽/轮体惯量已可走【图纸推算】**（四项齐、表已推送；无实测交叉校核，止于 `sensitivity`）；**轮体质量仍是【工程假设】**，因为密度是假设；**整机 `m/com/I` 最高只能【工程假设】**，且实验件本身还不是正式设计。
 
 ## 6. 没有的东西（不要用别的东西凑）
 
