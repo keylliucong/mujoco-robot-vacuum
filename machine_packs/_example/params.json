@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "machine_id": "example_robot",
+  "payload_state": "empty",
+  "config_id": "empty_demo",
+  "base_link": "body",
+  "drive_wheels": [
+    {
+      "link": "left_tire",
+      "joint": "left_axle",
+      "radius_m": {"value": 0.036, "source": "assumed", "note": "示例轮胎半径"},
+      "torque_limit_nm": {"value": 0.3, "source": "assumed", "note": "示例轮端限扭"},
+      "speed_limit_radps": {"value": null, "source": "missing", "note": "示例缺少轮端转速上限，实际机型请查规格书"}
+    },
+    {
+      "link": "right_tire",
+      "joint": "right_axle",
+      "radius_m": {"value": 0.036, "source": "assumed", "note": "示例轮胎半径"},
+      "torque_limit_nm": {"value": 0.3, "source": "assumed", "note": "示例轮端限扭"},
+      "speed_limit_radps": {"value": null, "source": "missing", "note": "示例缺少轮端转速上限，实际机型请查规格书"}
+    }
+  ],
+  "has_suspension": false,
+  "assembly": {
+    "mass_kg": {"value": 3.0, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
+    "com_x_m": {"value": -0.0016, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
+    "com_y_m": {"value": 0.0, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
+    "com_z_m": {"value": 0.05058666666666667, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
+    "ixx_kg_m2": {"value": 0.018468300800066666, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
+    "ixy_kg_m2": {"value": 0.0, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
+    "ixz_kg_m2": {"value": -0.000194816, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
+    "iyy_kg_m2": {"value": 0.019779127466666668, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
+    "iyz_kg_m2": {"value": 0.0, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"},
+    "izz_kg_m2": {"value": 0.0319310933334, "source": "assumed", "note": "由示例 URDF 构造，见 sources.md §质量属性"}
+  }
+}
