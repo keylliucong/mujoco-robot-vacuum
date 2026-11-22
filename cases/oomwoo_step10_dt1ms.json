@@ -138,5 +138,5 @@
     "contact_normal_min_n": 0.5
   },
   "seed": 0,
-  "notes": "G3 时步收敛变体：正向硬质单级台阶 10 mm，低于壳体离地 12.5 mm，驱动轮主导；timestep_s=0.001 s。config_id=oomwoo。"
+  "notes": "G3 时步收敛变体：正向硬质单级台阶 10 mm，低于壳体离地 12.5 mm，驱动轮主导；timestep_s=0.001 s。config_id=oomwoo_g25。"
 }
