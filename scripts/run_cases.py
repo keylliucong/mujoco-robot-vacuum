@@ -1685,6 +1685,11 @@ def main(argv: list[str] | None = None) -> int:
             },
             **{k: v for k, v in model_meta.items() if k not in {"model_sha256", "config_id", "machine"}},
         },
+        "cfg_sha256": cfg_sha,
+        "cases_sha256": {
+            (str(config_path.relative_to(repo))
+             if config_path.is_relative_to(repo) else str(config_path)): cfg_sha,
+        },
         "config": {
             "path": (str(config_path.relative_to(repo))
                      if config_path.is_relative_to(repo) else str(config_path)),
