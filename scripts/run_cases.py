@@ -1005,7 +1005,7 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
     wheel_body = {s: _body_id(model, BODY_WHEEL[s]) for s in ("L", "R")}
     wheel_joint = {s: _joint_id(model, JOINT_SPIN[s]) for s in ("L", "R")}
     wheel_dof = {s: int(model.jnt_dofadr[wheel_joint[s]]) for s in ("L", "R")}
-    wheel_qpos = {s: int(model.jnt_qposadr[JOINT_SUSP[s]]) for s in ("L", "R")}
+    wheel_qpos = {s: int(model.jnt_qposadr[_joint_id(model, JOINT_SUSP[s])]) for s in ("L", "R")}
     chassis_id = _body_id(model, BODY_CHASSIS)
     caster_joint = _joint_id(model, "caster_susp")
     caster_qpos = int(model.jnt_qposadr[caster_joint])
