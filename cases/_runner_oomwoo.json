@@ -4,7 +4,8 @@
   "notes": "oomwoo / G2.5 试跑专用 runner 常量。OOMWOO 无悬挂（has_suspension=0），susp_* 列整列为空、judge 不产生 suspension_bottom；susp_bottom_rel 仅为参数字典封闭保留，不参与本机型判定。其余与 cases/_runner.json 相同。",
   "drive": {
     "speed_kp_nm_per_mps": 6.0,
-    "yaw_damping_nm_per_radps": 0.2
+    "yaw_damping_nm_per_radps": 0.2,
+    "update_period_s": 0.002
   },
   "obstacle_half_width_m": 0.6,
   "creep": {
