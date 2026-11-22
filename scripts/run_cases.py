@@ -620,6 +620,8 @@ def build_pair_lookup(config, obstacle_shape):
 PAIR_FRICTION_IDS = {
     ("wheel", "floor"): "contact.wheel_floor_friction_s",
     ("wheel", "step"): "contact.wheel_step_friction_s",
+    ("caster", "floor"): "contact.caster_floor_friction_s",
+    ("caster", "step"): "contact.caster_step_friction_s",
     ("chassis", "floor"): "contact.chassis_floor_friction_s",
     ("chassis", "step"): "contact.chassis_step_friction_s",
 }
