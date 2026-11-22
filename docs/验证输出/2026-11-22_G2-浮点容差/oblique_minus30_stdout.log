@@ -1,0 +1,8 @@
+batch g2_slipfix_oblique_minus30
+contract 1.8.3
+git {'commit': 'c2dbcf124b8bf26ee80bd9bf27a9854f8424ed5c', 'branch': 'HEAD', 'dirty': True}
+model models/baseline.xml 153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+config E:\mujoco-robot-vacuum\cases\step_oblique_minus30.json 8eec982951df26856e6483cc1d927e5cf1694f1bbfd1fed880a7e3a13c436aa9
+scenario_xml_sha256 b64d97c67f3f062fb58aa23ce4d2473c93f10bd4bb4faff5d4637ae99b4d3386
+repeat_consistent True
+conclusion_level mechanism

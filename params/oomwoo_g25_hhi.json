@@ -1,0 +1,423 @@
+{
+  "schema_version": "1.0",
+  "config_id": "oomwoo_g25_hhi",
+  "machine": "oomwoo",
+  "note": "OOMWOO One（makerspet）G2.5 参数集：在 #17 dryrun 参数（ac597d1）基础上，按 G2.5 需要新增参数化壳体前下缘（front_lip.*）。几何：oomwoo-cad@266210a 的 lib/ 可信 STEP + oomwoo-one@a630d1c 的 params.xacro 公开值；质量/惯量：公开分项 + 柱体/球体假设。z_cg 缺失，占位值只用于跑通流程，不构成整机结论。 本文件是 G2.5 敏感性变体：oomwoo_g25_hhi，覆盖 front_lip.height_m=0.0175；只用于说明哪些前缘参数值得实测，不作机型结论。",
+  "params": {
+    "gravity.x": {
+      "value": 0.0,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "World-frame gravity x; 0 by construction"
+    },
+    "gravity.y": {
+      "value": 0.0,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "World-frame gravity y; 0 by construction"
+    },
+    "gravity.z": {
+      "value": -9.81,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "Standard gravity rounded to 9.81 (exact 9.80665); rounding assumption"
+    },
+    "mass.chassis": {
+      "value": 2.65,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "公开参考分项：lower_cylinder_mass 2.500 kg + laser_puck_mass 0.150 kg（oomwoo-one/urdf/params.xacro@a630d1c）；合并为 chassis body，合计算术和"
+    },
+    "com.chassis.x": {
+      "value": 0.004217,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "body 质心 x=0 与 LiDAR  puck x=+0.0745 的质量加权；公开尺寸链推算，未称重"
+    },
+    "com.chassis.y": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "按左右对称设 0；非实测（契约 v1.6：对称设 0 不是测量）"
+    },
+    "com.chassis.z": {
+      "value": 0.048142,
+      "unit": "m",
+      "label": "缺失",
+      "missing": true,
+      "ref": "z_cg 无整机 CAD / 三点称重；此处取 body 柱体几何中心 0.04575 与 puck 0.088 的质量加权占位 0.048142，仅用于跑通流程，不得作结论"
+    },
+    "inertia.chassis.xx": {
+      "value": 0.020274,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "body 柱体（R=0.1745, h=0.0665, m=2.5）+ puck 柱体（r=0.0415, h=0.018, m=0.15）平行轴合成；无壳体 CAD"
+    },
+    "inertia.chassis.yy": {
+      "value": 0.021059,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "同上；柱体均匀密度假设"
+    },
+    "inertia.chassis.zz": {
+      "value": 0.038977,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "同上；柱体均匀密度假设"
+    },
+    "inertia.chassis.xy": {
+      "value": 0.0,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "按左右对称设 0；非实测"
+    },
+    "inertia.chassis.xz": {
+      "value": -0.0004454,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "puck 前置 dx=+0.0703, dz=+0.0399 产生 -m*dx*dz；均匀密度假设"
+    },
+    "inertia.chassis.yz": {
+      "value": 0.0,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "按左右对称设 0；非实测"
+    },
+    "geom.chassis.radius": {
+      "value": 0.1745,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "oomwoo-one/urdf/params.xacro@a630d1c base_diameter=0.349 m；整机无 stock STEP 可复核"
+    },
+    "geom.chassis.height": {
+      "value": 0.0665,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "oomwoo-one/urdf/params.xacro@a630d1c lower_cylinder_height=0.0665 m"
+    },
+    "geom.chassis.half_height": {
+      "value": 0.03325,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "lower_cylinder_height/2 = 0.03325 m"
+    },
+    "geom.chassis.pos_z": {
+      "value": 0.04575,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "floor_clearance 0.0125 + lower_cylinder_height/2 0.03325"
+    },
+    "mass.caster": {
+      "value": 0.05,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "oomwoo-one/urdf/params.xacro@a630d1c caster_mass=0.050 kg（实测值，作者标注）"
+    },
+    "inertia.caster.xx": {
+      "value": 2.373e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "m=0.05, r=0.0125, h=0.010 实心柱体解析；非 STEP"
+    },
+    "inertia.caster.yy": {
+      "value": 3.906e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "绕转轴 +y：m*r^2/2；非 STEP"
+    },
+    "inertia.caster.zz": {
+      "value": 2.373e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "实心柱体解析；非 STEP"
+    },
+    "pos.caster.x": {
+      "value": 0.1445,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "oomwoo-one/urdf/robot.urdf.xacro@a630d1c：base_diameter/2 - caster_inset = 0.1745-0.030；万向支撑在车头 +x"
+    },
+    "pos.caster.y": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "同上，居中"
+    },
+    "pos.caster.z": {
+      "value": 0.0125,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "轮心高=半径 0.0125，落地；robot.urdf.xacro 的 caster 球心"
+    },
+    "geom.caster.radius": {
+      "value": 0.0125,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "oomwoo-one/urdf/params.xacro@a630d1c caster_diameter=0.025 m"
+    },
+    "geom.caster.half_width": {
+      "value": 0.005,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "caster 轮全宽 10 mm 假设；公开参数只给直径"
+    },
+    "contact.caster_solref_timeconst_s": {
+      "value": 0.003,
+      "unit": "s",
+      "label": "工程假设",
+      "ref": "小半径从动轮接触时间常数，取 0.003 s 控制静置穿透；未标定"
+    },
+    "caster.roll_damping_nms": {
+      "value": 0.0001,
+      "unit": "N*m*s",
+      "label": "工程假设",
+      "ref": "从动轮轴承粘性阻尼假设"
+    },
+    "mass.wheel_L": {
+      "value": 0.1,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "oomwoo-one/urdf/params.xacro@a630d1c wheel_mass=0.100 kg（作者标注实测）"
+    },
+    "mass.wheel_R": {
+      "value": 0.1,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "同上，左右同值"
+    },
+    "inertia.wheel_L.xx": {
+      "value": 3.209e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "STEP 轮实体惯量（OOM-W01@266210a）按实测质量 0.100/0.0679 缩放后的径向分量；缩放假设均匀密度"
+    },
+    "inertia.wheel_L.yy": {
+      "value": 6.052e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "STEP 轮实体绕轴惯量按实测质量缩放；缩放假设均匀密度"
+    },
+    "inertia.wheel_L.zz": {
+      "value": 3.209e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "同 inertia.wheel_L.xx"
+    },
+    "inertia.wheel_R.xx": {
+      "value": 3.209e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "同左轮"
+    },
+    "inertia.wheel_R.yy": {
+      "value": 6.052e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "同左轮"
+    },
+    "inertia.wheel_R.zz": {
+      "value": 3.209e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "同左轮"
+    },
+    "geom.wheel_radius_m": {
+      "value": 0.035805,
+      "unit": "m",
+      "label": "图纸推算",
+      "ref": "script=scripts/step_mass_properties.py@e2952e93fcdbbaaacc0243f76b1802158b728830; table=docs/试跑/step-质量属性-逐实体-oomwoo.csv@dbdd34b297235502f1ed6ca1c77e5e3e0f71e8dd; input_sha256=lib/roborock/OOM-W01-drive-wheel-assembly.stp@101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2; 轮实体 bbox 71.610 mm 外径；与公开 0.068 m 冲突，按 STEP 取 0.07161"
+    },
+    "geom.wheel_half_width_m": {
+      "value": 0.00788,
+      "unit": "m",
+      "label": "图纸推算",
+      "ref": "script=scripts/step_mass_properties.py@e2952e93fcdbbaaacc0243f76b1802158b728830; table=docs/试跑/step-质量属性-逐实体-oomwoo.csv@dbdd34b297235502f1ed6ca1c77e5e3e0f71e8dd; input_sha256=lib/roborock/OOM-W01-drive-wheel-assembly.stp@101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2; 轮实体轴向厚度 15.760 mm；与公开 12 mm 冲突，按 STEP"
+    },
+    "pos.susp.y": {
+      "value": 0.1175,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "oomwoo-one/urdf/params.xacro@a630d1c wheel_base=0.235 m -> 半轮距 0.1175；无整机 STEP 可复核"
+    },
+    "pos.susp.z": {
+      "value": 0.035805,
+      "unit": "m",
+      "label": "图纸推算",
+      "ref": "轮心高=轮半径（A4 约束）；半径来源同 geom.wheel_radius_m"
+    },
+    "wheel.damping_nms": {
+      "value": 0.0005,
+      "unit": "N*m*s",
+      "label": "工程假设",
+      "ref": "轮轴粘性阻尼假设；无实测"
+    },
+    "wheel.armature_kgm2": {
+      "value": 5e-05,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "转子/减速箱折算惯量假设；无实测"
+    },
+    "actuator.torque_limit_nm": {
+      "value": 0.5,
+      "unit": "N*m",
+      "label": "公开参考",
+      "ref": "oomwoo-one/urdf/params.xacro@a630d1c motor_stall_torque=0.5 N*m；作者标注值，非本机实测"
+    },
+    "contact.friction_s": {
+      "value": 0.8,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "干态橡胶-硬地滑动摩擦起始值；待标定"
+    },
+    "contact.friction_t": {
+      "value": 0.8,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "各向同性滑动摩擦；MuJoCo 切向第二方向"
+    },
+    "contact.friction_r": {
+      "value": 0.001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "扭转摩擦；condim=3 时未引用"
+    },
+    "contact.condim": {
+      "value": 3,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "v1 只用 condim=3；4/6 的 res[3..5] 未经专项校验"
+    },
+    "contact.solref_timeconst_s": {
+      "value": 0.01,
+      "unit": "s",
+      "label": "待标定",
+      "ref": "MuJoCo 软接触时间常数；须按冲击响应标定"
+    },
+    "contact.solref_dampratio": {
+      "value": 1.0,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "MuJoCo 软接触阻尼比"
+    },
+    "contact.solimp_d0": {
+      "value": 0.9,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "solimp 五参数起点，须按穿透量/蠕变标定"
+    },
+    "contact.solimp_d1": {
+      "value": 0.99,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "solimp 五参数起点"
+    },
+    "contact.solimp_d2": {
+      "value": 0.003,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "solimp 五参数起点"
+    },
+    "contact.solimp_d3": {
+      "value": 0.5,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "solimp 五参数起点"
+    },
+    "contact.solimp_d4": {
+      "value": 0.1,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "solimp 五参数起点"
+    },
+    "front_lip.height_m": {
+      "value": 0.0175,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "oomwoo-one/urdf/params.xacro@a630d1c floor_clearance=0.0125 m；URDF 只代表 base_link 底面，整机最低非轮点未实测。G2.5 参数化前下缘；来自 dryrun/oomwoo-step@ac597d1 的 oomwoo.xml 结构，参数由 G2.5 新增。几何约定：胶囊轴线沿 +y，圆心 x=overhang，最前点=overhang+geom_radius，最低点=height。"
+    },
+    "front_lip.radius_m": {
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "前缘倒角半径。0=直角；MuJoCo 不接受零半径 capsule，几何用 geom_radius=0.2 mm 数值下限。G2.5 参数化前下缘；来自 dryrun/oomwoo-step@ac597d1 的 oomwoo.xml 结构，参数由 G2.5 新增。几何约定：胶囊轴线沿 +y，圆心 x=overhang，最前点=overhang+geom_radius，最低点=height。"
+    },
+    "front_lip.overhang_m": {
+      "value": 0.1745,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "前缘圆心相对轮轴的前伸量，取 geom.chassis.radius（base_diameter/2=0.1745 m）。G2.5 参数化前下缘；来自 dryrun/oomwoo-step@ac597d1 的 oomwoo.xml 结构，参数由 G2.5 新增。几何约定：胶囊轴线沿 +y，圆心 x=overhang，最前点=overhang+geom_radius，最低点=height。"
+    },
+    "front_lip.compliance": {
+      "value": 0.0,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "0=rigid（接触用模型默认 solref/solimp）；1=soft（用 front_lip.solref/solimp）。G2.5 参数化前下缘；来自 dryrun/oomwoo-step@ac597d1 的 oomwoo.xml 结构，参数由 G2.5 新增。几何约定：胶囊轴线沿 +y，圆心 x=overhang，最前点=overhang+geom_radius，最低点=height。"
+    },
+    "front_lip.half_width_m": {
+      "value": 0.1745,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "前缘胶囊半长（沿 y），取整机半径；未实测保险杠宽度。G2.5 参数化前下缘；来自 dryrun/oomwoo-step@ac597d1 的 oomwoo.xml 结构，参数由 G2.5 新增。几何约定：胶囊轴线沿 +y，圆心 x=overhang，最前点=overhang+geom_radius，最低点=height。"
+    },
+    "front_lip.geom_radius_m": {
+      "value": 0.0002,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "几何半径=max(radius, 0.2 mm)；0 档的数值下限，不改变 0 档的物理含义。"
+    },
+    "front_lip.center_x_m": {
+      "value": 0.1745,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "= overhang（胶囊圆心 x）。"
+    },
+    "front_lip.center_z_m": {
+      "value": 0.0177,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "= height + geom_radius（胶囊圆心 z）。"
+    },
+    "front_lip.solref_timeconst_s": {
+      "value": 0.01,
+      "unit": "s",
+      "label": "待标定",
+      "ref": "rigid 档取模型默认 0.01 s；soft 档 0.05 s（敏感性配置）。"
+    },
+    "front_lip.solref_dampratio": {
+      "value": 1.0,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "与模型默认一致；soft 档同 1.0。"
+    },
+    "front_lip.solimp_d0": {
+      "value": 0.9,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "rigid 档取模型默认 solimp[0]；soft 档见敏感性配置。"
+    },
+    "front_lip.solimp_d1": {
+      "value": 0.99,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "rigid 档取模型默认 solimp[1]；soft 档见敏感性配置。"
+    },
+    "front_lip.solimp_d2": {
+      "value": 0.003,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "rigid 档取模型默认 solimp[2]；soft 档见敏感性配置。"
+    },
+    "front_lip.solimp_d3": {
+      "value": 0.5,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "rigid 档取模型默认 solimp[3]；soft 档见敏感性配置。"
+    },
+    "front_lip.solimp_d4": {
+      "value": 0.1,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "rigid 档取模型默认 solimp[4]；soft 档见敏感性配置。"
+    }
+  }
+}

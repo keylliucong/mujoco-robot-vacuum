@@ -1,6 +1,9 @@
 {
   "contract_version": "1.7.1",
   "schema_version": "1.0",
+  "frozen_at": "2026-11-22",
+  "ref": "PR #13 @ f428c197dc2ca48062eb01ad331216824d552ab0",
+  "frozen_note": "冻结快照：仅用于重建当时判定，不参与现行裁决（ADR README 第 4 条）",
   "batch_id": "baseline",
   "git": {
     "commit": "f428c197dc2ca48062eb01ad331216824d552ab0",

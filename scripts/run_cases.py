@@ -29,7 +29,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-CONTRACT_VERSION = "1.8.0"  # S14：等于契约文档版本；判据集仍冻结在 v1.7
+CONTRACT_VERSION = "1.9.0"  # S14：等于契约文档版本；v1.9.0 枚举含 belly_contact / cross_fail
 SCHEMA_VERSION = "1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -45,7 +45,9 @@ RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner.json"
 
 FAILURE_ENUM = {
     "topple",
+    "belly_contact",
     "retreat",
+    "cross_fail",
     "timeout",
     "stall",
     "bottom_out",
@@ -59,7 +61,9 @@ FAILURE_ENUM = {
 PAIR_GEOMS = {
     "wheel_L": ("wheel_L_tire",),
     "wheel_R": ("wheel_R_tire",),
-    "chassis": ("chassis_shell",),
+    # G2.5：壳体前下缘是独立的 chassis_* geom；放进同一对名，pair 仍按
+    # chassis--step / chassis--floor 取名，摩擦不从 geom 继承（S24）。
+    "chassis": ("chassis_shell", "chassis_front_lip"),
     "caster": ("caster_wheel",),
     "floor": ("floor_plane",),
     "step": ("step", "step_edge"),
@@ -214,6 +218,15 @@ def sha256_text(text):
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def batch_fingerprint(items):
+    """v1.8.2 批次指纹：按 case_id 字典序排序后连接 `case_id:sha256` 再哈希。
+
+    单 case 批次与该项自身的 sha256 相同；多 case 批次不依赖传入顺序。
+    """
+    ordered = sorted(items, key=lambda item: item[0])
+    return sha256_text("\n".join(f"{case_id}:{sha}" for case_id, sha in ordered))
+
+
 def read_json(path):
     with open(path, encoding="utf-8") as handle:
         return json.load(handle)
@@ -310,8 +323,11 @@ def load_case(path):
                 raise ContractError(f"未知接触对成员：{side}")
         if set(spec) != {"friction", "condim"}:
             raise ContractError(f"{key} 只允许 friction/condim")
-        if len(spec["friction"]) != 4:
-            raise ContractError(f"{key}.friction 必须是 [μ_s, μ_t, μ_r, μ_roll] 四个值")
+        if len(spec["friction"]) not in (4, 5):
+            raise ContractError(
+                f"{key}.friction 必须写满 pair 的 5 分量 [slide1 slide2 spin roll1 roll2]，"
+                "或沿用旧的 4 值 [μ_s, μ_t, μ_r, μ_roll]（runner 把末项补成第 5 项）"
+            )
         if spec["condim"] not in (1, 3, 4, 6):
             raise ContractError(f"{key}.condim 非法：{spec['condim']}")
         if side_a.startswith("wheel") and spec["condim"] in (4, 6):
@@ -351,15 +367,77 @@ def pair_geom_names(key, obstacle_shape):
 
 
 def contact_pair_attrs(params_document):
-    values = params_document["params"]
+    def value(param_id):
+        return params_io.get_param(params_document, param_id)[1]["value"]
+
     solref = "{} {}".format(
-        params_io.format_number(values["contact.solref_timeconst_s"]["value"]),
-        params_io.format_number(values["contact.solref_dampratio"]["value"]),
+        params_io.format_number(value("contact.solref_timeconst_s")),
+        params_io.format_number(value("contact.solref_dampratio")),
     )
     solimp = " ".join(
-        params_io.format_number(values[f"contact.solimp_d{i}"]["value"]) for i in range(5)
+        params_io.format_number(value(f"contact.solimp_d{i}")) for i in range(5)
     )
     return {"solref": solref, "solimp": solimp}
+
+
+def front_lip_pair_attrs(params_document):
+    """前下缘 pair 的 solref/solimp。
+
+    ``front_lip.compliance=0``（rigid）时与模型默认接触参数一致；
+    ``=1``（soft）时用 ``front_lip.solref/solimp``，使 rigid/soft 的差异只来自
+    前缘接触参数，而不是整个模型的接触刚度。
+    """
+    values = params_document["params"]
+    compliance = values.get("front_lip.compliance", {}).get("value", 0.0)
+    if float(compliance) < 0.5:  # contract-tolerance
+        return contact_pair_attrs(params_document)
+    keys = ("front_lip.solref_timeconst_s", "front_lip.solref_dampratio") + tuple(
+        f"front_lip.solimp_d{i}" for i in range(5)
+    )
+    if not all(key in values for key in keys):
+        return contact_pair_attrs(params_document)
+    solref = "{} {}".format(
+        params_io.format_number(values["front_lip.solref_timeconst_s"]["value"]),
+        params_io.format_number(values["front_lip.solref_dampratio"]["value"]),
+    )
+    solimp = " ".join(
+        params_io.format_number(values[f"front_lip.solimp_d{i}"]["value"]) for i in range(5)
+    )
+    return {"solref": solref, "solimp": solimp}
+
+
+def check_front_lip_derived(params_document):
+    """前缘派生量一致性：height/radius/overhang 是主参数，center_*/geom_radius 是派生。"""
+    values = params_document["params"]
+    required = (
+        "front_lip.height_m",
+        "front_lip.radius_m",
+        "front_lip.overhang_m",
+        "front_lip.geom_radius_m",
+        "front_lip.center_x_m",
+        "front_lip.center_z_m",
+    )
+    if not all(key in values for key in required):
+        return False
+    height = float(values["front_lip.height_m"]["value"])
+    radius = float(values["front_lip.radius_m"]["value"])
+    overhang = float(values["front_lip.overhang_m"]["value"])
+    geom_radius = float(values["front_lip.geom_radius_m"]["value"])
+    center_x = float(values["front_lip.center_x_m"]["value"])
+    center_z = float(values["front_lip.center_z_m"]["value"])
+    tolerance = 1e-9  # contract-tolerance
+    min_radius = 0.0002  # contract-tolerance
+    if abs(geom_radius - max(radius, min_radius)) > tolerance:
+        raise ContractError(
+            f"front_lip.geom_radius_m={geom_radius} != max(radius,0.2mm)={max(radius, min_radius)}"
+        )
+    if abs(center_x - overhang) > tolerance:
+        raise ContractError(f"front_lip.center_x_m={center_x} != overhang={overhang}")
+    if abs(center_z - (height + geom_radius)) > tolerance:
+        raise ContractError(
+            f"front_lip.center_z_m={center_z} != height+geom_radius={height + geom_radius}"
+        )
+    return True
 
 
 def build_scenario_xml(model_text, config, chassis_front_m, defaults, params_document):
@@ -432,14 +510,22 @@ def build_scenario_xml(model_text, config, chassis_front_m, defaults, params_doc
             for name_b in names_b:
                 if name_a not in geom_names or name_b not in geom_names:
                     continue
-                friction = spec["friction"]
+                friction = list(spec["friction"])
+                if len(friction) == 4:
+                    # 旧 4 值写法：末项补成第 5 项（roll2）；新 case 建议直接写 5 值。
+                    friction.append(friction[-1])
                 attrs = {
                     "geom1": name_a,
                     "geom2": name_b,
                     "condim": str(spec["condim"]),
-                    "friction": " ".join(str(v) for v in friction + [friction[-1]]),
+                    "friction": " ".join(str(v) for v in friction),
                 }
-                attrs.update(contact_pair_attrs(params_document))
+                if name_a.startswith("chassis_front_lip") or name_b.startswith(
+                    "chassis_front_lip"
+                ):
+                    attrs.update(front_lip_pair_attrs(params_document))
+                else:
+                    attrs.update(contact_pair_attrs(params_document))
                 pair_elements.append(attrs)
     if pair_elements:
         contact = root.find("contact")
@@ -531,6 +617,38 @@ def build_pair_lookup(config, obstacle_shape):
     return lookup, ordered
 
 
+PAIR_FRICTION_IDS = {
+    ("wheel", "floor"): "contact.wheel_floor_friction_s",
+    ("wheel", "step"): "contact.wheel_step_friction_s",
+    ("chassis", "floor"): "contact.chassis_floor_friction_s",
+    ("chassis", "step"): "contact.chassis_step_friction_s",
+}
+
+
+def pair_mu_id(key):
+    side_a, _, side_b = key.partition("--")
+    kind_a = "wheel" if side_a.startswith("wheel") else side_a
+    kind_b = "step" if side_b.startswith("step") else "floor"
+    try:
+        return PAIR_FRICTION_IDS[(kind_a, kind_b)]
+    except KeyError:
+        raise ContractError(f"接触对 {key} 没有对应的台账摩擦行") from None
+
+
+def config_friction_from_ledger(config, ledger):
+    """配置里的接触对 μ 必须与台账一致（判据的 μ 只从台账取，不在代码里写死）。"""
+    effective = {}
+    for key, spec in config["environment"]["pairs"].items():
+        expected = model_checks.ledger_value(ledger, pair_mu_id(key))
+        actual = float(spec["friction"][0])
+        if abs(actual - expected) > 1e-12:  # arithmetic
+            raise ContractError(
+                f"case 的 {key}.friction[0]={actual} 与台账 {pair_mu_id(key)}={expected} 不一致"
+            )
+        effective[key] = expected
+    return effective
+
+
 def contact_columns(ordered_pairs):
     columns = []
     for key in ordered_pairs:
@@ -549,7 +667,44 @@ def make_columns(ordered_pairs):
     return TIMESERIES_COLUMNS + contact_columns(ordered_pairs) + TIMESERIES_TAIL
 
 
-def sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspension):
+def friction_expectations(config, obstacle_shape):
+    """S24：把每个 case 的 pair 摩擦解析成 {(geom1, geom2): spec}。"""
+    expected = {}
+    for key, spec in config["environment"]["pairs"].items():
+        names_a, names_b = pair_geom_names(key, obstacle_shape)
+        friction = list(spec["friction"])
+        if len(friction) == 4:
+            friction.append(friction[-1])
+        for name_a in names_a:
+            for name_b in names_b:
+                expected[frozenset((name_a, name_b))] = {
+                    "condim": int(spec["condim"]),
+                    "friction": [float(v) for v in friction],
+                }
+    return expected
+
+
+def check_s24_contact(contact, spec, pair_label):
+    """S24 三条断言，真值只读 data.contact[i].friction（v1.8.3）。"""
+    if int(contact.dim) != spec["condim"]:
+        raise ContractError(
+            f"S24 {pair_label}: contact.dim={int(contact.dim)} != 期望 condim={spec['condim']}"
+        )
+    friction = np.asarray(contact.friction, dtype=float).reshape(-1)
+    if friction.size < 2 or abs(float(friction[0]) - float(friction[1])) > 1e-12:  # contract-tolerance
+        raise ContractError(
+            f"S24 {pair_label}: contact.friction[0]={friction[0]!r} != [1]={friction[1]!r}"
+            "（各向同性；常见原因：把 geom 的 3 分量写法抄进 5 分量的 pair）"
+        )
+    if abs(float(friction[0]) - spec["friction"][0]) > 1e-9:  # contract-tolerance
+        raise ContractError(
+            f"S24 {pair_label}: contact.friction[0]={friction[0]!r} != pair slide1={spec['friction'][0]!r}"
+        )
+
+
+def sample_row(
+    model, data, pair_lookup, ordered_pairs, geom_names, has_suspension, friction_specs=None, readback=None
+):
     xpos = np.array(data.body("chassis").xpos, dtype=float)
     xquat = np.array(data.body("chassis").xquat, dtype=float)
     qvel = np.array(data.joint("chassis_free").qvel, dtype=float)
@@ -598,6 +753,12 @@ def sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspensi
         key = pair_lookup.get(frozenset((name1, name2)))
         if key is None:
             continue
+        if friction_specs is not None:
+            spec = friction_specs.get(frozenset((name1, name2)))
+            if spec is not None:
+                check_s24_contact(contact, spec, f"{name1}--{name2}")
+                if readback is not None:
+                    readback[key] = [float(v) for v in contact.friction]
         mujoco.mj_contactForce(model, data, i, force)
         counts[key] += 1
         normals[key] += float(force[0])
@@ -684,7 +845,7 @@ def run_creep(model, data, defaults, wheel_radius_m):
     }
 
 
-def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, geom_names, radius, has_suspension):
+def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, geom_names, radius, has_suspension, friction_specs=None):
     approach = config["scenario"]["approach"]
     speed = approach["speed_mps"]
     window = config["judge"]["window_s"]
@@ -694,8 +855,10 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     reset_state(model, data)
     columns = make_columns(ordered_pairs)
     rows = []
-    wheel_step = [k for k in ordered_pairs if k.startswith("wheel_") and k.endswith("--step")]
+    step_pairs = [k for k in ordered_pairs if k.endswith("--step")]
+    friction_readback = {}
     trigger_time = 0.0 if config["scenario"]["kind"] == "flat" else None
+    trigger_source = "flat" if config["scenario"]["kind"] == "flat" else ""
     cap_time = (
         approach["settle_s"]
         + approach["start_distance_m"] / speed
@@ -704,22 +867,50 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     )
     max_steps = int(round(defaults["time"]["max_sim_s"] / step))
     ramp_s = approach["settle_s"]
+    # 控制更新固定成时间周期（默认 20 ms），步间 ctrl 保持不变；否则缩小时步
+    # 会把速度环更新率按 1/h 抬高，kp/yaw_damping 的等效增益随时步变。
+    control_period = float(defaults["drive"]["update_period_s"])
+    next_control = 0.0
     for _ in range(max_steps):
-        ramp = min(1.0, float(data.time) / ramp_s)
-        set_drive(model, data, limits, kp, speed, ramp, yaw_damping)
+        if data.time + step * 0.5 >= next_control:  # arithmetic
+            ramp = min(1.0, float(data.time) / ramp_s)
+            set_drive(model, data, limits, kp, speed, ramp, yaw_damping)
+            next_control += control_period
         step_once(model, data)
-        row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspension)
+        row = sample_row(
+            model,
+            data,
+            pair_lookup,
+            ordered_pairs,
+            geom_names,
+            has_suspension,
+            friction_specs,
+            friction_readback,
+        )
         rows.append(row)
         if trigger_time is None:
-            for key in wheel_step:
+            # v1.8.2：首次任一机体-台阶接触（轮或底盘），不再只认轮
+            for key in step_pairs:
                 if row[f"contact_{key}_active"] == 1:
                     trigger_time = row["t_s"]
+                    trigger_source = key
                     break
         if trigger_time is not None and row["t_s"] >= trigger_time + window:
             break
         if trigger_time is None and row["t_s"] >= cap_time:
             break
-    return {name: [row[name] for row in rows] for name in columns}, columns
+    warning_numbers = [int(value) for value in np.asarray(data.warning.number)]
+    return (
+        {name: [row[name] for row in rows] for name in columns},
+        columns,
+        warning_numbers,
+        {
+            "trigger_source": trigger_source,
+            "friction_readback": {
+                key: value for key, value in sorted(friction_readback.items())
+            },
+        },
+    )
 
 
 def format_value(value):
@@ -764,11 +955,24 @@ def column_metadata(columns, has_suspension=True):
     return meta
 
 
-def build_judge_params(config, defaults, model, limits, ordered_pairs, body_length_m, radius, has_suspension):
+def build_judge_params(
+    config,
+    defaults,
+    model,
+    limits,
+    ordered_pairs,
+    body_length_m,
+    radius,
+    has_suspension,
+    pair_friction,
+    platform_height_tol_m,
+    step_front_m,
+):
     approach = config["scenario"]["approach"]
     judge_cfg = config["judge"]
     kind = config["scenario"]["kind"]
-    height = config["scenario"]["obstacle"]["height_m"] if kind == "step" else 0.0
+    obstacle = config["scenario"]["obstacle"] if kind == "step" else {"height_m": 0.0, "top_width_m": 0.0}
+    height = obstacle["height_m"]
     return {
         "kind": kind,
         "timestep_s": float(model.opt.timestep),
@@ -789,6 +993,12 @@ def build_judge_params(config, defaults, model, limits, ordered_pairs, body_leng
         "settle_end_s": approach["settle_s"],
         "wheel_radius_m": radius,
         "step_height_m": height,
+        "platform_height_tol_m": platform_height_tol_m,
+        "step_front_m": step_front_m,
+        "step_half_width_m": obstacle["top_width_m"] / 2.0,  # arithmetic
+        "heading_rad": math.radians(config["scenario"]["heading_deg"]),
+        "com_offset_x_m": MODEL_CONSTANTS["com_offset_B_m"][0],
+        "contact_gap_tol_s": defaults["tolerances"]["step_contact_gap_tol_s"],
         "has_suspension": bool(has_suspension),
         "susp_range_m": MODEL_CONSTANTS["susp_range_m"] if has_suspension else 0.0,
         "susp_bottom_rel": defaults["tolerances"]["susp_bottom_rel"],
@@ -798,6 +1008,9 @@ def build_judge_params(config, defaults, model, limits, ordered_pairs, body_leng
         "slip_eps_mps": defaults["tolerances"]["slip_eps_mps"],
         "climb_height_ratio": defaults["tolerances"]["climb_height_ratio"],
         "climb_hold_s": defaults["tolerances"]["climb_hold_s"],
+        "pair_friction": {
+            key: float(pair_friction[key]) for key in ordered_pairs
+        },
         "wheel_step_pairs": [
             k for k in ordered_pairs if k.startswith("wheel_") and k.endswith("--step")
         ],
@@ -809,12 +1022,12 @@ def build_judge_params(config, defaults, model, limits, ordered_pairs, body_leng
 MODEL_CONSTANTS = {"wheel_radius_m": 0.0, "susp_range_m": 0.0, "com_offset_B_m": (0.0, 0.0, 0.0)}
 
 
-def load_ledger_rows():
-    ledger = model_checks.load_ledger(LEDGER_PATH)
+def load_ledger_rows(machine):
+    ledger = model_checks.load_ledger(LEDGER_PATH, machine=machine)
     # v1.7.6：结论等级只取绑定了 xpath 的行（真正进入模型/判定的那些）
     bound = {
         param_id: row["label"]
-        for param_id, row in ledger.items()
+        for param_id, row in dict.items(ledger)
         if row["xpath"].strip() not in ("", "-")
     }
     return ledger, bound
@@ -901,24 +1114,29 @@ def write_summary(path, rows, config, model_sha, config_sha, level):
             )
 
 
+def summary_signature(row):
+    """summary.csv 一行的逐位签名：排除 repeat / output_dir（v1.8.2）。"""
+    signature = []
+    for column in SUMMARY_COLUMNS:
+        if column in ("repeat", "output_dir"):
+            continue
+        if column in SUMMARY_METRIC_KEYS:
+            value = row["metrics"][column]
+        else:
+            value = row[column]
+        signature.append((column, "" if value is None else str(value)))
+    return signature
+
+
 def check_consistency(out_dir, repeat_results):
     if len(repeat_results) < 2:
         return True
     digests = set()
-    metrics = set()
+    summary = set()
     for item in repeat_results:
         digests.add(sha256_file(out_dir / item["output_dir"] / "timeseries.csv"))
-        base = item["tiers"][0]["verdict"]
-        metrics.add(
-            (
-                base["status"],
-                base["passed"],
-                base["failure_primary"],
-                tuple(sorted(base["failure_flags"])),
-                tuple((k, base["metrics"][k]) for k in SUMMARY_METRIC_KEYS),
-            )
-        )
-    return len(digests) == 1 and len(metrics) == 1
+        summary.add(tuple(item["summary_signature"]))
+    return len(digests) == 1 and len(summary) == 1
 
 
 def check_regression(config, repeat_results):
@@ -983,10 +1201,28 @@ def main(argv=None):
     parser.add_argument("--config", required=True, help="单次运行的 case JSON")
     parser.add_argument("--out", required=True, help="批次输出目录")
     parser.add_argument("--repeat", type=int, default=1, help="同配置重复次数")
+    parser.add_argument(
+        "--params",
+        default=None,
+        help="覆盖参数集路径（默认取模型头 parameter_source）；用于同一模型扫多套参数",
+    )
+    parser.add_argument(
+        "--tiers",
+        default="",
+        help="附加时步档（秒，逗号分隔），例如 0.001,0.0005；与 base 同批同报",
+    )
     args = parser.parse_args(argv)
 
     if args.repeat < 1:
         raise ContractError("--repeat 必须 >= 1")
+    extra_tiers = []
+    for token in args.tiers.split(","):
+        token = token.strip()
+        if token:
+            value = float(token)
+            if value <= 0:
+                raise ContractError("--tiers 的时步必须 > 0")
+            extra_tiers.append(value)
     out_dir = Path(args.out)
     if not out_dir.is_absolute():
         out_dir = REPO_ROOT / out_dir
@@ -1007,15 +1243,19 @@ def main(argv=None):
     if model_sha != config["model"]["sha256"]:
         raise ContractError(f"模型 sha256 与配置不符：{model_sha} != {config['model']['sha256']}")
 
-    ledger, labels = load_ledger_rows()
+    rendered = params_io.load_and_render(model_path, args.params)
+    params_document = rendered["params"]
+    check_front_lip_derived(params_document)
+    model_text = rendered["text"]
+
+    ledger, labels = load_ledger_rows(params_document["machine"])
     radius = model_checks.ledger_value(ledger, "geom.wheel_radius_m")
     MODEL_CONSTANTS["wheel_radius_m"] = radius
     MODEL_CONSTANTS["susp_range_m"] = model_checks.ledger_value(ledger, "susp.travel_limit_m")
     MODEL_CONSTANTS["com_offset_B_m"] = model_checks.declared_com_offset(ledger)
+    platform_tol = model_checks.ledger_value(ledger, "judge.platform_height_tol_m")
+    pair_friction = config_friction_from_ledger(config, ledger)
 
-    rendered = params_io.load_and_render(model_path)
-    params_document = rendered["params"]
-    model_text = rendered["text"]
     config_id = parse_config_id(config)
     if params_document["config_id"] != config_id:
         raise ContractError(
@@ -1029,6 +1269,12 @@ def main(argv=None):
     has_suspension = model_checks.read_capability(base_model, "has_suspension")
     body_length_m = model_checks.body_length(base_model)
     chassis_front_m = chassis_front(base_model)
+    stage = config["scenario"]
+    step_front_m = (
+        chassis_front_m + stage["approach"]["start_distance_m"]
+        if stage["kind"] == "step"
+        else 0.0
+    )
 
     scenario_xml = build_scenario_xml(
         model_text, config, chassis_front_m, defaults, params_document
@@ -1065,6 +1311,7 @@ def main(argv=None):
         data = mujoco.MjData(model)
         pair_lookup, ordered_pairs = build_pair_lookup(config, config["scenario"]["kind"])
         geom_names = geom_name_table(model)
+        friction_specs = friction_expectations(config, config["scenario"]["kind"])
         actual_columns = make_columns(ordered_pairs)
 
         creep = run_creep(model, data, defaults, radius)
@@ -1079,9 +1326,15 @@ def main(argv=None):
                 (f"downgrade_{t * 1000:g}ms", float(t))
                 for t in defaults["creep"]["downgrade_tiers_s"]
             ]
+        for value in extra_tiers:
+            tiers.append((f"tier_{value * 1000:g}ms", float(value)))
 
+        seen_tiers = set()
         tier_results = []
         for tier_name, tier_step in tiers:
+            if tier_step in seen_tiers:
+                continue
+            seen_tiers.add(tier_step)
             if tier_step == float(config["numerics"]["timestep_s"]):
                 tier_model, tier_data, tier_limits = model, data, limits
             else:
@@ -1091,7 +1344,7 @@ def main(argv=None):
                 tier_data = mujoco.MjData(tier_model)
             tier_dir = case_dir if tier_name == "base" else case_dir / tier_name
             tier_dir.mkdir(parents=True, exist_ok=True)
-            table, columns = run_case(
+            table, columns, warnings, run_meta = run_case(
                 tier_model,
                 tier_data,
                 config,
@@ -1102,6 +1355,7 @@ def main(argv=None):
                 geom_names,
                 radius,
                 has_suspension,
+                friction_specs,
             )
             write_timeseries(tier_dir / "timeseries.csv", columns, table)
             judge_table = {
@@ -1116,15 +1370,24 @@ def main(argv=None):
                 body_length_m,
                 radius,
                 has_suspension,
+                pair_friction,
+                platform_tol,
+                step_front_m,
             )
             verdict = judge.judge_case(judge_table, params)
             verdict["timestep_s"] = float(tier_model.opt.timestep)
+            verdict["warnings"] = {
+                "numbers": warnings,
+                "nonzero": sum(1 for value in warnings if value != 0),
+            }
             tier_results.append(
                 {
                     "tier": tier_name,
                     "timestep_s": float(tier_model.opt.timestep),
                     "verdict": verdict,
                     "dir": str(tier_dir.relative_to(out_dir)).replace(os.sep, "/"),
+                    "trigger_source": run_meta["trigger_source"],
+                    "friction_readback": run_meta["friction_readback"],
                 }
             )
             print(
@@ -1144,6 +1407,12 @@ def main(argv=None):
                 "failure_flags": ";".join(base["failure_flags"]),
                 "metrics": base["metrics"],
                 "timestep_s": float(config["numerics"]["timestep_s"]),
+                "integrator": config["numerics"]["integrator"],
+                "cone": config["numerics"]["cone"],
+                "seed": config["seed"],
+                "model_sha256": model_sha,
+                "config_sha256": config_sha,
+                "conclusion_level": conclusion_level(labels),
                 "output_dir": path_for_report(case_dir),
             }
         )
@@ -1152,11 +1421,14 @@ def main(argv=None):
                 "repeat": repeat,
                 "output_dir": case_name,
                 "creep": creep,
+                "summary_signature": summary_signature(summary_rows[-1]),
                 "tiers": [
                     {
                         "tier": item["tier"],
                         "timestep_s": item["timestep_s"],
                         "dir": item["dir"],
+                        "trigger_source": item["trigger_source"],
+                        "friction_readback": item["friction_readback"],
                         "verdict": item["verdict"],
                     }
                     for item in tier_results
@@ -1167,6 +1439,24 @@ def main(argv=None):
     consistent = check_consistency(out_dir, repeat_results)
     regression = check_regression(config, repeat_results)
     level = conclusion_level(labels)
+    config_cases = [
+        {"case_id": config["case_id"], "path": path_for_report(config_path), "sha256": config_sha}
+    ]
+    scenario_cases = [{"case_id": config["case_id"], "sha256": scenario_sha}]
+    config_fingerprint = batch_fingerprint(
+        [(item["case_id"], item["sha256"]) for item in config_cases]
+    )
+    scenario_fingerprint = batch_fingerprint(
+        [(item["case_id"], item["sha256"]) for item in scenario_cases]
+    )
+    base_tier = repeat_results[0]["tiers"][0]
+    tier_steps = sorted(
+        {
+            float(tier["timestep_s"])
+            for item in repeat_results
+            for tier in item["tiers"]
+        }
+    )
 
     run_json = {
         "contract_version": CONTRACT_VERSION,
@@ -1191,10 +1481,11 @@ def main(argv=None):
             "missing": params_io.missing_ids(params_document),
         },
         "config": {
-            "path": path_for_report(config_path),
-            "sha256": config_sha,
+            "path": sorted(item["path"] for item in config_cases),
+            "sha256": config_fingerprint,
+            "cases": config_cases,
         },
-        "scenario_xml_sha256": scenario_sha,
+        "scenario_xml_sha256": scenario_fingerprint,
         "com_offset_B_m": {
             "x": MODEL_CONSTANTS["com_offset_B_m"][0],
             "y": MODEL_CONSTANTS["com_offset_B_m"][1],
@@ -1239,6 +1530,7 @@ def main(argv=None):
         "repeat": {
             "consistent": consistent,
             "key_metrics_tol": defaults["repeat"]["key_metrics_tol"],
+            "excluded_columns": ["repeat", "output_dir"],
         },
         "started_utc": started,
         "finished_utc": datetime.now(timezone.utc).isoformat(),
@@ -1248,6 +1540,8 @@ def main(argv=None):
                 "config": path_for_report(config_path),
                 "config_sha256": config_sha,
                 "scenario_xml_sha256": scenario_sha,
+                "trigger_source": base_tier["trigger_source"],
+                "friction_readback": base_tier["friction_readback"],
                 "repeats": repeat_results,
                 "regression": regression,
             }
@@ -1260,6 +1554,50 @@ def main(argv=None):
             "rolling_resistance": "not_modelled(condim=3)",
             "torque_axis": "wheel_end_-y_forward_positive",
             "frame": "B=world=chassis_local",
+            "bottoming": {
+                "criterion": "contact_only(chassis--step active)；未实现最小间隙时程，chassis_min_z_m 不作间隙判据",
+                "applicability_max_step_height_m": model_checks.chassis_min_z(
+                    base_model, base_data
+                ),
+            },
+            "pair_friction_readback": base_tier["friction_readback"],
+            "peak_contact_force": {
+                "identity": "numerical_peak_determined_by_solref_and_timestep",
+                "physical_meaning": False,
+                "allowed_comparison": "同机型、同 h、同 solref 下比较不同几何/摩擦/限扭配置（相对）",
+                "forbidden": [
+                    "跨 h 或跨 solref 当物理量比较",
+                    "作强度/保险杠输入",
+                    "使用“冲击力”表述",
+                ],
+                "timestep_study": {
+                    "performed": len(tier_steps) > 1,
+                    "tiers_s": tier_steps,
+                    "converged": None,
+                    "note": "未证明时步收敛前，峰值只能 relative-only",
+                },
+                "load_spectrum_export": "relative-only",
+            },
+            "warnings": {
+                "numbers": sorted(
+                    {
+                        value
+                        for item in repeat_results
+                        for tier in item["tiers"]
+                        for value in tier["verdict"]["warnings"]["numbers"]
+                    }
+                ),
+                "nonzero": sum(
+                    tier["verdict"]["warnings"]["nonzero"]
+                    for item in repeat_results
+                    for tier in item["tiers"]
+                ),
+                "batch_valid": all(
+                    tier["verdict"]["warnings"]["nonzero"] == 0
+                    for item in repeat_results
+                    for tier in item["tiers"]
+                ),
+            },
         },
     }
     validate_run_json(run_json)

@@ -4,7 +4,8 @@
   "notes": "runner 级常量，不是 case；由 scripts/run_cases.py 读取。凡进入判定或结论的数值在 docs/参数溯源.csv 有行。",
   "drive": {
     "speed_kp_nm_per_mps": 6.0,
-    "yaw_damping_nm_per_radps": 0.2
+    "yaw_damping_nm_per_radps": 0.2,
+    "update_period_s": 0.002
   },
   "obstacle_half_width_m": 0.6,
   "creep": {
@@ -13,7 +14,10 @@
     "residual_tail_s": 0.5,
     "max_residual_speed_mps": 0.001,
     "max_drift_m": 0.0005,
-    "downgrade_tiers_s": [0.001, 0.0005]
+    "downgrade_tiers_s": [
+      0.001,
+      0.0005
+    ]
   },
   "time": {
     "settle_check_window_s": 0.2,
@@ -26,7 +30,9 @@
     "torque_saturation_rel": 1e-06,
     "susp_bottom_rel": 0.999,
     "climb_height_ratio": 0.9,
-    "climb_hold_s": 0.2
+    "climb_hold_s": 0.2,
+    "platform_height_tol_m": 0.006,
+    "step_contact_gap_tol_s": 0.1
   },
   "repeat": {
     "key_metrics_tol": 0.0

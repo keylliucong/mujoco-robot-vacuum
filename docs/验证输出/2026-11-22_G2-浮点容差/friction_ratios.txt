@@ -1,0 +1,6 @@
+wheel_L--floor     mu=0.8 max|Ft|/Fn=0.800000000
+wheel_L--step      mu=0.6 max|Ft|/Fn=0.600000000
+wheel_R--floor     mu=0.8 max|Ft|/Fn=0.800000000
+wheel_R--step      mu=0.6 max|Ft|/Fn=0.600000000
+slip_force_exceeded= False
+failure_flags= ['torque_limit', 'slip']
