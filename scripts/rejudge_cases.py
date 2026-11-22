@@ -166,7 +166,7 @@ def load_case_context(config_path):
     }
 
 
-def rejudge_tier(ctx, timeseries_path, timestep_s, limits, scenario_sha, config_sha, output_dir):
+def rejudge_tier(ctx, timeseries_path, timestep_s, limits, scenario_sha, config_sha, output_dir, wrapper="baseline"):
     model = mujoco.MjModel.from_xml_string(ctx["model_text"])
     model.opt.timestep = float(timestep_s)
     if float(model.opt.timestep) != float(timestep_s):
@@ -184,6 +184,10 @@ def rejudge_tier(ctx, timeseries_path, timestep_s, limits, scenario_sha, config_
         ctx["platform_tol"],
         ctx["step_front_m"],
     )
+    if wrapper == "oomwoo":
+        # 与 scripts/run_oomwoo.py 的补丁一致：OOMWOO 无被动悬挂，
+        # susp_* 是占位铰；judge 用 1 m 名义行程避免永远报 suspension_bottom。
+        params["susp_range_m"] = 1.0
     table = read_timeseries(timeseries_path)
     verdict = judge.judge_case(table, params)
     crossing = (verdict.get("metrics") or {}).get("crossing") or {}
@@ -251,7 +255,16 @@ def main(argv=None):
     parser.add_argument("--root", required=True, help="既有批次根目录（含 <batch>/run.json）")
     parser.add_argument("--out", required=True, help="重判 JSON 输出目录")
     parser.add_argument("--summary-csv", default=None, help="汇总 CSV（可选）")
+    parser.add_argument(
+        "--wrapper",
+        choices=("baseline", "oomwoo"),
+        default="baseline",
+        help="台账与 runner 默认值：baseline=docs/参数溯源.csv + cases/_runner.json；oomwoo=试跑台账 + _runner_oomwoo.json",
+    )
     args = parser.parse_args(argv)
+    if args.wrapper == "oomwoo":
+        run_cases.LEDGER_PATH = REPO_ROOT / "docs" / "试跑" / "参数溯源-oomwoo.csv"
+        run_cases.RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
 
     root = Path(args.root)
     if not root.is_absolute():
@@ -289,6 +302,7 @@ def main(argv=None):
                     case["scenario_xml_sha256"],
                     case["config_sha256"],
                     tier["dir"],
+                    wrapper=args.wrapper,
                 )
                 row = {
                     "batch": batch_dir.name,
@@ -308,6 +322,7 @@ def main(argv=None):
         payload = {
             "source_batch": str(batch_dir.relative_to(REPO_ROOT)).replace("\\", "/"),
             "contract_version": judge.CONTRACT_VERSION,
+            "wrapper": args.wrapper,
             "precheck": ctx["precheck"],
             "tiers": batch_rows,
         }

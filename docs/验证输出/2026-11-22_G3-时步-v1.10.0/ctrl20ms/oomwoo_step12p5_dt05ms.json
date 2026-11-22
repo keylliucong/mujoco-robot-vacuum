@@ -1,0 +1,223 @@
+{
+  "source_batch": "outputs/g3-timestep/ctrl20ms/oomwoo_step12p5_dt05ms",
+  "contract_version": "1.10.0",
+  "wrapper": "oomwoo",
+  "precheck": {
+    "ok": true,
+    "need_half_width_m": 0.1745,
+    "bench_half_width_m": 0.6,
+    "min_advance_m": 0.3494,
+    "body_length_m": 0.3494,
+    "body_half_width_m": 0.1745,
+    "margin_body_half": 1.0,
+    "heading_deg": 0.0
+  },
+  "tiers": [
+    {
+      "row": {
+        "batch": "oomwoo_step12p5_dt05ms",
+        "case_id": "oomwoo_step12p5_dt05ms",
+        "repeat": 1,
+        "tier": "base",
+        "timestep_s": 0.0005,
+        "status": "ok",
+        "passed": 0,
+        "invalid_reason": "",
+        "failure_primary": "belly_contact",
+        "failure_flags": "belly_contact;cross_fail;bottom_out;stall;torque_limit;slip",
+        "report_outcome": "blocked",
+        "end_duty": 0.0,
+        "end_hold_s": 0.05,
+        "end_frames": 101,
+        "end_state_ambiguous": false,
+        "lateral_exit": false,
+        "crossed": false,
+        "cross_fail_reasons": "front_edge_not_passed;platform_height_not_reached;not_ended_on_platform;step_contact_gap_too_long",
+        "advance_m": 0.031238345,
+        "t_recover_s": null,
+        "contact_normal_max_n": 658.244107877,
+        "precheck_ok": true,
+        "precheck_need_half_width_m": 0.1745,
+        "precheck_bench_half_width_m": 0.6,
+        "scenario_xml_sha256": "06e53f557550c0954793578cac2245c9b73c63a7a67eef0b83e881d60fbd68be",
+        "config_sha256": "e05aa633543f95a1d1238631bff7493a85a90bc93837d9039cc5e6c3ce87c76d",
+        "output_dir": "oomwoo_step12p5_dt05ms_r1"
+      },
+      "verdict": {
+        "status": "ok",
+        "invalid_reason": "",
+        "passed": false,
+        "failure_primary": "belly_contact",
+        "failure_flags": [
+          "belly_contact",
+          "cross_fail",
+          "bottom_out",
+          "stall",
+          "torque_limit",
+          "slip"
+        ],
+        "metrics": {
+          "t_trigger_s": 4.042,
+          "t_wheel_touch_s": null,
+          "t_climb_s": null,
+          "t_recover_s": null,
+          "advance_m": 0.031238345,
+          "v_recover_mps": null,
+          "pitch_max_deg": 4.567291868219887,
+          "roll_max_deg": 0.1777754539124679,
+          "slip_max_L": 7.66703816810525,
+          "slip_max_R": 7.9959085563522505,
+          "torque_max_L_nm": 0.5,
+          "torque_max_R_nm": 0.5,
+          "susp_travel_max_L_m": null,
+          "susp_travel_max_R_m": null,
+          "contact_normal_max_n": 658.244107877,
+          "end_pos_z_m": 0.001208207,
+          "on_platform": false,
+          "slip_force_exceeded": false,
+          "trigger_source": "chassis--step",
+          "crossing": {
+            "end_progress_m": 0.531963466,
+            "end_lateral_m": -3.002e-06,
+            "com_progress_m": 0.538303938088,
+            "max_pos_z_m": 0.002231334,
+            "wheel_on_top_count": 0,
+            "both_wheels_on_top": false,
+            "no_floor_contact_at_end": false,
+            "ended_on_platform": false,
+            "end_duty": 0.0,
+            "end_hold_s": 0.05,
+            "end_frames": 101,
+            "end_state_ambiguous": false,
+            "lateral_exit": false,
+            "reached_platform": false,
+            "crossed_front": false,
+            "contact_gap_max_s": 0.10450000000000008,
+            "contact_ok": false,
+            "cross_fail_reasons": [
+              "front_edge_not_passed",
+              "platform_height_not_reached",
+              "not_ended_on_platform",
+              "step_contact_gap_too_long"
+            ],
+            "crossed": false
+          }
+        },
+        "conclusion_level_inputs": {
+          "fail_on": [
+            "topple",
+            "retreat",
+            "belly_contact",
+            "timeout",
+            "stall"
+          ],
+          "window_s": 8.0
+        },
+        "trigger_source": "chassis--step"
+      }
+    },
+    {
+      "row": {
+        "batch": "oomwoo_step12p5_dt05ms",
+        "case_id": "oomwoo_step12p5_dt05ms",
+        "repeat": 2,
+        "tier": "base",
+        "timestep_s": 0.0005,
+        "status": "ok",
+        "passed": 0,
+        "invalid_reason": "",
+        "failure_primary": "belly_contact",
+        "failure_flags": "belly_contact;cross_fail;bottom_out;stall;torque_limit;slip",
+        "report_outcome": "blocked",
+        "end_duty": 0.0,
+        "end_hold_s": 0.05,
+        "end_frames": 101,
+        "end_state_ambiguous": false,
+        "lateral_exit": false,
+        "crossed": false,
+        "cross_fail_reasons": "front_edge_not_passed;platform_height_not_reached;not_ended_on_platform;step_contact_gap_too_long",
+        "advance_m": 0.031238345,
+        "t_recover_s": null,
+        "contact_normal_max_n": 658.244107877,
+        "precheck_ok": true,
+        "precheck_need_half_width_m": 0.1745,
+        "precheck_bench_half_width_m": 0.6,
+        "scenario_xml_sha256": "06e53f557550c0954793578cac2245c9b73c63a7a67eef0b83e881d60fbd68be",
+        "config_sha256": "e05aa633543f95a1d1238631bff7493a85a90bc93837d9039cc5e6c3ce87c76d",
+        "output_dir": "oomwoo_step12p5_dt05ms_r2"
+      },
+      "verdict": {
+        "status": "ok",
+        "invalid_reason": "",
+        "passed": false,
+        "failure_primary": "belly_contact",
+        "failure_flags": [
+          "belly_contact",
+          "cross_fail",
+          "bottom_out",
+          "stall",
+          "torque_limit",
+          "slip"
+        ],
+        "metrics": {
+          "t_trigger_s": 4.042,
+          "t_wheel_touch_s": null,
+          "t_climb_s": null,
+          "t_recover_s": null,
+          "advance_m": 0.031238345,
+          "v_recover_mps": null,
+          "pitch_max_deg": 4.567291868219887,
+          "roll_max_deg": 0.1777754539124679,
+          "slip_max_L": 7.66703816810525,
+          "slip_max_R": 7.9959085563522505,
+          "torque_max_L_nm": 0.5,
+          "torque_max_R_nm": 0.5,
+          "susp_travel_max_L_m": null,
+          "susp_travel_max_R_m": null,
+          "contact_normal_max_n": 658.244107877,
+          "end_pos_z_m": 0.001208207,
+          "on_platform": false,
+          "slip_force_exceeded": false,
+          "trigger_source": "chassis--step",
+          "crossing": {
+            "end_progress_m": 0.531963466,
+            "end_lateral_m": -3.002e-06,
+            "com_progress_m": 0.538303938088,
+            "max_pos_z_m": 0.002231334,
+            "wheel_on_top_count": 0,
+            "both_wheels_on_top": false,
+            "no_floor_contact_at_end": false,
+            "ended_on_platform": false,
+            "end_duty": 0.0,
+            "end_hold_s": 0.05,
+            "end_frames": 101,
+            "end_state_ambiguous": false,
+            "lateral_exit": false,
+            "reached_platform": false,
+            "crossed_front": false,
+            "contact_gap_max_s": 0.10450000000000008,
+            "contact_ok": false,
+            "cross_fail_reasons": [
+              "front_edge_not_passed",
+              "platform_height_not_reached",
+              "not_ended_on_platform",
+              "step_contact_gap_too_long"
+            ],
+            "crossed": false
+          }
+        },
+        "conclusion_level_inputs": {
+          "fail_on": [
+            "topple",
+            "retreat",
+            "belly_contact",
+            "timeout",
+            "stall"
+          ],
+          "window_s": 8.0
+        },
+        "trigger_source": "chassis--step"
+      }
+    }
+  ]
+}
