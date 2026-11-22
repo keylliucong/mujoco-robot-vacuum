@@ -24,7 +24,7 @@ import run_cases  # noqa: E402
 import run_oomwoo  # noqa: E402
 
 run_cases.LEDGER_PATH = run_oomwoo.LEDGER
-run_cases.RUNNER_DEFAULTS = run_oomwoo.RUNNER_DEFAULTS
+run_cases.RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
 
 
 def main(argv=None):
