@@ -1,0 +1,2656 @@
+{
+  "contract_version": "1.7.1",
+  "schema_version": "1.0",
+  "batch_id": "baseline_elliptic",
+  "git": {
+    "commit": "a4c3ac7124b8a89673b72d0f36745d10bf40c4e1",
+    "branch": "HEAD",
+    "dirty": false
+  },
+  "model": {
+    "config_id": "oomwoo_public_v1",
+    "machine": "基准机型 oomwoo",
+    "generated_path": "build\\models\\oomwoo_public_v1.xml",
+    "sha256": "3601df01b93539d1408438960e2de6f6644b180eb93679d6ea2ce1c1481bd8b5",
+    "template": {
+      "path": "models\\baseline.xml",
+      "sha256": "f2eeafdc6755d58d2fe7beffa26f37c4e5713562a6f66eb7fa13ed42fc244463"
+    },
+    "params": {
+      "path": "params\\oomwoo.json",
+      "sha256": "ad3118dd8e2b408b5d6b9108657282a127e69f3a6bf9a87005195c8a9bb80844",
+      "source": {
+        "primary_repo": "https://github.com/makerspet/oomwoo",
+        "primary_commit": "0218857b2ecc53fb8e289b097b3bdf7a9e184386",
+        "license": "Apache-2.0",
+        "secondary_repo": "https://github.com/makerspet/oomwoo-one",
+        "secondary_commit": "a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+        "files": [
+          "urdf/params.xacro",
+          "urdf/robot.urdf.xacro",
+          "urdf/inertial.xacro"
+        ],
+        "accessed": "2026-11-22",
+        "note": "oomwoo 主仓库没有 CAD/STEP 与整机参数表；数值取自 oomwoo-one 的 Gazebo/URDF 参数。",
+        "cad_repo": {
+          "repo": "https://github.com/makerspet/oomwoo-cad",
+          "commit": "266210a47cab931c5891a07c9a29d48388a54b0c",
+          "trusted_paths": [
+            "designs/one/stock/",
+            "lib/"
+          ],
+          "red_line": "designs/one/agentic/july-2026/device_full.step 明确不是 OOMWOO One 设计；禁止用于几何、质量属性或接触几何",
+          "red_line_source": "designs/one/agentic/july-2026/README.md"
+        }
+      },
+      "missing": [
+        {
+          "item": "整机质量与质心实测",
+          "status": "未公开",
+          "action": "用 oomwoo-one URDF 公开值与注释 CoM +2.2 mm；实测缺失",
+          "label": "缺失"
+        },
+        {
+          "item": "整机惯量实测",
+          "status": "未公开",
+          "action": "由公开几何按实心体公式推算，标图纸推算",
+          "label": "图纸推算"
+        },
+        {
+          "item": "驱动轮模块悬挂行程/刚度/阻尼/限位",
+          "status": "未公开",
+          "action": "保留工程假设值，需实机力-位移试验",
+          "label": "工程假设"
+        },
+        {
+          "item": "轮端扭矩-转速曲线、限流、减速比、效率",
+          "status": "未公开",
+          "action": "仅用 motor_stall_torque=0.5 N·m 作上限",
+          "label": "缺失"
+        },
+        {
+          "item": "轮-地/轮-门槛摩擦系数",
+          "status": "未公开",
+          "action": "保留工程假设 0.8，需斜面法/拉力计实测",
+          "label": "工程假设"
+        },
+        {
+          "item": "轮胎径向/侧向刚度",
+          "status": "未公开",
+          "action": "MuJoCo 软接触参数替代，标待标定",
+          "label": "待标定"
+        },
+        {
+          "item": "电池/线束质量分布",
+          "status": "未公开",
+          "action": "未单独建模；用 chassis.ipos_x 复现公开 CoM",
+          "label": "工程假设"
+        },
+        {
+          "item": "编码器 PPR / 轮速传感器",
+          "status": "未公开",
+          "action": "本模型不使用编码器，只输出仿真轮速",
+          "label": "缺失"
+        },
+        {
+          "item": "CAD/STEP",
+          "status": "未公开",
+          "action": "oomwoo 仓库无 CAD；几何来自 URDF",
+          "label": "缺失"
+        }
+      ],
+      "blockers": [
+        "基准机型 oomwoo 无 CAD/STEP；几何来自 oomwoo-one URDF（公开参考），未做本机实测复核。",
+        "悬挂、摩擦、接触参数未公开，保留工程假设/待标定，结论封顶机理 + 敏感性。",
+        "12.5 mm 离地间隙意味着 20 mm 及以上门槛会先触发底盘接触；这是结构限制，需实机确认。",
+        "motor_stall_torque=0.5 N·m 只是堵转上限，缺少扭矩-转速曲线与限流。"
+      ]
+    },
+    "mass_chassis_kg": 2.5,
+    "mass_assembly_kg": 2.9499999999999997,
+    "com_offset_B_m": [
+      -0.0002796610169491523,
+      0.0,
+      0.045974576271186444
+    ],
+    "inertia_B_diag_kgm2": [
+      0.0195,
+      0.0195,
+      0.0372
+    ],
+    "susp_travel_m": {
+      "L": 2e-06,
+      "R": 2e-06
+    }
+  },
+  "config": {
+    "path": "cases\\baseline.json",
+    "sha256": "9c00c41af46243af9d0be004884021bc47ea2bc9b716aa7a639ad4ef8f692dd5"
+  },
+  "python": "3.13.1",
+  "mujoco": "4.0.1",
+  "numpy": "2.5.5",
+  "os": "nt",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numerics": {
+    "requested": {
+      "timestep_s": 0.002,
+      "integrator": "implicitfast",
+      "solver": "Newton",
+      "cone": "elliptic",
+      "iterations": 100,
+      "tolerance": 1e-08
+    },
+    "effective": {
+      "timestep_s": 0.002,
+      "integrator": "implicitfast",
+      "solver": "Newton",
+      "cone": "elliptic",
+      "iterations": 100,
+      "tolerance": 1e-08
+    },
+    "timestep_initial_s": 0.002,
+    "timestep_effective_s": 0.002,
+    "timestep_downgraded": false,
+    "downgrade_reason": "",
+    "creep_baseline": {
+      "timestep_s": 0.002,
+      "settle_s": 1.5,
+      "measure_s": 1.0,
+      "drift_s": 10.0,
+      "mean_speed_mps": 1.645429105194288e-13,
+      "net_speed_mps": 3.508306090588736e-14,
+      "drift_m": 2.4924507624176547e-13,
+      "speed_limit_mps": 0.001,
+      "drift_limit_m": 0.0005,
+      "over_limit": false
+    },
+    "condim_note": "condim=3；未升维"
+  },
+  "overrides": [
+    {
+      "field": "cone",
+      "xml": "pyramidal",
+      "run": "elliptic"
+    },
+    {
+      "field": "actuator.wheel_L.forcerange",
+      "xml": 0.5,
+      "run": 0.12
+    },
+    {
+      "field": "actuator.wheel_R.forcerange",
+      "xml": 0.5,
+      "run": 0.12
+    }
+  ],
+  "seed": 0,
+  "seed_used": false,
+  "params": [
+    {
+      "param_id": "numerics.timestep_s",
+      "value": 0.002,
+      "unit": "s",
+      "label": "工程假设",
+      "ref": "docs/判据/口径裁定记录.md",
+      "note": "起步 2 ms；蠕滑基线超限时降 1 ms"
+    },
+    {
+      "param_id": "numerics.integrator",
+      "value": "implicitfast",
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "显式写出，不依赖引擎默认"
+    },
+    {
+      "param_id": "numerics.cone",
+      "value": "pyramidal",
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/判据/口径裁定记录.md",
+      "note": "显式写出；elliptic 对照由 --cone 覆盖"
+    },
+    {
+      "param_id": "numerics.solver",
+      "value": "Newton",
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "求解器起步值"
+    },
+    {
+      "param_id": "numerics.iterations",
+      "value": 100,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "未做收敛性专项标定"
+    },
+    {
+      "param_id": "numerics.tolerance",
+      "value": 1e-08,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "docs/仿真参数表.md",
+      "note": "求解容差，非物理量"
+    },
+    {
+      "param_id": "numerics.gravity_z",
+      "value": -9.81,
+      "unit": "m/s^2",
+      "label": "公开参考",
+      "ref": "MuJoCo 默认重力",
+      "note": "标准重力"
+    },
+    {
+      "param_id": "contact.condim",
+      "value": 3,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "法向+2切向；升 4/6 需补专项校验"
+    },
+    {
+      "param_id": "contact.solref_timeconst",
+      "value": 0.01,
+      "unit": "s",
+      "label": "待标定",
+      "ref": "docs/仿真参数表.md",
+      "note": "MuJoCo 软接触参数"
+    },
+    {
+      "param_id": "contact.solref_dampratio",
+      "value": 1.0,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "docs/仿真参数表.md",
+      "note": "MuJoCo 软接触参数"
+    },
+    {
+      "param_id": "contact.solimp_0",
+      "value": 0.95,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "docs/仿真参数表.md",
+      "note": "MuJoCo 软接触参数"
+    },
+    {
+      "param_id": "contact.solimp_1",
+      "value": 0.99,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "docs/仿真参数表.md",
+      "note": "MuJoCo 软接触参数"
+    },
+    {
+      "param_id": "contact.solimp_2",
+      "value": 0.001,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "docs/仿真参数表.md",
+      "note": "MuJoCo 软接触参数"
+    },
+    {
+      "param_id": "contact.solimp_3",
+      "value": 0.5,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "docs/仿真参数表.md",
+      "note": "MuJoCo 软接触参数"
+    },
+    {
+      "param_id": "contact.solimp_4",
+      "value": 2.0,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "docs/仿真参数表.md",
+      "note": "MuJoCo 软接触参数"
+    },
+    {
+      "param_id": "contact.mu_wheel_floor_s",
+      "value": 0.8,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "橡胶-硬地滑动摩擦，区间 0.6–1.0"
+    },
+    {
+      "param_id": "contact.mu_wheel_floor_t",
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "扭转摩擦，condim=3 时不参与"
+    },
+    {
+      "param_id": "contact.mu_wheel_floor_r",
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "滚动摩擦，condim=3 时不参与"
+    },
+    {
+      "param_id": "contact.mu_wheel_step_s",
+      "value": 0.8,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "橡胶-铝制门槛，未实测"
+    },
+    {
+      "param_id": "contact.mu_wheel_step_t",
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "condim=3 时不参与"
+    },
+    {
+      "param_id": "contact.mu_wheel_step_r",
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "condim=3 时不参与"
+    },
+    {
+      "param_id": "contact.mu_caster_floor_s",
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "从动支撑低摩擦"
+    },
+    {
+      "param_id": "contact.mu_caster_floor_t",
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "condim=3 时不参与"
+    },
+    {
+      "param_id": "contact.mu_caster_floor_r",
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "condim=3 时不参与"
+    },
+    {
+      "param_id": "contact.mu_caster_step_s",
+      "value": 0.02,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "从动支撑-门槛，未实测"
+    },
+    {
+      "param_id": "contact.mu_caster_step_t",
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "condim=3 时不参与"
+    },
+    {
+      "param_id": "contact.mu_caster_step_r",
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "condim=3 时不参与"
+    },
+    {
+      "param_id": "contact.mu_chassis_step_s",
+      "value": 0.3,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "底盘-门槛，仅用于托底接触"
+    },
+    {
+      "param_id": "contact.mu_chassis_step_t",
+      "value": 0.005,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "condim=3 时不参与"
+    },
+    {
+      "param_id": "contact.mu_chassis_step_r",
+      "value": 0.0001,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "condim=3 时不参与"
+    },
+    {
+      "param_id": "default.joint_damping",
+      "value": 0.02,
+      "unit": "N*m*s/rad",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "关节阻尼，未辨识"
+    },
+    {
+      "param_id": "default.joint_armature",
+      "value": 0.0002,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "docs/仿真参数表.md",
+      "note": "电机/减速器折算惯量，未辨识"
+    },
+    {
+      "param_id": "chassis.mass",
+      "value": 2.5,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "lower_cylinder_mass（含电池等，URDF 未拆分）"
+    },
+    {
+      "param_id": "chassis.ipos_x",
+      "value": -0.0048,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "由公开 CoM 反推",
+      "note": "为使整机 CoM 复现 URDF 注释的 +2.2 mm，对 lower_cylinder 质心作 -4.8 mm 偏置；电池/线束未单独建模"
+    },
+    {
+      "param_id": "chassis.ipos_z",
+      "value": 0.04575,
+      "unit": "m",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "floor_clearance 0.0125 + lower_cylinder_height/2"
+    },
+    {
+      "param_id": "chassis.ixx",
+      "value": 0.0195,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "由 m=2.5、r=0.1745、h=0.0665 的实心圆柱公式计算"
+    },
+    {
+      "param_id": "chassis.iyy",
+      "value": 0.0195,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "同上"
+    },
+    {
+      "param_id": "chassis.izz",
+      "value": 0.0372,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "m*r^2/2"
+    },
+    {
+      "param_id": "chassis.radius",
+      "value": 0.172,
+      "unit": "m",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "body_collision_radius = bumper_face_radius - bumper_lead；未建模保险杠分片"
+    },
+    {
+      "param_id": "chassis.height_half",
+      "value": 0.03325,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "lower_cylinder_height/2"
+    },
+    {
+      "param_id": "chassis.center_z",
+      "value": 0.04575,
+      "unit": "m",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "floor_clearance + lower_cylinder_height/2"
+    },
+    {
+      "param_id": "wheel.x",
+      "value": 0.0,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "轮轴在 base_link x=0"
+    },
+    {
+      "param_id": "wheel.track_half",
+      "value": 0.1175,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "wheel_base 0.235/2"
+    },
+    {
+      "param_id": "wheel.z",
+      "value": 0.034,
+      "unit": "m",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "wheel_diameter/2；URDF 中 base_link + (d/2-floor_clearance)"
+    },
+    {
+      "param_id": "wheel.mass",
+      "value": 0.1,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "wheel_mass"
+    },
+    {
+      "param_id": "wheel.ixx",
+      "value": 3.01e-05,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "m(3r^2+w^2)/12，r=0.034,w=0.012"
+    },
+    {
+      "param_id": "wheel.iyy",
+      "value": 5.78e-05,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "m r^2/2（绕 +y 轮轴）"
+    },
+    {
+      "param_id": "wheel.izz",
+      "value": 3.01e-05,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "同 ixx"
+    },
+    {
+      "param_id": "wheel.radius",
+      "value": 0.034,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "wheel_diameter 0.068/2"
+    },
+    {
+      "param_id": "wheel.halfwidth",
+      "value": 0.006,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "wheel_width 0.012/2"
+    },
+    {
+      "param_id": "susp.travel_neg",
+      "value": -1e-06,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 未公开悬挂",
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
+    },
+    {
+      "param_id": "susp.travel_pos",
+      "value": 1e-06,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 未公开悬挂",
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
+    },
+    {
+      "param_id": "susp.stiffness",
+      "value": 0.0,
+      "unit": "N/m",
+      "label": "工程假设",
+      "ref": "URDF 未公开悬挂",
+      "note": "首版固定铰，不启用弹簧/阻尼"
+    },
+    {
+      "param_id": "susp.springref",
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "由静载反推",
+      "note": "首版固定铰，不启用弹簧/阻尼"
+    },
+    {
+      "param_id": "susp.damping",
+      "value": 0.0,
+      "unit": "N*s/m",
+      "label": "工程假设",
+      "ref": "URDF 未公开悬挂",
+      "note": "首版固定铰，不启用弹簧/阻尼"
+    },
+    {
+      "param_id": "caster.x",
+      "value": 0.1445,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "base_diameter/2 - caster_inset"
+    },
+    {
+      "param_id": "caster.z",
+      "value": 0.0125,
+      "unit": "m",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "caster_diameter/2；URDF base_link + (r-floor_clearance)"
+    },
+    {
+      "param_id": "caster.travel_neg",
+      "value": -1e-06,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 固定球",
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
+    },
+    {
+      "param_id": "caster.travel_pos",
+      "value": 1e-06,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 固定球",
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
+    },
+    {
+      "param_id": "caster.stiffness",
+      "value": 0.0,
+      "unit": "N/m",
+      "label": "工程假设",
+      "ref": "URDF 固定球",
+      "note": "首版固定铰，不启用弹簧/阻尼"
+    },
+    {
+      "param_id": "caster.springref",
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "由静载反推",
+      "note": "首版固定铰，不启用弹簧/阻尼"
+    },
+    {
+      "param_id": "caster.damping",
+      "value": 0.0,
+      "unit": "N*s/m",
+      "label": "工程假设",
+      "ref": "URDF 固定球",
+      "note": "首版固定铰，不启用弹簧/阻尼"
+    },
+    {
+      "param_id": "caster.mass",
+      "value": 0.05,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "caster_mass"
+    },
+    {
+      "param_id": "caster.ixx",
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "实心球 2mr^2/5，r=0.0125"
+    },
+    {
+      "param_id": "caster.iyy",
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "同上"
+    },
+    {
+      "param_id": "caster.izz",
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "同上"
+    },
+    {
+      "param_id": "caster.radius",
+      "value": 0.0125,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "caster_diameter 0.025/2"
+    },
+    {
+      "param_id": "lidar.x",
+      "value": 0.0745,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "base_diameter/2 - lidar_min_range"
+    },
+    {
+      "param_id": "lidar.z",
+      "value": 0.088,
+      "unit": "m",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "body_top 0.079 + laser_puck_offset 0.009"
+    },
+    {
+      "param_id": "lidar.mass",
+      "value": 0.15,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "laser_puck_mass"
+    },
+    {
+      "param_id": "lidar.ixx",
+      "value": 6.86e-05,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "实心圆柱 m(3r^2+h^2)/12，r=0.0415,h=0.018"
+    },
+    {
+      "param_id": "lidar.iyy",
+      "value": 6.86e-05,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "同上"
+    },
+    {
+      "param_id": "lidar.izz",
+      "value": 0.0001292,
+      "unit": "kg*m^2",
+      "label": "图纸推算",
+      "ref": "makerspet/oomwoo-one urdf/robot.urdf.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "m r^2/2"
+    },
+    {
+      "param_id": "lidar.radius",
+      "value": 0.0415,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "laser_puck_diameter 0.083/2"
+    },
+    {
+      "param_id": "lidar.height_half",
+      "value": 0.009,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "laser_puck_height 0.018/2"
+    },
+    {
+      "param_id": "drive.torque_limit",
+      "value": 0.5,
+      "unit": "N*m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one urdf/params.xacro @ a630d1c77255072d280a2a41a7a2bd1a1c98cadd",
+      "note": "motor_stall_torque；仅为堵转上限，扭矩-转速曲线未公开"
+    },
+    {
+      "param_id": "numerics.timestep_downgrade_s",
+      "value": 0.001,
+      "unit": "s",
+      "label": "工程假设",
+      "ref": "docs/判据/口径裁定记录.md",
+      "note": "蠕滑基线超限时的降步长目标"
+    },
+    {
+      "param_id": "control.kp_nm_per_radps",
+      "value": 0.35,
+      "unit": "N*m/(rad/s)",
+      "label": "工程假设",
+      "ref": "scripts/run_cases.py",
+      "note": "轮速 PI 比例增益，未标定"
+    },
+    {
+      "param_id": "control.ki_nm_per_rad",
+      "value": 1.2,
+      "unit": "N*m/rad",
+      "label": "工程假设",
+      "ref": "scripts/run_cases.py",
+      "note": "轮速 PI 积分增益，未标定"
+    },
+    {
+      "param_id": "control.integral_clamp_nm",
+      "value": 0.5,
+      "unit": "N*m",
+      "label": "工程假设",
+      "ref": "scripts/run_cases.py",
+      "note": "积分限幅，取公开堵转上限"
+    },
+    {
+      "param_id": "control.torque_filter_s",
+      "value": 0.03,
+      "unit": "s",
+      "label": "工程假设",
+      "ref": "scripts/run_cases.py",
+      "note": "力矩一阶滤波，用于避免指令阶跃"
+    },
+    {
+      "param_id": "control.torque_rate_limit_nm_per_s",
+      "value": 80.0,
+      "unit": "N*m/s",
+      "label": "工程假设",
+      "ref": "scripts/run_cases.py",
+      "note": "力矩速率限幅"
+    },
+    {
+      "param_id": "ref.base_diameter",
+      "value": 0.349,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "轮式机身直径；注释：源自 Proscenic M6 Pro"
+    },
+    {
+      "param_id": "ref.body_height",
+      "value": 0.079,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "机身顶面高度（不含 LiDAR 塔）"
+    },
+    {
+      "param_id": "ref.body_height_with_lidar",
+      "value": 0.097,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "含 LiDAR 塔的整机高度"
+    },
+    {
+      "param_id": "ref.wheel_diameter",
+      "value": 0.068,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "驱动轮直径"
+    },
+    {
+      "param_id": "ref.wheel_width",
+      "value": 0.012,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "驱动轮宽度"
+    },
+    {
+      "param_id": "ref.wheel_base",
+      "value": 0.235,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "实测轮距；桥接固件用 0.233 m"
+    },
+    {
+      "param_id": "ref.caster_diameter",
+      "value": 0.025,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "前从动支撑直径"
+    },
+    {
+      "param_id": "ref.caster_inset",
+      "value": 0.03,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "从动支撑中心到机身边缘"
+    },
+    {
+      "param_id": "ref.floor_clearance",
+      "value": 0.0125,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "底盘最小离地间隙"
+    },
+    {
+      "param_id": "ref.lower_cylinder_height",
+      "value": 0.0665,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "下部圆柱机身高度"
+    },
+    {
+      "param_id": "ref.laser_puck_height",
+      "value": 0.018,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "LiDAR 塔高度"
+    },
+    {
+      "param_id": "ref.laser_puck_diameter",
+      "value": 0.083,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "LiDAR 塔直径"
+    },
+    {
+      "param_id": "ref.lower_cylinder_mass",
+      "value": 2.5,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "下部圆柱机身质量（含电池等，URDF 未拆分）"
+    },
+    {
+      "param_id": "ref.wheel_mass",
+      "value": 0.1,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "单只驱动轮质量"
+    },
+    {
+      "param_id": "ref.caster_mass",
+      "value": 0.05,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "从动支撑质量"
+    },
+    {
+      "param_id": "ref.laser_puck_mass",
+      "value": 0.15,
+      "unit": "kg",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "LiDAR 塔质量"
+    },
+    {
+      "param_id": "ref.motor_stall_torque",
+      "value": 0.5,
+      "unit": "N*m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "轮端堵转扭矩上限"
+    },
+    {
+      "param_id": "ref.max_linear_acceleration",
+      "value": 1.0,
+      "unit": "m/s^2",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "URDF 参数中的最大线加速度"
+    },
+    {
+      "param_id": "chassis.com_B_x_public",
+      "value": 0.0022,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "URDF 注释按质量×位置算出的全机 x_cg；LiDAR 塔居中时为 -1.6 mm"
+    },
+    {
+      "param_id": "chassis.com_B_x_lidar_centered",
+      "value": -0.0016,
+      "unit": "m",
+      "label": "公开参考",
+      "ref": "makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro",
+      "note": "LiDAR 塔居中时的 x_cg；用于敏感性对照"
+    },
+    {
+      "param_id": "caster_rear.x",
+      "value": -0.1445,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑位置；为数值稳定新增"
+    },
+    {
+      "param_id": "caster_rear.z",
+      "value": 0.0125,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    {
+      "param_id": "caster_rear.travel_neg",
+      "value": -1e-06,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
+    },
+    {
+      "param_id": "caster_rear.travel_pos",
+      "value": 1e-06,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "首版按 0 行程固定铰（1 µm 数值限位）；悬挂合规性待实测后启用"
+    },
+    {
+      "param_id": "caster_rear.stiffness",
+      "value": 0.0,
+      "unit": "N/m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "首版固定铰，不启用弹簧/阻尼"
+    },
+    {
+      "param_id": "caster_rear.springref",
+      "value": 0.0,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "首版固定铰，不启用弹簧/阻尼"
+    },
+    {
+      "param_id": "caster_rear.damping",
+      "value": 0.0,
+      "unit": "N*s/m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "首版固定铰，不启用弹簧/阻尼"
+    },
+    {
+      "param_id": "caster_rear.mass",
+      "value": 0.05,
+      "unit": "kg",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    {
+      "param_id": "caster_rear.ixx",
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    {
+      "param_id": "caster_rear.iyy",
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    {
+      "param_id": "caster_rear.izz",
+      "value": 3.125e-06,
+      "unit": "kg*m^2",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    {
+      "param_id": "caster_rear.radius",
+      "value": 0.0125,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "URDF 无后支撑",
+      "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    {
+      "param_id": "control.approach_accel_mps2",
+      "value": 0.05,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "scripts/run_cases.py",
+      "note": "接近段速度斜坡 0.05 m/s^2（A3 阈值同量级）；未标定"
+    },
+    {
+      "param_id": "missing.0",
+      "value": null,
+      "unit": "-",
+      "label": "缺失",
+      "ref": "未公开",
+      "note": "用 oomwoo-one URDF 公开值与注释 CoM +2.2 mm；实测缺失"
+    },
+    {
+      "param_id": "missing.1",
+      "value": null,
+      "unit": "-",
+      "label": "图纸推算",
+      "ref": "未公开",
+      "note": "由公开几何按实心体公式推算，标图纸推算"
+    },
+    {
+      "param_id": "missing.2",
+      "value": null,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "未公开",
+      "note": "保留工程假设值，需实机力-位移试验"
+    },
+    {
+      "param_id": "missing.3",
+      "value": null,
+      "unit": "-",
+      "label": "缺失",
+      "ref": "未公开",
+      "note": "仅用 motor_stall_torque=0.5 N·m 作上限"
+    },
+    {
+      "param_id": "missing.4",
+      "value": null,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "未公开",
+      "note": "保留工程假设 0.8，需斜面法/拉力计实测"
+    },
+    {
+      "param_id": "missing.5",
+      "value": null,
+      "unit": "-",
+      "label": "待标定",
+      "ref": "未公开",
+      "note": "MuJoCo 软接触参数替代，标待标定"
+    },
+    {
+      "param_id": "missing.6",
+      "value": null,
+      "unit": "-",
+      "label": "工程假设",
+      "ref": "未公开",
+      "note": "未单独建模；用 chassis.ipos_x 复现公开 CoM"
+    },
+    {
+      "param_id": "missing.7",
+      "value": null,
+      "unit": "-",
+      "label": "缺失",
+      "ref": "未公开",
+      "note": "本模型不使用编码器，只输出仿真轮速"
+    },
+    {
+      "param_id": "missing.8",
+      "value": null,
+      "unit": "-",
+      "label": "缺失",
+      "ref": "未公开",
+      "note": "oomwoo 仓库无 CAD；几何来自 URDF"
+    }
+  ],
+  "param_labels": {
+    "工程假设": 56,
+    "待标定": 9,
+    "公开参考": 36,
+    "图纸推算": 19,
+    "缺失": 4,
+    "本机实测": 0
+  },
+  "conclusion_level": "mechanism",
+  "precondition": {
+    "contact_readout_ok": true,
+    "cone_difference_pct": 1.7291496739183232e-14,
+    "error_limit_pct": 1.0,
+    "cone_fn_error_pct": {
+      "pyramidal": 6.3805622967586125e-12,
+      "elliptic": 6.397853793497796e-12
+    }
+  },
+  "criteria": {
+    "window_s": 8.0,
+    "block_on": [
+      "topple",
+      "retreat",
+      "timeout",
+      "lift_fail",
+      "slip_stall",
+      "belly_contact"
+    ],
+    "min_advance_body_lengths": 1.0,
+    "recover_speed_ratio": 0.8,
+    "recover_hold_s": 0.3,
+    "stall": {
+      "speed_mps": 0.01,
+      "duration_s": 1.0
+    },
+    "tilt": {
+      "pitch_deg": 25.0,
+      "roll_deg": 15.0
+    },
+    "slip_ratio": 0.3,
+    "contact_normal_min_n": 0.5,
+    "penetration_limit_m": 0.005,
+    "approach_mean_distance_m": 0.2,
+    "A1": {
+      "coefficient": 0.02
+    },
+    "A2": {
+      "abs_limit_m": 0.0005,
+      "travel_frac_limit": 0.05
+    },
+    "A3": {
+      "accel_limit_mps2": 0.05,
+      "smooth_window_s": 0.1
+    },
+    "A4": {
+      "steady_step_ratio": 0.05,
+      "transient_step_ratio": 0.1,
+      "min_torque_frac": 0.1,
+      "transient_window_s": 0.5
+    },
+    "creep": {
+      "settle_s": 1.5,
+      "measure_s": 1.0,
+      "drift_s": 10.0,
+      "speed_limit_mps": 0.001,
+      "drift_limit_m": 0.0005
+    }
+  },
+  "repeat": {
+    "count": 1,
+    "consistent": true,
+    "key_columns": [
+      "outcome",
+      "failure_mode",
+      "v_impact_mps",
+      "v_approach_mean_mps",
+      "A1",
+      "A2",
+      "A3",
+      "A4",
+      "t_trigger_s",
+      "t_climb_s",
+      "advance_m",
+      "timestep_s",
+      "cone",
+      "integrator",
+      "step_height_m"
+    ],
+    "differences": {}
+  },
+  "started_utc": "2026-11-22T02:58:54.883515+00:00",
+  "finished_utc": "2026-11-22T02:59:04.827459+00:00",
+  "cases": [
+    {
+      "case_id": "flat_straight",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": 0.0,
+      "step_height_m": 0.0,
+      "outcome": "cleared",
+      "failure_mode": "",
+      "failure_modes": [],
+      "invalid_reason": "",
+      "A1": {
+        "result": "na",
+        "measured": null,
+        "threshold": null,
+        "v_approach_mean_mps": null,
+        "same_frame": null
+      },
+      "A2": {
+        "result": "na",
+        "measured": null,
+        "threshold": null
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754994317,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "met",
+        "measured": 0.002956539523628879,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.002956539523628879,
+        "transient_step_ratio": null,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": null,
+      "v_approach_mean_mps": null,
+      "t_trigger_s": null,
+      "t_climb_s": null,
+      "advance_m": 0.7449240591461701,
+      "first_contact_wheel": null,
+      "contact_dt_s": null,
+      "contact_events": [],
+      "flat_speed_rel_diff_L": 0.00346141538682395,
+      "flat_speed_rel_diff_R": 0.0034614153868242877,
+      "pitch_max_deg": 0.009412587379384446,
+      "roll_max_deg": 7.498270738405431e-13,
+      "slip_max": 0.0,
+      "torque_peak_nm": 0.09407252172587376,
+      "penetration_max_m": 0.000192056322209741,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "3756f3198d3fba437162fe7ea7154b1c7ba686fa57f3ba9d983f7a0332a949ca",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "flat_straight"
+    },
+    {
+      "case_id": "step_fwd_10mm_std",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": 0.0,
+      "step_height_m": 0.01,
+      "outcome": "blocked",
+      "failure_mode": "timeout",
+      "failure_modes": [
+        "slip",
+        "timeout"
+      ],
+      "invalid_reason": "",
+      "A1": {
+        "result": "not_met",
+        "measured": 0.12923670048082675,
+        "threshold": 0.0442944691807002,
+        "v_approach_mean_mps": 0.1270679982791173,
+        "same_frame": true,
+        "basis": "v_impact at the same sample as first wheel-step contact"
+      },
+      "A2": {
+        "result": "na",
+        "measured": 0.0019220714419865843,
+        "threshold": null,
+        "travel_m": 2e-06,
+        "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，悬挂行程/限位需实测后启用"
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754994317,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "not_met",
+        "measured": 0.214041887397023,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.214041887397023,
+        "transient_step_ratio": 0.18789045360904022,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": 0.12923670048082675,
+      "v_approach_mean_mps": 0.1270679982791173,
+      "t_trigger_s": 6.323999999999526,
+      "t_climb_s": null,
+      "advance_m": 1.151605267062266,
+      "first_contact_wheel": "both",
+      "contact_dt_s": 0.0,
+      "contact_events": [
+        {
+          "event": "first_robot_step_contact",
+          "t_s": 6.323999999999526
+        },
+        {
+          "event": "wheel_L_step_contact",
+          "t_s": 7.4599999999994
+        },
+        {
+          "event": "wheel_R_step_contact",
+          "t_s": 7.4599999999994
+        }
+      ],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 3.1630757799224276,
+      "roll_max_deg": 7.498270738405431e-13,
+      "slip_max": 0.9072694735167647,
+      "torque_peak_nm": 0.39054072148340546,
+      "penetration_max_m": 0.0006442814916754825,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "a976062f862462a418ced658515c798c0dd96ef0bb906e557685cff790c4a168",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "step_fwd_10mm_std"
+    },
+    {
+      "case_id": "step_fwd_10mm_qs",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": 0.0,
+      "step_height_m": 0.01,
+      "outcome": "blocked",
+      "failure_mode": "slip_stall",
+      "failure_modes": [
+        "slip",
+        "slip_stall"
+      ],
+      "invalid_reason": "",
+      "A1": {
+        "result": "met",
+        "measured": 0.032461437277386075,
+        "threshold": 0.0442944691807002,
+        "v_approach_mean_mps": 0.03664359496345083,
+        "same_frame": true,
+        "basis": "v_impact at the same sample as first wheel-step contact"
+      },
+      "A2": {
+        "result": "na",
+        "measured": 0.001582036925881891,
+        "threshold": null,
+        "travel_m": 2e-06,
+        "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，悬挂行程/限位需实测后启用"
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.0498096578224434,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "not_met",
+        "measured": 0.2061311325693563,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.12444402231804014,
+        "transient_step_ratio": 0.2061311325693563,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": 0.032461437277386075,
+      "v_approach_mean_mps": 0.03664359496345083,
+      "t_trigger_s": 9.307999999999778,
+      "t_climb_s": null,
+      "advance_m": 0.1345492052841707,
+      "first_contact_wheel": "both",
+      "contact_dt_s": 0.0,
+      "contact_events": [
+        {
+          "event": "first_robot_step_contact",
+          "t_s": 9.307999999999778
+        },
+        {
+          "event": "wheel_L_step_contact",
+          "t_s": 13.12000000000105
+        },
+        {
+          "event": "wheel_R_step_contact",
+          "t_s": 13.12000000000105
+        }
+      ],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 2.0480393627400044,
+      "roll_max_deg": 4.0665667332984394e-13,
+      "slip_max": 0.999944868111885,
+      "torque_peak_nm": 0.2721509272490673,
+      "penetration_max_m": 0.0003798893198019406,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "a976062f862462a418ced658515c798c0dd96ef0bb906e557685cff790c4a168",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "step_fwd_10mm_qs"
+    },
+    {
+      "case_id": "step_fwd_20mm_belly",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": 0.0,
+      "step_height_m": 0.02,
+      "outcome": "blocked",
+      "failure_mode": "belly_contact",
+      "failure_modes": [
+        "belly_contact",
+        "slip"
+      ],
+      "invalid_reason": "",
+      "A1": {
+        "result": "na",
+        "measured": null,
+        "threshold": null,
+        "v_approach_mean_mps": null,
+        "same_frame": null
+      },
+      "A2": {
+        "result": "na",
+        "measured": 0.0004659691228127813,
+        "threshold": null,
+        "travel_m": 2e-06,
+        "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，悬挂行程/限位需实测后启用"
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754994317,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "not_met",
+        "measured": 0.21786158344150128,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.14644425644370654,
+        "transient_step_ratio": 0.21786158344150128,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": null,
+      "v_approach_mean_mps": null,
+      "t_trigger_s": 6.217999999999537,
+      "t_climb_s": null,
+      "advance_m": -0.0003910761527941009,
+      "first_contact_wheel": null,
+      "contact_dt_s": null,
+      "contact_events": [
+        {
+          "event": "first_robot_step_contact",
+          "t_s": 6.217999999999537
+        }
+      ],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 0.3606379465115744,
+      "roll_max_deg": 0.028919352083879742,
+      "slip_max": 0.9999990601954518,
+      "torque_peak_nm": 0.411869432796661,
+      "penetration_max_m": 0.0004912024084086507,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "1e0702b9f495e207f0e0e65faffe842d4930f8ef866ae59b1682195c5df57059",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "step_fwd_20mm_belly"
+    },
+    {
+      "case_id": "step_fwd_high_30mm",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": 0.0,
+      "step_height_m": 0.03,
+      "outcome": "blocked",
+      "failure_mode": "belly_contact",
+      "failure_modes": [
+        "belly_contact",
+        "slip"
+      ],
+      "invalid_reason": "",
+      "A1": {
+        "result": "na",
+        "measured": null,
+        "threshold": null,
+        "v_approach_mean_mps": null,
+        "same_frame": null
+      },
+      "A2": {
+        "result": "na",
+        "measured": 0.0004665899850405178,
+        "threshold": null,
+        "travel_m": 2e-06,
+        "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，悬挂行程/限位需实测后启用"
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754994317,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "not_met",
+        "measured": 0.21786158344150128,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.14596553051700104,
+        "transient_step_ratio": 0.21786158344150128,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": null,
+      "v_approach_mean_mps": null,
+      "t_trigger_s": 6.217999999999537,
+      "t_climb_s": null,
+      "advance_m": -0.0003461861344701833,
+      "first_contact_wheel": null,
+      "contact_dt_s": null,
+      "contact_events": [
+        {
+          "event": "first_robot_step_contact",
+          "t_s": 6.217999999999537
+        }
+      ],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 0.24827677642232007,
+      "roll_max_deg": 0.029266647650374105,
+      "slip_max": 0.9999908183833467,
+      "torque_peak_nm": 0.41234954616843333,
+      "penetration_max_m": 0.0004907297648508178,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "ec55f1b93726682792590e4bf8b505e7a926a12f02eb5cfff253c8cafd7ba9b0",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "step_fwd_high_30mm"
+    },
+    {
+      "case_id": "step_fwd_low_torque",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": 0.0,
+      "step_height_m": 0.01,
+      "outcome": "blocked",
+      "failure_mode": "lift_fail",
+      "failure_modes": [
+        "lift_fail",
+        "torque_limit"
+      ],
+      "invalid_reason": "",
+      "A1": {
+        "result": "na",
+        "measured": null,
+        "threshold": null,
+        "v_approach_mean_mps": null,
+        "same_frame": null
+      },
+      "A2": {
+        "result": "na",
+        "measured": 0.00029351837310752273,
+        "threshold": null,
+        "travel_m": 2e-06,
+        "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，悬挂行程/限位需实测后启用"
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754994317,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "met",
+        "measured": 0.018983523918061494,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 1.855778358281591e-07,
+        "transient_step_ratio": 0.018983523918061494,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": null,
+      "v_approach_mean_mps": null,
+      "t_trigger_s": 6.323999999999526,
+      "t_climb_s": null,
+      "advance_m": -2.459083113071081e-05,
+      "first_contact_wheel": null,
+      "contact_dt_s": null,
+      "contact_events": [
+        {
+          "event": "first_robot_step_contact",
+          "t_s": 6.323999999999526
+        }
+      ],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 0.2626540900465984,
+      "roll_max_deg": 7.498270738405431e-13,
+      "slip_max": 0.15574034524374034,
+      "torque_peak_nm": 0.11999999999999988,
+      "penetration_max_m": 0.0006412617450427286,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "a976062f862462a418ced658515c798c0dd96ef0bb906e557685cff790c4a168",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        },
+        {
+          "field": "actuator.wheel_L.forcerange",
+          "xml": 0.5,
+          "run": 0.12
+        },
+        {
+          "field": "actuator.wheel_R.forcerange",
+          "xml": 0.5,
+          "run": 0.12
+        }
+      ],
+      "output_dir": "step_fwd_low_torque"
+    },
+    {
+      "case_id": "step_obl_p15",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": 15.0,
+      "step_height_m": 0.01,
+      "outcome": "cleared",
+      "failure_mode": "",
+      "failure_modes": [
+        "slip"
+      ],
+      "invalid_reason": "",
+      "A1": {
+        "result": "not_met",
+        "measured": 0.07992535669279303,
+        "threshold": 0.0442944691807002,
+        "v_approach_mean_mps": 0.11149494024024353,
+        "same_frame": true,
+        "basis": "v_impact at the same sample as first wheel-step contact"
+      },
+      "A2": {
+        "result": "na",
+        "measured": 0.0010839663240796989,
+        "threshold": null,
+        "travel_m": 2e-06,
+        "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，悬挂行程/限位需实测后启用"
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754994317,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "not_met",
+        "measured": 0.18874278343855844,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.0040389632264037105,
+        "transient_step_ratio": 0.18874278343855844,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": 0.07992535669279303,
+      "v_approach_mean_mps": 0.11149494024024353,
+      "t_trigger_s": 6.989999999999452,
+      "t_climb_s": 10.06200000000003,
+      "advance_m": 0.9298004936841261,
+      "first_contact_wheel": "L",
+      "contact_dt_s": null,
+      "contact_events": [
+        {
+          "event": "first_robot_step_contact",
+          "t_s": 6.989999999999452
+        },
+        {
+          "event": "wheel_L_step_contact",
+          "t_s": 7.817999999999361
+        },
+        {
+          "event": "wheel_R_step_contact",
+          "t_s": 9.64599999999989
+        },
+        {
+          "event": "all_wheels_on_top",
+          "t_s": 10.06200000000003
+        }
+      ],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 2.1109209850942037,
+      "roll_max_deg": 2.4824063510928074,
+      "slip_max": 0.8470494904259744,
+      "torque_peak_nm": 0.39427734556589306,
+      "penetration_max_m": 0.0006156719067536365,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "6d526e13b66513caae760933456c4cbd7c91f1fc075254c7419a2a5147bd51a3",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "step_obl_p15"
+    },
+    {
+      "case_id": "step_obl_m15",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": -15.0,
+      "step_height_m": 0.01,
+      "outcome": "cleared",
+      "failure_mode": "",
+      "failure_modes": [
+        "slip"
+      ],
+      "invalid_reason": "",
+      "A1": {
+        "result": "not_met",
+        "measured": 0.07992535669279208,
+        "threshold": 0.0442944691807002,
+        "v_approach_mean_mps": 0.11149494024024349,
+        "same_frame": true,
+        "basis": "v_impact at the same sample as first wheel-step contact"
+      },
+      "A2": {
+        "result": "na",
+        "measured": 0.0010839663240792602,
+        "threshold": null,
+        "travel_m": 2e-06,
+        "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，悬挂行程/限位需实测后启用"
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754994317,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "not_met",
+        "measured": 0.18874278343855697,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.0040389632264032525,
+        "transient_step_ratio": 0.18874278343855697,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": 0.07992535669279208,
+      "v_approach_mean_mps": 0.11149494024024349,
+      "t_trigger_s": 6.989999999999452,
+      "t_climb_s": 10.06200000000003,
+      "advance_m": 0.9298004936841328,
+      "first_contact_wheel": "R",
+      "contact_dt_s": null,
+      "contact_events": [
+        {
+          "event": "first_robot_step_contact",
+          "t_s": 6.989999999999452
+        },
+        {
+          "event": "wheel_R_step_contact",
+          "t_s": 7.817999999999361
+        },
+        {
+          "event": "wheel_L_step_contact",
+          "t_s": 9.64599999999989
+        },
+        {
+          "event": "all_wheels_on_top",
+          "t_s": 10.06200000000003
+        }
+      ],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 2.1109209850942046,
+      "roll_max_deg": 2.4824063510928065,
+      "slip_max": 0.847049490425974,
+      "torque_peak_nm": 0.3942773455658935,
+      "penetration_max_m": 0.0006156719067536729,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "33ffeb62c6038c1a9dfb6d10513c85f450b3218996597269d2e5e57272cbdce1",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "step_obl_m15"
+    },
+    {
+      "case_id": "step_obl_p30",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": 30.0,
+      "step_height_m": 0.01,
+      "outcome": "cleared",
+      "failure_mode": "",
+      "failure_modes": [
+        "slip"
+      ],
+      "invalid_reason": "",
+      "A1": {
+        "result": "not_met",
+        "measured": 0.08069697892830104,
+        "threshold": 0.0442944691807002,
+        "v_approach_mean_mps": 0.12690161730594623,
+        "same_frame": true,
+        "basis": "v_impact at the same sample as first wheel-step contact"
+      },
+      "A2": {
+        "result": "na",
+        "measured": 0.001084265150396562,
+        "threshold": null,
+        "travel_m": 2e-06,
+        "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，悬挂行程/限位需实测后启用"
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754994317,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "not_met",
+        "measured": 0.18763322746916644,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.004116596389055056,
+        "transient_step_ratio": 0.18763322746916644,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": 0.08069697892830104,
+      "v_approach_mean_mps": 0.12690161730594623,
+      "t_trigger_s": 6.981999999999453,
+      "t_climb_s": 9.725999999999917,
+      "advance_m": 1.0857803794519107,
+      "first_contact_wheel": "L",
+      "contact_dt_s": null,
+      "contact_events": [
+        {
+          "event": "first_robot_step_contact",
+          "t_s": 6.981999999999453
+        },
+        {
+          "event": "wheel_L_step_contact",
+          "t_s": 7.473999999999399
+        },
+        {
+          "event": "wheel_R_step_contact",
+          "t_s": 9.309999999999778
+        },
+        {
+          "event": "all_wheels_on_top",
+          "t_s": 9.725999999999917
+        }
+      ],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 2.1101243464601067,
+      "roll_max_deg": 2.482235012205285,
+      "slip_max": 0.765185692978773,
+      "torque_peak_nm": 0.3867066624237157,
+      "penetration_max_m": 0.0006229353279263447,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "dcfb450d24112212bc50368b48dbd250289cad58b1f72e91ab3f197372dc7189",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "step_obl_p30"
+    },
+    {
+      "case_id": "step_obl_m30",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": -30.0,
+      "step_height_m": 0.01,
+      "outcome": "cleared",
+      "failure_mode": "",
+      "failure_modes": [
+        "slip"
+      ],
+      "invalid_reason": "",
+      "A1": {
+        "result": "not_met",
+        "measured": 0.08069697892830122,
+        "threshold": 0.0442944691807002,
+        "v_approach_mean_mps": 0.1269016173059462,
+        "same_frame": true,
+        "basis": "v_impact at the same sample as first wheel-step contact"
+      },
+      "A2": {
+        "result": "na",
+        "measured": 0.0010842651503961138,
+        "threshold": null,
+        "travel_m": 2e-06,
+        "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，悬挂行程/限位需实测后启用"
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754994317,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "not_met",
+        "measured": 0.18763322746916528,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.004116596389055658,
+        "transient_step_ratio": 0.18763322746916528,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": 0.08069697892830122,
+      "v_approach_mean_mps": 0.1269016173059462,
+      "t_trigger_s": 6.981999999999453,
+      "t_climb_s": 9.725999999999917,
+      "advance_m": 1.0857803794519068,
+      "first_contact_wheel": "R",
+      "contact_dt_s": null,
+      "contact_events": [
+        {
+          "event": "first_robot_step_contact",
+          "t_s": 6.981999999999453
+        },
+        {
+          "event": "wheel_R_step_contact",
+          "t_s": 7.473999999999399
+        },
+        {
+          "event": "wheel_L_step_contact",
+          "t_s": 9.309999999999778
+        },
+        {
+          "event": "all_wheels_on_top",
+          "t_s": 9.725999999999917
+        }
+      ],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 2.110124346460104,
+      "roll_max_deg": 2.482235012205291,
+      "slip_max": 0.7651856929787682,
+      "torque_peak_nm": 0.38670666242371565,
+      "penetration_max_m": 0.0006229353279264107,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "dc9be1e1a0054f88488f35d8c19a691d9b510af33cc3dc887b7d20ca3bc64464",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "step_obl_m30"
+    },
+    {
+      "case_id": "step_fwd_no_contact",
+      "repeat": 1,
+      "config_id": "oomwoo_public_v1",
+      "heading_deg": 0.0,
+      "step_height_m": 0.01,
+      "outcome": "invalid",
+      "failure_mode": "no_contact",
+      "failure_modes": [],
+      "invalid_reason": "no_contact",
+      "A1": {
+        "result": "na",
+        "measured": null,
+        "threshold": null,
+        "v_approach_mean_mps": null,
+        "same_frame": null
+      },
+      "A2": {
+        "result": "na",
+        "measured": null,
+        "threshold": null
+      },
+      "A3": {
+        "result": "met",
+        "measured": 0.04986942754992896,
+        "threshold": 0.05,
+        "basis": "max |d v_x/dt| after smoothing, approach segment"
+      },
+      "A4": {
+        "result": "met",
+        "measured": 0.0029565395236242882,
+        "threshold": {
+          "steady": 0.05,
+          "transient": 0.1
+        },
+        "steady_step_ratio": 0.0029565395236242882,
+        "transient_step_ratio": null,
+        "basis": "max |tau(k+1)-tau(k)| / max(|tau|) for |tau| >= min_torque_frac*limit; actuator force at wheel joint, N*m"
+      },
+      "v_impact_mps": null,
+      "v_approach_mean_mps": null,
+      "t_trigger_s": null,
+      "t_climb_s": null,
+      "advance_m": 0.2967031956284085,
+      "first_contact_wheel": null,
+      "contact_dt_s": null,
+      "contact_events": [],
+      "flat_speed_rel_diff_L": null,
+      "flat_speed_rel_diff_R": null,
+      "pitch_max_deg": 0.009412587379384375,
+      "roll_max_deg": 2.994860120007742e-13,
+      "slip_max": 0.0,
+      "torque_peak_nm": 0.09407252172587113,
+      "penetration_max_m": 0.000192056322209741,
+      "numerics": {
+        "timestep_s": 0.002,
+        "integrator": "implicitfast",
+        "solver": "Newton",
+        "cone": "elliptic",
+        "iterations": 100,
+        "tolerance": 1e-08
+      },
+      "scenario_xml_sha256": "a976062f862462a418ced658515c798c0dd96ef0bb906e557685cff790c4a168",
+      "overrides": [
+        {
+          "field": "cone",
+          "xml": "pyramidal",
+          "run": "elliptic"
+        }
+      ],
+      "output_dir": "step_fwd_no_contact"
+    }
+  ],
+  "heading_groups": {
+    "0": {
+      "merged": false,
+      "signed_groups": {
+        "0": {
+          "signed_heading_deg": 0.0,
+          "count": 7,
+          "outcomes": {
+            "cleared": 1,
+            "blocked": 5,
+            "invalid": 1
+          },
+          "case_ids": [
+            "flat_straight",
+            "step_fwd_10mm_std",
+            "step_fwd_10mm_qs",
+            "step_fwd_20mm_belly",
+            "step_fwd_high_30mm",
+            "step_fwd_low_torque",
+            "step_fwd_no_contact"
+          ]
+        }
+      }
+    },
+    "15": {
+      "merged": false,
+      "signed_groups": {
+        "+15": {
+          "signed_heading_deg": 15.0,
+          "count": 1,
+          "outcomes": {
+            "cleared": 1
+          },
+          "case_ids": [
+            "step_obl_p15"
+          ]
+        },
+        "-15": {
+          "signed_heading_deg": -15.0,
+          "count": 1,
+          "outcomes": {
+            "cleared": 1
+          },
+          "case_ids": [
+            "step_obl_m15"
+          ]
+        }
+      }
+    },
+    "30": {
+      "merged": false,
+      "signed_groups": {
+        "+30": {
+          "signed_heading_deg": 30.0,
+          "count": 1,
+          "outcomes": {
+            "cleared": 1
+          },
+          "case_ids": [
+            "step_obl_p30"
+          ]
+        },
+        "-30": {
+          "signed_heading_deg": -30.0,
+          "count": 1,
+          "outcomes": {
+            "cleared": 1
+          },
+          "case_ids": [
+            "step_obl_m30"
+          ]
+        }
+      }
+    }
+  },
+  "mirror_checks": {
+    "15": {
+      "abs_heading_deg": 15.0,
+      "plus_case_id": "step_obl_p15",
+      "minus_case_id": "step_obl_m15",
+      "plus_first_contact_wheel": "L",
+      "minus_first_contact_wheel": "R",
+      "mirrored": true,
+      "merged_in_output": false
+    },
+    "30": {
+      "abs_heading_deg": 30.0,
+      "plus_case_id": "step_obl_p30",
+      "minus_case_id": "step_obl_m30",
+      "plus_first_contact_wheel": "L",
+      "minus_first_contact_wheel": "R",
+      "mirrored": true,
+      "merged_in_output": false
+    }
+  },
+  "columns": {
+    "timeseries": {
+      "t_s": {
+        "unit": "s"
+      },
+      "pos_x_m": {
+        "unit": "m"
+      },
+      "pos_y_m": {
+        "unit": "m"
+      },
+      "pos_z_m": {
+        "unit": "m"
+      },
+      "quat_w": {
+        "unit": "-"
+      },
+      "quat_x": {
+        "unit": "-"
+      },
+      "quat_y": {
+        "unit": "-"
+      },
+      "quat_z": {
+        "unit": "-"
+      },
+      "pitch_rad": {
+        "unit": "rad"
+      },
+      "roll_rad": {
+        "unit": "rad"
+      },
+      "yaw_rad": {
+        "unit": "rad"
+      },
+      "vel_x_mps": {
+        "unit": "m/s"
+      },
+      "vel_y_mps": {
+        "unit": "m/s"
+      },
+      "vel_z_mps": {
+        "unit": "m/s"
+      },
+      "wheel_L_speed_radps": {
+        "unit": "rad/s"
+      },
+      "wheel_R_speed_radps": {
+        "unit": "rad/s"
+      },
+      "wheel_L_torque_nm": {
+        "unit": "N*m"
+      },
+      "wheel_R_torque_nm": {
+        "unit": "N*m"
+      },
+      "wheel_L_qvel_radps": {
+        "unit": "rad/s"
+      },
+      "wheel_R_qvel_radps": {
+        "unit": "rad/s"
+      },
+      "wheel_L_actuator_force_nm": {
+        "unit": "N*m"
+      },
+      "wheel_R_actuator_force_nm": {
+        "unit": "N*m"
+      },
+      "susp_L_travel_m": {
+        "unit": "m"
+      },
+      "susp_R_travel_m": {
+        "unit": "m"
+      },
+      "contact_wheel_L_floor_active": {
+        "unit": "-"
+      },
+      "contact_wheel_L_floor_normal_n": {
+        "unit": "N"
+      },
+      "contact_wheel_L_floor_tangent_n": {
+        "unit": "N"
+      },
+      "contact_wheel_L_floor_count": {
+        "unit": "-"
+      },
+      "contact_wheel_R_floor_active": {
+        "unit": "-"
+      },
+      "contact_wheel_R_floor_normal_n": {
+        "unit": "N"
+      },
+      "contact_wheel_R_floor_tangent_n": {
+        "unit": "N"
+      },
+      "contact_wheel_R_floor_count": {
+        "unit": "-"
+      },
+      "contact_wheel_L_step_active": {
+        "unit": "-"
+      },
+      "contact_wheel_L_step_normal_n": {
+        "unit": "N"
+      },
+      "contact_wheel_L_step_tangent_n": {
+        "unit": "N"
+      },
+      "contact_wheel_L_step_count": {
+        "unit": "-"
+      },
+      "contact_wheel_R_step_active": {
+        "unit": "-"
+      },
+      "contact_wheel_R_step_normal_n": {
+        "unit": "N"
+      },
+      "contact_wheel_R_step_tangent_n": {
+        "unit": "N"
+      },
+      "contact_wheel_R_step_count": {
+        "unit": "-"
+      },
+      "contact_caster_floor_active": {
+        "unit": "-"
+      },
+      "contact_caster_floor_normal_n": {
+        "unit": "N"
+      },
+      "contact_caster_floor_tangent_n": {
+        "unit": "N"
+      },
+      "contact_caster_floor_count": {
+        "unit": "-"
+      },
+      "contact_caster_rear_floor_active": {
+        "unit": "-"
+      },
+      "contact_caster_rear_floor_normal_n": {
+        "unit": "N"
+      },
+      "contact_caster_rear_floor_tangent_n": {
+        "unit": "N"
+      },
+      "contact_caster_rear_floor_count": {
+        "unit": "-"
+      },
+      "contact_chassis_step_active": {
+        "unit": "-"
+      },
+      "contact_chassis_step_normal_n": {
+        "unit": "N"
+      },
+      "contact_chassis_step_tangent_n": {
+        "unit": "N"
+      },
+      "contact_chassis_step_count": {
+        "unit": "-"
+      },
+      "robot_step_normal_n": {
+        "unit": "N"
+      },
+      "wheel_L_normal_n": {
+        "unit": "N"
+      },
+      "wheel_R_normal_n": {
+        "unit": "N"
+      },
+      "wheel_L_tangent_n": {
+        "unit": "N"
+      },
+      "wheel_R_tangent_n": {
+        "unit": "N"
+      },
+      "wheel_tangent_total_n": {
+        "unit": "N"
+      },
+      "all_contact_normal_n": {
+        "unit": "N"
+      },
+      "all_contact_count": {
+        "unit": "-"
+      },
+      "chassis_min_z_m": {
+        "unit": "m"
+      },
+      "data_valid": {
+        "unit": "-"
+      }
+    },
+    "summary": {
+      "case_id": {
+        "unit": "-"
+      },
+      "repeat": {
+        "unit": "-"
+      },
+      "config_id": {
+        "unit": "-"
+      },
+      "heading_deg": {
+        "unit": "deg"
+      },
+      "step_height_m": {
+        "unit": "m"
+      },
+      "v_impact_mps": {
+        "unit": "m/s"
+      },
+      "v_approach_mean_mps": {
+        "unit": "m/s"
+      },
+      "outcome": {
+        "unit": "-"
+      },
+      "failure_mode": {
+        "unit": "-"
+      },
+      "failure_modes": {
+        "unit": "-"
+      },
+      "A1": {
+        "unit": "-"
+      },
+      "A1_v_impact_mps": {
+        "unit": "m/s"
+      },
+      "A1_limit_mps": {
+        "unit": "m/s"
+      },
+      "A2": {
+        "unit": "-"
+      },
+      "A2_max_dev_m": {
+        "unit": "m"
+      },
+      "A2_limit_m": {
+        "unit": "m"
+      },
+      "A3": {
+        "unit": "-"
+      },
+      "A3_max_accel_mps2": {
+        "unit": "m/s^2"
+      },
+      "A3_limit_mps2": {
+        "unit": "m/s^2"
+      },
+      "A4": {
+        "unit": "-"
+      },
+      "A4_steady_step_ratio": {
+        "unit": "-"
+      },
+      "A4_transient_step_ratio": {
+        "unit": "-"
+      },
+      "timestep_s": {
+        "unit": "s"
+      },
+      "cone": {
+        "unit": "-"
+      },
+      "integrator": {
+        "unit": "-"
+      },
+      "status": {
+        "unit": "-"
+      },
+      "t_trigger_s": {
+        "unit": "s"
+      },
+      "t_climb_s": {
+        "unit": "s"
+      },
+      "advance_m": {
+        "unit": "m"
+      },
+      "first_contact_wheel": {
+        "unit": "-"
+      },
+      "contact_dt_s": {
+        "unit": "s"
+      },
+      "flat_speed_rel_diff_L": {
+        "unit": "-"
+      },
+      "flat_speed_rel_diff_R": {
+        "unit": "-"
+      },
+      "penetration_max_m": {
+        "unit": "m"
+      },
+      "model_sha256": {
+        "unit": "-"
+      },
+      "config_sha256": {
+        "unit": "-"
+      },
+      "output_dir": {
+        "unit": "-"
+      }
+    },
+    "contact_force_source": "mujoco.mj_contactForce only; contact frame; res[0]=normal, res[1:3]=tangential, res[3:6]=torque; efc_force excluded",
+    "torque_joint": "wheel_L / wheel_R act on hinge wheel_L_spin / wheel_R_spin, N*m, forward positive",
+    "empty_field": "no contact or invalid sample",
+    "zero_literal": "active contact with measured force 0.0"
+  },
+  "data_quality": {
+    "invalid_cases": [
+      "step_fwd_no_contact"
+    ],
+    "no_contact_cases": [
+      "step_fwd_no_contact"
+    ],
+    "penetration_max_m": 0.0006442814916754825,
+    "empty_field": "no contact or invalid sample",
+    "zero_literal": "active contact with measured force 0.0"
+  },
+  "notes": [
+    "基准机型 oomwoo；结构来自 makerspet/oomwoo-one URDF，数值来自 params/oomwoo.json，逐项带来源标签。",
+    "未做本机实测复核；本批结论封顶机理 + 参数敏感性，不是产品能力判定。",
+    "力矩列为轮端执行器力（gear=1），关节 wheel_*_spin，单位 N*m，前进为正；同时给出原始 qvel 与 actuator_force 列。",
+    "契约 v1.7.1 §1.1 将 wheel_*_speed 写成 -qvel；按 B 系右手定则，+x 前向、+y 左向时前进对应 +qvel。本批按物理前进为正输出，差异在此留痕。",
+    "无接触/无效采样写空字段；0.0 只表示有接触且实测合力为零。",
+    "outcome 只描述本次算例是否越过并恢复前进，不是验收判定。"
+  ]
+}
