@@ -29,7 +29,7 @@
 
 用法（Mac，launch_passive 在 macOS 必须走 mjpython；``scripts/view.sh`` 已封装）::
 
-    ./scripts/view.sh --case step_20mm --config oomwoo --speed 0.25
+    ./scripts/view.sh --case step_20mm --config oomwoo_g25 --speed 0.25
     ./scripts/view.sh --case flat --mode step
 
 Windows 用 ``scripts\\view.bat``，参数一样。``--headless`` 只跑物理不开窗口，
@@ -60,36 +60,47 @@ import run_cases  # noqa: E402
 # 先存下来：下面 import run_oomwoo 会把这两项改成试跑口径。
 PLAIN_LEDGER_PATH = run_cases.LEDGER_PATH
 PLAIN_RUNNER_DEFAULTS = run_cases.RUNNER_DEFAULTS
+# v1.10.0 给判定加了 end_hold_s / end_duty_* / lateral_margin_body_half，
+# 但 cases/_runner_oomwoo.json（试跑口径）还没补齐这几个键；run_cases.build_judge_params
+# 直接下标取，缺键会 KeyError。这里只保存基准 runner 的数值，供缺键时补齐（见 Session）。
+PLAIN_RUNNER_DEFAULTS_DOC = run_cases.read_json(PLAIN_RUNNER_DEFAULTS)
 
 import run_oomwoo  # noqa: E402  试跑级补丁：台账路径、runner 常量
 
 OOMWOO_RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
 _RUNNER_MACHINE = None
 
+# run_cases.build_judge_params 必取、但 cases/_runner_oomwoo.json 尚未提供的判定键。
+JUDGE_DEFAULTS_KEYS = (
+    "end_hold_s",
+    "end_duty_min",
+    "end_duty_ambiguous",
+    "lateral_margin_body_half",
+)
+
 CONTACT_READOUT = (
     "mj_contactForce + contact.frame（G1：res 在接触帧内，世界分量 = frame.T @ res[0:3]，对 geom2 为正）"
 )
 
 # 工况预设：名字 → 仓库里已有的 case JSON（不新增、不修改 cases/）。
-# step_30mm 没有现成 case，只在本进程内把 20 mm 的 obstacle.height_m 改掉，
-# 再交给同一个 build_scenario_xml 注入，因此仍然只有一份台阶注入代码。
+# 预设表曾指向 G2 时代的 oomwoo_flat/step10/step20_casterblock（仓库里已不存在，
+# G3 改名为 oomwoo_step*_dt*ms），这里改指当前存在的同义 case；高度一律取 case 自带值。
 CASE_PRESETS = {
     "flat": {
-        "case": "cases/oomwoo_flat.json",
+        "case": "cases/flat.json",
         "help": "平地直行（工况 A，无台阶）",
     },
     "step_10mm": {
-        "case": "cases/oomwoo_step10.json",
+        "case": "cases/oomwoo_step10_dt2ms.json",
         "help": "正向台阶 10 mm（低于 12.5 mm 壳体离地）",
     },
     "step_20mm": {
-        "case": "cases/oomwoo_step20_casterblock.json",
-        "help": "正向台阶 20 mm（高于壳体离地，暴露未建模的壳体前下缘接触）",
+        "case": "cases/oomwoo_g25_step20.json",
+        "help": "正向台阶 20 mm（高于壳体离地，G2.5 起带参数化前下缘）",
     },
     "step_30mm": {
-        "case": "cases/oomwoo_step20_casterblock.json",
-        "height_m": 0.030,  # ui-constant
-        "help": "正向台阶 30 mm（由 20 mm case 在内存里改高度注入）",
+        "case": "cases/oomwoo_g25_step30.json",
+        "help": "正向台阶 30 mm（高于壳体离地）",
     },
     "step_10mm_lowtorque": {
         "case": "cases/oomwoo_step10_lowtorque.json",
@@ -245,6 +256,7 @@ def load_model_stack(config, config_id, skip_checks):
         "model_sha": model_sha,
         "body_length_m": model_checks.body_length(base_model),
         "wheel_radius_m": run_cases.MODEL_CONSTANTS["wheel_radius_m"],
+        "ledger": ledger,
         "scenario_xml": scenario_xml,
     }
 
@@ -366,6 +378,32 @@ class Session:
         self.params_document = stack["params"]
         self.body_length_m = stack["body_length_m"]
         self.wheel_radius_m = stack["wheel_radius_m"]
+        # 与批运行同一口径（run_cases.py: has_suspension = read_capability(base_model, ...)）；
+        # 场景注入不改变能力声明，取一次存成属性，advance() 每步不再重算。
+        self.has_suspension = model_checks.read_capability(stack["base_model"], "has_suspension")
+        # 判定参数里批运行从台账/几何取的三项，同样在构造时取一次，别在 evaluate() 里编。
+        self.pair_friction = run_cases.config_friction_from_ledger(config, stack["ledger"])
+        self.platform_tol = model_checks.ledger_value(
+            stack["ledger"], "judge.platform_height_tol_m"
+        )
+        self.step_front_m = (
+            run_cases.chassis_front(stack["base_model"])
+            + float(config["scenario"]["approach"]["start_distance_m"])
+            if config["scenario"]["kind"] == "step"
+            else 0.0
+        )
+        # oomwoo runner 尚未补 v1.10.0 的判定键：只从基准 _runner.json 补缺键，不改已有值。
+        # （批运行 run_oomwoo.py 同样会缺键，需在 cases/_runner_oomwoo.json 单独补齐。）
+        self.judge_defaults = dict(self.defaults)
+        missing = [key for key in JUDGE_DEFAULTS_KEYS if key not in self.judge_defaults]
+        for key in missing:
+            self.judge_defaults[key] = PLAIN_RUNNER_DEFAULTS_DOC[key]
+        if missing:
+            print(
+                "[view] 注意: runner 缺判定键 "
+                + ", ".join(missing)
+                + "，已按 cases/_runner.json 补齐（仅判定常量，不动物理）"
+            )
 
         self.clearance_m, self.clearance_source = floor_clearance_m(
             stack["base_model"], stack["base_data"], self.params_document
@@ -452,7 +490,12 @@ class Session:
         self.control()
         run_cases.step_once(self.model, self.data)
         row = run_cases.sample_row(
-            self.model, self.data, self.pair_lookup, self.ordered_pairs, self.geom_names
+            self.model,
+            self.data,
+            self.pair_lookup,
+            self.ordered_pairs,
+            self.geom_names,
+            self.has_suspension,
         )
         self.rows.append(row)
 
@@ -512,12 +555,16 @@ class Session:
         }
         params = run_cases.build_judge_params(
             self.config,
-            self.defaults,
+            self.judge_defaults,
             self.model,
             self.limits,
             self.ordered_pairs,
             self.body_length_m,
             self.wheel_radius_m,
+            self.has_suspension,
+            self.pair_friction,
+            self.platform_tol,
+            self.step_front_m,
         )
         try:
             self.verdict = judge.judge_case(table, params)
