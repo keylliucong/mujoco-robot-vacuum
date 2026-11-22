@@ -86,6 +86,7 @@ echo.
 echo   Chinese guide: see the showcase guide under docs\
 echo.
 set /p "CHOICE=Select [1-5/q]: "
+for /f "tokens=1" %%i in ("%CHOICE%") do set "CHOICE=%%i"
 
 :dispatch
 if "%CHOICE%"=="1" set "VIEWARGS=--case cases/flat.json --config proto_v1 --speed 0.25"
