@@ -1206,6 +1206,12 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
                         row.get("contact_wheel_L_step_normal_n") or 0.0) + float(
                         row.get("contact_wheel_R_step_normal_n") or 0.0)
 
+            # 两侧轮先后接触时，等第二侧出现后再补时间差
+            if (trigger is not None and trigger.get("contact_dt_s") is None
+                    and first_contact["L"] is not None
+                    and first_contact["R"] is not None):
+                trigger["contact_dt_s"] = abs(first_contact["L"] - first_contact["R"])
+
             if trigger is not None and t_climb is None:
                 on_top = True
                 for side in ("L", "R"):
