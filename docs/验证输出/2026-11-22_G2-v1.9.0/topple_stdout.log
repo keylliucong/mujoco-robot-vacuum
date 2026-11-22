@@ -1,0 +1,8 @@
+batch g2_v190c_topple
+contract 1.9.0
+git {'commit': '6ae180bacae6412c92b630665e083ab6a58405da', 'branch': 'HEAD', 'dirty': True}
+model models/baseline.xml 153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+config E:\mujoco-robot-vacuum\cases\step_forward_60mm_topple.json a5af145b8502ea517ac6eb1d69ac8c47849938e5b2ffeeead7d5ba3b039f7008
+scenario_xml_sha256 fa319950f98b18592d0f5b3b100d83dd36dc71303f7f45b19bcdd954552f4e49
+repeat_consistent True
+conclusion_level mechanism
