@@ -24,7 +24,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-CONTRACT_VERSION = "1.7"
+CONTRACT_VERSION = "1.7.7"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
 PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
@@ -491,11 +491,15 @@ def check_s14():
     doc = read_text(REPO_ROOT / "docs" / "契约" / "G2-接口契约.md")
     match = re.search(r"版本：`([0-9.]+)`", doc)
     doc_version = match.group(1) if match else ""
-    ok = version == CONTRACT_VERSION and judge_version == CONTRACT_VERSION and doc_version.startswith(CONTRACT_VERSION)
+    ok = (
+        version == CONTRACT_VERSION
+        and judge_version == CONTRACT_VERSION
+        and doc_version.strip() == CONTRACT_VERSION
+    )
     add(
         "S14",
         ok,
-        f"run_cases={version} judge={judge_version} 契约文档={doc_version}（1.7.x 只含澄清，判据集冻结在 1.7）"
+        f"run_cases={version} judge={judge_version} 契约文档={doc_version}（版本串相等；判据集冻结在 v1.7）"
         if ok
         else f"版本不一致：run_cases={version} judge={judge_version} 文档={doc_version}",
     )

@@ -29,7 +29,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-CONTRACT_VERSION = "1.7"  # 冻结点 v1.7；文档 1.7.1 只含澄清，不改判据
+CONTRACT_VERSION = "1.7.7"  # S14：等于契约文档版本；判据集仍冻结在 v1.7
 SCHEMA_VERSION = "1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -779,7 +779,13 @@ MODEL_CONSTANTS = {"wheel_radius_m": 0.0, "susp_range_m": 0.0, "com_offset_B_m":
 
 def load_ledger_rows():
     ledger = model_checks.load_ledger(LEDGER_PATH)
-    return ledger, {param_id: row["label"] for param_id, row in ledger.items()}
+    # v1.7.6：结论等级只取绑定了 xpath 的行（真正进入模型/判定的那些）
+    bound = {
+        param_id: row["label"]
+        for param_id, row in ledger.items()
+        if row["xpath"].strip() not in ("", "-")
+    }
+    return ledger, bound
 
 
 def conclusion_level(labels):
@@ -1170,6 +1176,10 @@ def main(argv=None):
             for param_id, row in sorted(ledger.items())
         ],
         "param_labels": label_counts(labels),
+        "conclusion_level_inputs": {
+            "rule": "v1.7.6：只取绑定 xpath 的台账行；v1.7.4：本字段是结论等级，参数等级见 params[].label",
+            "rows_bound_to_xpath": len(labels),
+        },
         "conclusion_level": level,
         "repeat": {
             "consistent": consistent,
