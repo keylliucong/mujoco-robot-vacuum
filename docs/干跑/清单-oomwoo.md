@@ -14,11 +14,25 @@
 
 > 两个上游仓库均**未提交**进本仓库；STEP（15.6 MB）与 PDF 不进入本仓库。
 
-**clone 记录**：`oomwoo` 已 `git clone --depth 1`（HEAD `0218857`）。`oomwoo-cad` 的
-clone 在 96 MB 处报 `fetch-pack: unexpected disconnect while reading sideband packet`，
-重试前已终止；改用 `git ls-remote` pin 到 HEAD `266210a`，并按该 SHA 读取
-`designs/one/agentic/july-2026/README.md` 的 raw 文件核对 RV02 自述。`oomwoo-one`
-HEAD 经 `git ls-remote` 确认为 `a630d1c`，与 `params.xacro` 引用一致。
+**clone 记录**：`oomwoo` 用 `git clone --depth 1`（HEAD `0218857`）。`oomwoo-cad` 与
+`oomwoo-one` 首次普通 clone 时，`oomwoo-cad` 在 96 MB 处报
+`fetch-pack: unexpected disconnect while reading sideband packet`；改用
+`git clone --depth 1 --filter=blob:none --no-checkout` 后两者都成功，HEAD 分别为
+`266210a` / `a630d1c`，与 `git ls-remote` 一致。按需 `git show` 读取的输入文件 sha256：
+
+| 文件（`oomwoo-one@a630d1c`） | sha256 |
+|---|---|
+| `urdf/params.xacro` | `f1bf84a42b7e0db13dd7b50c2b8f44acd39d3a631ae15336c2da18861ef6a817` |
+| `urdf/robot.urdf.xacro` | `838e4547227cea447b7c6b65b3de401ef2f2c454e254b255f2d4db47de8bb13c` |
+| `urdf/inertial.xacro` | `8a2b5ea273cbddb2a2307df319d2ddeb95a1a92f6d1b36d83b1514bf70d4f778` |
+
+RV02 文件只用于核对“不可用”结论，未做质量属性：
+
+| 文件（`oomwoo-cad@266210a`） | 大小 | sha256 |
+|---|---|---|
+| `designs/one/agentic/july-2026/README.md` | 4,021 B | `bcfac3b3edc4b1d9108f9407a51610b8e5ab63d55d6b1748fe3ee8abeaaa8edf` |
+| `designs/one/agentic/july-2026/device_full.step` | 16,375,631 B | `e1b3453e8eccdf5a5c3baf927bdfe4632348febc19b415786c417caca0295682` |
+| `designs/one/agentic/july-2026/OOMWOO_Device_RV02_Report.pdf` | 5,928,217 B | `daaafa111553792a44ef0fd4ea2702be9ba990222be3e0a339cd09329d4a53fe` |
 
 ## 2. 来源分级与撤回
 
