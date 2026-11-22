@@ -11,7 +11,7 @@ from __future__ import annotations
 import math
 from bisect import bisect_left, bisect_right
 
-CONTRACT_VERSION = "1.7.7"
+CONTRACT_VERSION = "1.8.0"
 
 FAILURE_PRIORITY = (
     "data_invalid",
@@ -55,6 +55,7 @@ REQUIRED_PARAMS = frozenset(
         "slip_eps_mps",
         "climb_height_ratio",
         "climb_hold_s",
+        "has_suspension",
         "wheel_step_pairs",
         "bottom_out_pairs",
         "all_pairs",
@@ -161,6 +162,11 @@ def judge_case(columns, params):
     torque_r = _floats(columns, "wheel_R_torque_nm")
     travel_l = _floats(columns, "susp_L_travel_m")
     travel_r = _floats(columns, "susp_R_travel_m")
+    has_suspension = bool(params["has_suspension"])
+    if not has_suspension and any(
+        value is not None for value in travel_l + travel_r
+    ):
+        raise JudgeError("has_suspension=0 时 susp_*_travel_m 必须整列为空，不得写 0（S22/§1.2）")
 
     wheel_step = [k for k in params["wheel_step_pairs"] if k in pair_keys]
     bottom_out = [k for k in params["bottom_out_pairs"] if k in pair_keys]
@@ -228,8 +234,8 @@ def judge_case(columns, params):
     roll_max = _abs_max(roll, window)
     torque_max_l = _abs_max(torque_l, window)
     torque_max_r = _abs_max(torque_r, window)
-    travel_max_l = _max(travel_l, window)
-    travel_max_r = _max(travel_r, window)
+    travel_max_l = _max(travel_l, window) if has_suspension else None
+    travel_max_r = _max(travel_r, window) if has_suspension else None
 
     slip_l = _slip_max(speed_l, vel_x, window, params)
     slip_r = _slip_max(speed_r, vel_x, window, params)
@@ -252,7 +258,9 @@ def judge_case(columns, params):
         params["torque_limit_L_nm"], params["torque_limit_R_nm"]
     ) * (1 - params["torque_saturation_rel"]):
         flags.append("torque_limit")
-    if max(travel_max_l, travel_max_r) >= params["susp_range_m"] * params["susp_bottom_rel"]:
+    if has_suspension and max(travel_max_l, travel_max_r) >= (
+        params["susp_range_m"] * params["susp_bottom_rel"]
+    ):
         flags.append("suspension_bottom")
     if max(slip_l, slip_r) > params["slip_ratio"]:
         flags.append("slip")

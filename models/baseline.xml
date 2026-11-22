@@ -101,4 +101,9 @@
            ctrlrange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"
            forcerange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"/>
   </actuator>
+  <custom>
+    <!-- 能力声明（契约 v1.8.0 §1.2）：1 = 有悬挂，0 = 无；与模型两端一致（S22） -->
+    <numeric name="has_suspension" data="1"/>
+  </custom>
+
 </mujoco>
