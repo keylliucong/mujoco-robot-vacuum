@@ -1,0 +1,109 @@
+{
+  "source_batch": "outputs/g3-b1/bis_m15_h13p5",
+  "contract_version": "1.10.0",
+  "precheck": {
+    "ok": true,
+    "need_half_width_m": 0.33220545085316344,
+    "bench_half_width_m": 0.6,
+    "min_advance_m": 0.34,
+    "body_length_m": 0.34,
+    "body_half_width_m": 0.15,
+    "margin_body_half": 1.0,
+    "heading_deg": -15.0
+  },
+  "tiers": [
+    {
+      "row": {
+        "batch": "bis_m15_h13p5",
+        "case_id": "g3_b1_bis_m15_h13p5",
+        "repeat": 1,
+        "tier": "base",
+        "timestep_s": 0.002,
+        "status": "ok",
+        "passed": 1,
+        "invalid_reason": "",
+        "failure_primary": "",
+        "failure_flags": "slip",
+        "report_outcome": "cleared",
+        "end_duty": 0.9615384615384616,
+        "end_hold_s": 0.05,
+        "end_frames": 26,
+        "end_state_ambiguous": false,
+        "lateral_exit": false,
+        "crossed": true,
+        "cross_fail_reasons": "",
+        "advance_m": 1.179787256,
+        "t_recover_s": 0.0,
+        "contact_normal_max_n": 30.344659037,
+        "precheck_ok": true,
+        "precheck_need_half_width_m": 0.33220545085316344,
+        "precheck_bench_half_width_m": 0.6,
+        "scenario_xml_sha256": "1d9755dee15c6025b6cf5635cbd55b3abde3adb5d8959ee0533d0f2c76b4c69a",
+        "config_sha256": "c5d10f1e2fcec87ae8ad546e0d71a98d103875d58e0147cf39c15a1a3862a7d5",
+        "output_dir": "g3_b1_bis_m15_h13p5"
+      },
+      "verdict": {
+        "status": "ok",
+        "invalid_reason": "",
+        "passed": true,
+        "failure_primary": "",
+        "failure_flags": [
+          "slip"
+        ],
+        "metrics": {
+          "t_trigger_s": 4.55,
+          "t_wheel_touch_s": 4.55,
+          "t_climb_s": null,
+          "t_recover_s": 0.0,
+          "advance_m": 1.179787256,
+          "v_recover_mps": 0.13691721548026314,
+          "pitch_max_deg": 4.98642980403578,
+          "roll_max_deg": 2.8087338216548305,
+          "slip_max_L": 1.888322903613497,
+          "slip_max_R": 0.9832267899084326,
+          "torque_max_L_nm": 0.425259288,
+          "torque_max_R_nm": 0.447528506,
+          "susp_travel_max_L_m": 0.006053973,
+          "susp_travel_max_R_m": 0.006225937,
+          "contact_normal_max_n": 30.344659037,
+          "end_pos_z_m": 0.005364607,
+          "on_platform": true,
+          "slip_force_exceeded": false,
+          "trigger_source": "wheel_R--step",
+          "crossing": {
+            "end_progress_m": 1.6872362226386333,
+            "end_lateral_m": 0.5898087114975019,
+            "com_progress_m": 1.6674845555181035,
+            "max_pos_z_m": 0.007812432,
+            "wheel_on_top_count": 2,
+            "both_wheels_on_top": true,
+            "no_floor_contact_at_end": true,
+            "ended_on_platform": true,
+            "end_duty": 0.9615384615384616,
+            "end_hold_s": 0.05,
+            "end_frames": 26,
+            "end_state_ambiguous": false,
+            "lateral_exit": false,
+            "reached_platform": true,
+            "crossed_front": true,
+            "contact_gap_max_s": 0.002,
+            "contact_ok": true,
+            "cross_fail_reasons": [],
+            "crossed": true
+          }
+        },
+        "conclusion_level_inputs": {
+          "fail_on": [
+            "topple",
+            "retreat",
+            "timeout",
+            "stall",
+            "cross_fail"
+          ],
+          "window_s": 8.0
+        },
+        "trigger_source": "wheel_R--step"
+      }
+    }
+  ]
+}
