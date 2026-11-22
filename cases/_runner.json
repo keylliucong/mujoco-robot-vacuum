@@ -8,6 +8,10 @@
     "update_period_s": 0.002
   },
   "obstacle_half_width_m": 0.6,
+  "end_hold_s": 0.05,
+  "end_duty_min": 0.8,
+  "end_duty_ambiguous": 0.5,
+  "lateral_margin_body_half": 1.0,
   "creep": {
     "settle_s": 1.0,
     "window_s": 10.0,
