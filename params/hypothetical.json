@@ -20,644 +20,644 @@
   ],
   "note": "假设机型参数集。从 PR #13（proto/baseline-cases @ bcb478f）params/hypothetical.json 抽入；结构按 main 的 scripts/params_io.py 改为 params 键、machine=hypothetical。仅用于参数外置/切换的自检，不得用于任何产品结论。",
   "params": {
-    "numerics.timestep_s": {
+    "hypothetical.hypothetical_v1.numerics.timestep_s": {
       "value": 0.002,
       "unit": "s",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "numerics.iterations": {
+    "hypothetical.hypothetical_v1.numerics.iterations": {
       "value": 100,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "numerics.tolerance": {
+    "hypothetical.hypothetical_v1.numerics.tolerance": {
       "value": 1e-08,
       "unit": "-",
       "label": "待标定",
       "ref": "",
       "note": ""
     },
-    "numerics.gravity_z": {
+    "hypothetical.hypothetical_v1.numerics.gravity_z": {
       "value": -9.81,
       "unit": "m/s^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.condim": {
+    "hypothetical.hypothetical_v1.contact.condim": {
       "value": 3,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.solref_timeconst": {
+    "hypothetical.hypothetical_v1.contact.solref_timeconst": {
       "value": 0.01,
       "unit": "s",
       "label": "待标定",
       "ref": "",
       "note": ""
     },
-    "contact.solref_dampratio": {
+    "hypothetical.hypothetical_v1.contact.solref_dampratio": {
       "value": 1.0,
       "unit": "-",
       "label": "待标定",
       "ref": "",
       "note": ""
     },
-    "contact.solimp_0": {
+    "hypothetical.hypothetical_v1.contact.solimp_0": {
       "value": 0.95,
       "unit": "-",
       "label": "待标定",
       "ref": "",
       "note": ""
     },
-    "contact.solimp_1": {
+    "hypothetical.hypothetical_v1.contact.solimp_1": {
       "value": 0.99,
       "unit": "-",
       "label": "待标定",
       "ref": "",
       "note": ""
     },
-    "contact.solimp_2": {
+    "hypothetical.hypothetical_v1.contact.solimp_2": {
       "value": 0.001,
       "unit": "-",
       "label": "待标定",
       "ref": "",
       "note": ""
     },
-    "contact.solimp_3": {
+    "hypothetical.hypothetical_v1.contact.solimp_3": {
       "value": 0.5,
       "unit": "-",
       "label": "待标定",
       "ref": "",
       "note": ""
     },
-    "contact.solimp_4": {
+    "hypothetical.hypothetical_v1.contact.solimp_4": {
       "value": 2.0,
       "unit": "-",
       "label": "待标定",
       "ref": "",
       "note": ""
     },
-    "contact.mu_wheel_floor_s": {
+    "hypothetical.hypothetical_v1.contact.mu_wheel_floor_s": {
       "value": 0.8,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_wheel_floor_t": {
+    "hypothetical.hypothetical_v1.contact.mu_wheel_floor_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_wheel_floor_r": {
+    "hypothetical.hypothetical_v1.contact.mu_wheel_floor_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_wheel_step_s": {
+    "hypothetical.hypothetical_v1.contact.mu_wheel_step_s": {
       "value": 0.8,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_wheel_step_t": {
+    "hypothetical.hypothetical_v1.contact.mu_wheel_step_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_wheel_step_r": {
+    "hypothetical.hypothetical_v1.contact.mu_wheel_step_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_caster_floor_s": {
+    "hypothetical.hypothetical_v1.contact.mu_caster_floor_s": {
       "value": 0.02,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_caster_floor_t": {
+    "hypothetical.hypothetical_v1.contact.mu_caster_floor_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_caster_floor_r": {
+    "hypothetical.hypothetical_v1.contact.mu_caster_floor_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_caster_step_s": {
+    "hypothetical.hypothetical_v1.contact.mu_caster_step_s": {
       "value": 0.02,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_caster_step_t": {
+    "hypothetical.hypothetical_v1.contact.mu_caster_step_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_caster_step_r": {
+    "hypothetical.hypothetical_v1.contact.mu_caster_step_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_chassis_step_s": {
+    "hypothetical.hypothetical_v1.contact.mu_chassis_step_s": {
       "value": 0.3,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_chassis_step_t": {
+    "hypothetical.hypothetical_v1.contact.mu_chassis_step_t": {
       "value": 0.005,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "contact.mu_chassis_step_r": {
+    "hypothetical.hypothetical_v1.contact.mu_chassis_step_r": {
       "value": 0.0001,
       "unit": "-",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "default.joint_damping": {
+    "hypothetical.hypothetical_v1.default.joint_damping": {
       "value": 0.02,
       "unit": "N*m*s/rad",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "default.joint_armature": {
+    "hypothetical.hypothetical_v1.default.joint_armature": {
       "value": 0.0002,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "chassis.mass": {
+    "hypothetical.hypothetical_v1.chassis.mass": {
       "value": 2.2,
       "unit": "kg",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "chassis.ipos_x": {
+    "hypothetical.hypothetical_v1.chassis.ipos_x": {
       "value": -0.01,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "chassis.ipos_z": {
+    "hypothetical.hypothetical_v1.chassis.ipos_z": {
       "value": 0.055,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "chassis.ixx": {
+    "hypothetical.hypothetical_v1.chassis.ixx": {
       "value": 0.02,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "chassis.iyy": {
+    "hypothetical.hypothetical_v1.chassis.iyy": {
       "value": 0.022,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "chassis.izz": {
+    "hypothetical.hypothetical_v1.chassis.izz": {
       "value": 0.035,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "chassis.radius": {
+    "hypothetical.hypothetical_v1.chassis.radius": {
       "value": 0.14,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "chassis.height_half": {
+    "hypothetical.hypothetical_v1.chassis.height_half": {
       "value": 0.04,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "chassis.center_z": {
+    "hypothetical.hypothetical_v1.chassis.center_z": {
       "value": 0.065,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "wheel.x": {
+    "hypothetical.hypothetical_v1.wheel.x": {
       "value": 0.06,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "wheel.track_half": {
+    "hypothetical.hypothetical_v1.wheel.track_half": {
       "value": 0.14,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "wheel.z": {
+    "hypothetical.hypothetical_v1.wheel.z": {
       "value": 0.035,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "wheel.mass": {
+    "hypothetical.hypothetical_v1.wheel.mass": {
       "value": 0.18,
       "unit": "kg",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "wheel.ixx": {
+    "hypothetical.hypothetical_v1.wheel.ixx": {
       "value": 7e-05,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "wheel.iyy": {
+    "hypothetical.hypothetical_v1.wheel.iyy": {
       "value": 0.00011,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "wheel.izz": {
+    "hypothetical.hypothetical_v1.wheel.izz": {
       "value": 7e-05,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "wheel.radius": {
+    "hypothetical.hypothetical_v1.wheel.radius": {
       "value": 0.035,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "wheel.halfwidth": {
+    "hypothetical.hypothetical_v1.wheel.halfwidth": {
       "value": 0.016,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "susp.travel_neg": {
+    "hypothetical.hypothetical_v1.susp.travel_neg": {
       "value": -0.006,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "susp.travel_pos": {
+    "hypothetical.hypothetical_v1.susp.travel_pos": {
       "value": 0.006,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "susp.stiffness": {
+    "hypothetical.hypothetical_v1.susp.stiffness": {
       "value": 20000.0,
       "unit": "N/m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "susp.springref": {
+    "hypothetical.hypothetical_v1.susp.springref": {
       "value": -0.00055,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": "预压使 q=0 时每轮约 11 N"
     },
-    "susp.damping": {
+    "hypothetical.hypothetical_v1.susp.damping": {
       "value": 30.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.x": {
+    "hypothetical.hypothetical_v1.caster.x": {
       "value": 0.16,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": "前从动支撑（工程假设）"
     },
-    "caster.z": {
+    "hypothetical.hypothetical_v1.caster.z": {
       "value": 0.01,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.travel_neg": {
+    "hypothetical.hypothetical_v1.caster.travel_neg": {
       "value": -0.008,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.travel_pos": {
+    "hypothetical.hypothetical_v1.caster.travel_pos": {
       "value": 0.008,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.stiffness": {
+    "hypothetical.hypothetical_v1.caster.stiffness": {
       "value": 500.0,
       "unit": "N/m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.springref": {
+    "hypothetical.hypothetical_v1.caster.springref": {
       "value": -0.0008,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.damping": {
+    "hypothetical.hypothetical_v1.caster.damping": {
       "value": 5.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.mass": {
+    "hypothetical.hypothetical_v1.caster.mass": {
       "value": 0.05,
       "unit": "kg",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.ixx": {
+    "hypothetical.hypothetical_v1.caster.ixx": {
       "value": 2e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.iyy": {
+    "hypothetical.hypothetical_v1.caster.iyy": {
       "value": 2e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.izz": {
+    "hypothetical.hypothetical_v1.caster.izz": {
       "value": 2e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster.radius": {
+    "hypothetical.hypothetical_v1.caster.radius": {
       "value": 0.01,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "lidar.x": {
+    "hypothetical.hypothetical_v1.lidar.x": {
       "value": 0.0,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "lidar.z": {
+    "hypothetical.hypothetical_v1.lidar.z": {
       "value": 0.11,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "lidar.mass": {
+    "hypothetical.hypothetical_v1.lidar.mass": {
       "value": 0.001,
       "unit": "kg",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "lidar.ixx": {
+    "hypothetical.hypothetical_v1.lidar.ixx": {
       "value": 1e-07,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "lidar.iyy": {
+    "hypothetical.hypothetical_v1.lidar.iyy": {
       "value": 1e-07,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "lidar.izz": {
+    "hypothetical.hypothetical_v1.lidar.izz": {
       "value": 1e-07,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "lidar.radius": {
+    "hypothetical.hypothetical_v1.lidar.radius": {
       "value": 0.01,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "lidar.height_half": {
+    "hypothetical.hypothetical_v1.lidar.height_half": {
       "value": 0.005,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "drive.torque_limit": {
+    "hypothetical.hypothetical_v1.drive.torque_limit": {
       "value": 1.2,
       "unit": "N*m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "numerics.timestep_downgrade_s": {
+    "hypothetical.hypothetical_v1.numerics.timestep_downgrade_s": {
       "value": 0.001,
       "unit": "s",
       "label": "工程假设",
       "ref": "",
       "note": "蠕滑基线超限时的降步长目标"
     },
-    "control.kp_nm_per_radps": {
+    "hypothetical.hypothetical_v1.control.kp_nm_per_radps": {
       "value": 0.35,
       "unit": "N*m/(rad/s)",
       "label": "工程假设",
       "ref": "",
       "note": "轮速 PI 比例增益"
     },
-    "control.ki_nm_per_rad": {
+    "hypothetical.hypothetical_v1.control.ki_nm_per_rad": {
       "value": 1.2,
       "unit": "N*m/rad",
       "label": "工程假设",
       "ref": "",
       "note": "轮速 PI 积分增益"
     },
-    "control.integral_clamp_nm": {
+    "hypothetical.hypothetical_v1.control.integral_clamp_nm": {
       "value": 1.2,
       "unit": "N*m",
       "label": "工程假设",
       "ref": "",
       "note": "积分限幅"
     },
-    "control.torque_filter_s": {
+    "hypothetical.hypothetical_v1.control.torque_filter_s": {
       "value": 0.03,
       "unit": "s",
       "label": "工程假设",
       "ref": "",
       "note": "力矩一阶滤波"
     },
-    "control.torque_rate_limit_nm_per_s": {
+    "hypothetical.hypothetical_v1.control.torque_rate_limit_nm_per_s": {
       "value": 80.0,
       "unit": "N*m/s",
       "label": "工程假设",
       "ref": "",
       "note": "力矩速率限幅"
     },
-    "control.approach_accel_mps2": {
+    "hypothetical.hypothetical_v1.control.approach_accel_mps2": {
       "value": 0.05,
       "unit": "m/s^2",
       "label": "工程假设",
       "ref": "PR #13 scripts/run_cases.py（该实现未并入 main；main 的 #15 入口不读取这些控制项）",
       "note": "接近段速度斜坡 0.05 m/s^2（A3 阈值同量级）；未标定"
     },
-    "caster_rear.z": {
+    "hypothetical.hypothetical_v1.caster_rear.z": {
       "value": 0.01,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.travel_neg": {
+    "hypothetical.hypothetical_v1.caster_rear.travel_neg": {
       "value": -0.008,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.travel_pos": {
+    "hypothetical.hypothetical_v1.caster_rear.travel_pos": {
       "value": 0.008,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.stiffness": {
+    "hypothetical.hypothetical_v1.caster_rear.stiffness": {
       "value": 500.0,
       "unit": "N/m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.springref": {
+    "hypothetical.hypothetical_v1.caster_rear.springref": {
       "value": -0.0008,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.damping": {
+    "hypothetical.hypothetical_v1.caster_rear.damping": {
       "value": 5.0,
       "unit": "N*s/m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.mass": {
+    "hypothetical.hypothetical_v1.caster_rear.mass": {
       "value": 0.05,
       "unit": "kg",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.ixx": {
+    "hypothetical.hypothetical_v1.caster_rear.ixx": {
       "value": 2e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.iyy": {
+    "hypothetical.hypothetical_v1.caster_rear.iyy": {
       "value": 2e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.izz": {
+    "hypothetical.hypothetical_v1.caster_rear.izz": {
       "value": 2e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.radius": {
+    "hypothetical.hypothetical_v1.caster_rear.radius": {
       "value": 0.01,
       "unit": "m",
       "label": "工程假设",
       "ref": "",
       "note": ""
     },
-    "caster_rear.x": {
+    "hypothetical.hypothetical_v1.caster_rear.x": {
       "value": -0.16,
       "unit": "m",
       "label": "工程假设",

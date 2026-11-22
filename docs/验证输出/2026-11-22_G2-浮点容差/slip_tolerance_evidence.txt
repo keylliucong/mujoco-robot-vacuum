@@ -1,0 +1,8 @@
+mu+1e-9
+  ratio= 0.8000000010000001
+  slip_force_exceeded= False
+  slip_in_flags= False
+over_tol
+  ratio= 0.8000016000000001
+  slip_force_exceeded= True
+  slip_in_flags= True

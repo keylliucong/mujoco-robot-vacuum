@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""S23 台账键检查：`param_id = <machine>.<量名>`，全表唯一，xpath 无占位。
+"""S23 台账键检查：`param_id = <machine>.<config_id>.<量名>`（契约 v1.8.4）。
+
+全表唯一，键里的 `config_id` 必须与 `ref` 的 `config_id=` 一致，xpath 无占位。
 
 用法：
     python scripts/check_param_ids.py                       # 默认查 docs/参数溯源.csv
@@ -21,8 +23,12 @@ from pathlib import Path
 
 
 MACHINES = ("own", "prototype", "oomwoo")
-PREFIX_RE = re.compile(r"^(?P<machine>[A-Za-z0-9_-]+)\.(?P<name>\S+)$")
+# config_id 不含点号，量名可含点号（路径式量名，如 geom.chassis.half_x）。
+PREFIX_RE = re.compile(
+    r"^(?P<machine>[A-Za-z0-9_-]+)\.(?P<config_id>[A-Za-z0-9_-]+)\.(?P<name>\S+)$"
+)
 MACHINE_REF_RE = re.compile(r"machine\s*=\s*([A-Za-z0-9_-]+)")
+CONFIG_REF_RE = re.compile(r"config_id\s*=\s*([A-Za-z0-9_-]+)")
 # TODO(...)、N/A(...)、—、- 都是占位，不是"没绑 xpath"。
 PLACEHOLDER_RE = re.compile(r"^\s*(?:TODO\(.*\)|N/A\(.*\)|—|-)\s*$", re.IGNORECASE)
 # 真实指针至少带一个定位分隔符（`file:/...`、`@attr`、`[0]`）。
@@ -64,8 +70,9 @@ def check_ledger_rows(
         if not (match and match.group("machine") in MACHINES):
             match = None
             errors.append(
-                f"{name}:{line}: param_id {param_id!r} 缺少 <machine>. 前缀"
-                f"（首段须为 {'/'.join(MACHINES)}）"
+                f"{name}:{line}: param_id {param_id!r} 不是三段键"
+                f" <machine>.<config_id>.<量名>（首段须为 {'/'.join(MACHINES)}，"
+                "config_id 不得含点号）"
             )
         else:
             machine = match.group("machine")
@@ -93,6 +100,16 @@ def check_ledger_rows(
                 errors.append(
                     f"{name}:{line}: param_id 前缀 {match.group('machine')!r} 与 "
                     f"ref 的 machine={ref_machine} 不一致"
+                )
+
+        config_match = CONFIG_REF_RE.search(ref)
+        if config_match and match:
+            ref_config = config_match.group(1)
+            if ref_config != match.group("config_id"):
+                errors.append(
+                    f"{name}:{line}: param_id 的 config_id "
+                    f"{match.group('config_id')!r} 与 ref 的 "
+                    f"config_id={ref_config} 不一致"
                 )
 
     return errors, machine_counts, ids
@@ -157,7 +174,7 @@ def main(argv: list[str] | None = None) -> int:
         summary = ", ".join(f"{name}={counts.get(name, 0)}" for name in MACHINES)
         print(f"OK {ledger_path}: {len(ledger_ids)} 行（{summary}）")
     else:
-        print(f"OK {ledger_path}: {len(ledger_ids)} 行 param_id 唯一且带机型前缀")
+        print(f"OK {ledger_path}: {len(ledger_ids)} 行 param_id 唯一且为三段键")
     return 0
 
 

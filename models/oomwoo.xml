@@ -1,0 +1,130 @@
+<mujoco model="oomwoo-g25-lip">
+  <!--
+    model=oomwoo-g25-lip; machine=oomwoo; parameter_source=params/oomwoo_g25.json
+
+    machine=oomwoo：makerspet OOMWOO One（开源扫地机），不是原型机，也不是本机实测机型。
+    source=makerspet/oomwoo-cad@266210a47cab931c5891a07c9a29d48388a54b0c
+           + makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd
+    method=公开尺寸链 + lib/ 可信 STEP 的 B-rep 质量属性（轮实体）；无整机 stock STEP，
+           壳体仍用柱体近似；质量/惯量分项见 docs/试跑/参数溯源-oomwoo.csv。
+
+    来源：models/oomwoo.xml、scripts/run_oomwoo.py、docs/试跑/参数溯源-oomwoo.csv
+    三件来自 dryrun/oomwoo-step@ac597d1（PR #17 已关闭，按 G2.5 需要例外引入模型资产）；
+    参数集另立 params/oomwoo_g25.json，避免覆盖 #13 抽入的 params/oomwoo.json。
+
+    G2.5 新增：参数化壳体前下缘 chassis_front_lip（contract v1.8.3 §1 允许新增 geom，
+    前缀 chassis_ 不变）。四个参数走 params/oomwoo_g25.json：
+      front_lip.height_m    前下缘最低点距地高度（默认取机型离地间隙 12.5 mm）
+      front_lip.radius_m    前缘倒角半径（0=直角；几何用 0.2 mm 数值下限）
+      front_lip.compliance  0=rigid / 1=soft（soft 用 front_lip.solref/solimp）
+      front_lip.overhang_m  前缘圆心相对轮轴的前伸量
+    几何约定：胶囊轴线沿 +y，圆心 (overhang, 0, height+geom_radius)；
+    最前点 = overhang + geom_radius，最低点 = height。radius>0 时前缘向前凸出 radius，
+    因此对高台阶仍由前缘（而非圆柱壳体的直角底边）先接触。
+
+    机体系 B = world = chassis 局部系（契约 v1.7 §1.1）：原点 O 在左右驱动轮轴心连线
+    中点在地面的投影，+x 前向、+y 左向、+z 向上。
+    几何：整机 Ø349 × 97（含 18 mm LiDAR 塔），壳体离地 12.5 mm；驱动轮 R=35.805 mm
+    （STEP 轮实体外径 71.61 mm），轮距 235 mm，轮心高 = R。
+    从动轮在车头 +x=0.1445 m（oomwoo-one URDF 的 caster 位置），半径 12.5 mm。
+    OOMWOO 无被动悬挂：has_suspension=0，模型不设 susp_L/R（契约 v1.8.0 §1.2）；
+    真实悬挂行程【缺失】。
+
+    台阶几何由 scripts/run_cases.py 注入，不在此出现（S03）。
+    时间步、积分器、求解器、摩擦锥由 cases/*.json 的 numerics 注入（S02/S15）。
+    数值全部来自 params/oomwoo_g25.json，XML 内不写死物理常数。
+  -->
+  <compiler angle="radian" autolimits="true"/>
+  <option gravity="${gravity.x} ${gravity.y} ${gravity.z}"/>
+
+  <default>
+    <geom condim="${contact.condim}"
+          solref="${contact.solref_timeconst_s} ${contact.solref_dampratio}"
+          solimp="${contact.solimp_d0} ${contact.solimp_d1} ${contact.solimp_d2} ${contact.solimp_d3} ${contact.solimp_d4}"
+          friction="${contact.friction_s} ${contact.friction_t} ${contact.friction_r}"/>
+  </default>
+
+  <asset>
+    <material name="floor" rgba="0.75 0.75 0.75 1"/>
+    <material name="step" rgba="0.85 0.70 0.30 1"/>
+    <material name="shell" rgba="0.20 0.22 0.28 1"/>
+    <material name="rubber" rgba="0.08 0.08 0.08 1"/>
+  </asset>
+
+  <worldbody>
+    <geom name="floor_plane" type="plane" size="0 0 0.05" material="floor"/>
+
+    <body name="chassis" pos="0 0 0" quat="1 0 0 0">
+      <freejoint name="chassis_free"/>
+      <inertial pos="${com.chassis.x} ${com.chassis.y} ${com.chassis.z}"
+                mass="${mass.chassis}"
+                fullinertia="${inertia.chassis.xx} ${inertia.chassis.yy} ${inertia.chassis.zz} ${inertia.chassis.xy} ${inertia.chassis.xz} ${inertia.chassis.yz}"/>
+      <geom name="chassis_shell" type="cylinder"
+            size="${geom.chassis.radius} ${geom.chassis.half_height}"
+            pos="0 0 ${geom.chassis.pos_z}" material="shell"/>
+
+      <!-- G2.5 参数化前下缘：胶囊轴线沿 +y，圆心 (overhang, 0, height+geom_radius)。
+           最低点 = height；radius>0 时最前点 = overhang+radius，先于壳体直角底边接触。
+           摩擦/condim 由 cases/*.json 的 chassis 对 step / floor 的 pair 给出，
+           不在此写 geom 级 pair 摩擦（v1.8.3 / S24）。 -->
+      <geom name="chassis_front_lip" type="capsule"
+            size="${front_lip.geom_radius_m} ${front_lip.half_width_m}"
+            pos="${front_lip.center_x_m} 0 ${front_lip.center_z_m}"
+            quat="0.7071067811865476 0.7071067811865476 0 0"
+            material="shell"
+            solref="${front_lip.solref_timeconst_s} ${front_lip.solref_dampratio}"
+            solimp="${front_lip.solimp_d0} ${front_lip.solimp_d1} ${front_lip.solimp_d2} ${front_lip.solimp_d3} ${front_lip.solimp_d4}"/>
+
+      <!-- 车头从动轮（OOMWOO One 的 caster 在 +x）。绕 +y 滚动，v1 不做万向偏转。 -->
+      <body name="caster_front" pos="${pos.caster.x} ${pos.caster.y} ${pos.caster.z}">
+        <joint name="caster_roll" type="hinge" axis="0 1 0" damping="${caster.roll_damping_nms}"/>
+        <inertial pos="0 0 0" mass="${mass.caster}"
+                  diaginertia="${inertia.caster.xx} ${inertia.caster.yy} ${inertia.caster.zz}"/>
+        <geom name="caster_wheel" type="capsule"
+              size="${geom.caster.radius} ${geom.caster.half_width}"
+              quat="0.7071067811865476 0.7071067811865476 0 0" material="rubber"
+              solref="${contact.caster_solref_timeconst_s} ${contact.solref_dampratio}"/>
+      </body>
+
+      <!-- 左驱动轮组：车轮与 chassis 刚性固连（OOMWOO 无被动悬挂），wheel_L_spin 绕 +y。 -->
+      <body name="wheel_L" pos="0 ${pos.susp.y} ${pos.susp.z}">
+        <joint name="wheel_L_spin" type="hinge" axis="0 1 0"
+               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
+        <inertial pos="0 0 0" mass="${mass.wheel_L}"
+                  diaginertia="${inertia.wheel_L.xx} ${inertia.wheel_L.yy} ${inertia.wheel_L.zz}"/>
+        <geom name="wheel_L_tire" type="capsule"
+              size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
+              quat="0.7071067811865476 0.7071067811865476 0 0"
+              material="rubber"/>
+        <!-- OOMWOO 无被动悬挂：has_suspension=0，不设 susp_L/R（契约 v1.8.0 §1.2）。 -->
+      </body>
+
+      <!-- 右驱动轮组：与左侧镜像，A4 断言两轮心对称且 z=R。 -->
+      <body name="wheel_R" pos="0 -${pos.susp.y} ${pos.susp.z}">
+        <joint name="wheel_R_spin" type="hinge" axis="0 1 0"
+               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
+        <inertial pos="0 0 0" mass="${mass.wheel_R}"
+                  diaginertia="${inertia.wheel_R.xx} ${inertia.wheel_R.yy} ${inertia.wheel_R.zz}"/>
+        <geom name="wheel_R_tire" type="capsule"
+              size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
+              quat="0.7071067811865476 0.7071067811865476 0 0"
+              material="rubber"/>
+        <!-- OOMWOO 无被动悬挂：has_suspension=0，不设 susp_R（契约 v1.8.0 §1.2）。 -->
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <!-- gear=1：执行器力即轮端 N·m；输出列取 -actuator_force（前进为正） -->
+    <motor name="wheel_L" joint="wheel_L_spin" gear="1"
+           ctrlrange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"
+           forcerange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"/>
+    <motor name="wheel_R" joint="wheel_R_spin" gear="1"
+           ctrlrange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"
+           forcerange="-${actuator.torque_limit_nm} ${actuator.torque_limit_nm}"/>
+  </actuator>
+  <custom>
+    <!-- 能力声明（契约 v1.8.0 §1.2）：1 = 有悬挂，0 = 无；与模型两端一致（S22） -->
+    <numeric name="has_suspension" data="0"/>
+  </custom>
+</mujoco>

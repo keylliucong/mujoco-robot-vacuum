@@ -97,13 +97,18 @@ cd /path/to/mujoco-robot-vacuum
 
 ### 台阶高于壳体离地间隙时
 
-`h > floor_clearance`（OOMWOO 是 12.5 mm）时，HUD 固定显示一行警示，并且 **outcome 显示「未覆盖此机理」而不是 cleared/blocked**：
+仅当模型**没有**参数化壳体前下缘（`chassis_front_lip`）时，`h > floor_clearance`
+（OOMWOO 是 12.5 mm）会让 HUD 固定显示一行警示，并且 **outcome 显示「未覆盖此机理」而不是 cleared/blocked**：
 
 ```
 ⚠ h > 12.5 mm：本模型未覆盖壳体前下缘接触，结果不代表通过能力
 ```
 
-原因：OOMWOO 模型没有柔性保险杠/壳体前下缘接触，10 mm 以上先接触的是定高的车头从动轮和刚性壳体，`step_20mm`/`step_30mm` 会卡在台阶立面（`chassis_shell→step` 力很大、`wheel*--step` 从不接触）。这不是"没通过"，是这个模型没覆盖那段机理，不能当通过能力结论。
+原因：旧 OOMWOO 模型没有柔性保险杠/壳体前下缘接触，10 mm 以上先接触的是定高的车头从动轮和刚性壳体，`step_20mm`/`step_30mm` 会卡在台阶立面（`chassis_shell→step` 力很大、`wheel*--step` 从不接触）。这不是"没通过"，是这个模型没覆盖那段机理，不能当通过能力结论。
+
+G2.5 起 `models/oomwoo.xml` 带参数化 `chassis_front_lip`（参数在 `params/oomwoo_g25.json`），
+h > 12.5 mm 时前下缘接触已被建模：viewer 不再显示「未覆盖」，而是按 judge 给出
+`blocked`（典型为 `belly_contact`）或 `cleared`。
 
 ## 两种模式怎么用
 

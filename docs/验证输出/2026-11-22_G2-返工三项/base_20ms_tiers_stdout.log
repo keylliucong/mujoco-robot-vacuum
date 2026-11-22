@@ -1,0 +1,12 @@
+batch_id: g2_final_v2_base_20ms_tiers
+contract_version: 1.9.0
+model: models/baseline.xml sha256=153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+params: proto_v1 machine=prototype missing=['prototype.com.chassis.z']
+capabilities: has_suspension=1
+config: E:\mujoco-robot-vacuum\cases\baseline.json sha256=d900f3aa1f2d9cf4c07beb36d8b1a37997c9a6895db52c460de3eadaf125650b
+scenario_xml_sha256: b6eea90119b10b0843117b83874f84b1696a652f89b9f862f76c82484bbb6b83
+git: {'commit': 'a9850804ae1122cae80b8b5bbaa5694a946b8650', 'branch': 'HEAD', 'dirty': True}
+[step_forward_20mm r1] creep: drift=0.0000 mm residual=0.0000 mm/s redline=False
+[step_forward_20mm r1 base] status=ok passed=False primary=cross_fail flags=cross_fail;bottom_out;torque_limit;slip
+[step_forward_20mm r1 tier_1ms] status=ok passed=False primary=cross_fail flags=cross_fail;bottom_out;torque_limit;slip
+[step_forward_20mm r1 tier_0.5ms] status=ok passed=False primary=cross_fail flags=cross_fail;torque_limit;slip

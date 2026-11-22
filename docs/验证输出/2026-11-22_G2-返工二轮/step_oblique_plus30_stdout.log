@@ -1,0 +1,8 @@
+batch g2_r2_step_oblique_plus30
+contract 1.8.3
+git {'commit': '19d456e75c52d6a0d314337aac9369b29d8230f5', 'branch': 'HEAD', 'dirty': False}
+model models/baseline.xml 153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+config E:\mujoco-robot-vacuum\cases\step_oblique_plus30.json 27e55e357b545678e13e7e80ca46883be9c7999c86afa51b4f6df6cd1ad09136
+scenario_xml_sha256 540875f5625213b9a5abf510f47e8ca6144a74982a9b2f33a6a6200d6d7dbc93
+repeat_consistent True
+conclusion_level mechanism

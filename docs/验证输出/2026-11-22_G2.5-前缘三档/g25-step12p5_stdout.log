@@ -1,0 +1,8 @@
+batch g25-step12p5
+contract 1.8.3
+git {'commit': '50ec740f8b06ab6ddb5abc49882e4b560fc1caab', 'branch': 'HEAD', 'dirty': False}
+model models/oomwoo.xml 0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e
+config E:\mujoco-robot-vacuum\cases\oomwoo_g25_step12p5.json ec16276921a05ba31f7fdbf426c2ecee3b23cdb09b302d343accd7fb1dfc0b85
+scenario_xml_sha256 f2bc567e92c3f3513d48c16e9e2d2115266e5d7cf380b0e72cb2d07e87cfcb93
+repeat_consistent True
+conclusion_level mechanism

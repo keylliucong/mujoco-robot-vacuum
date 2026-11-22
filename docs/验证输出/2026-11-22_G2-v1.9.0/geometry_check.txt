@@ -1,0 +1,2 @@
+models/baseline.xml prototype body_length=0.340000 chassis_min_z=0.040000
+models/oomwoo.xml oomwoo body_length=0.349400 chassis_min_z=0.012500

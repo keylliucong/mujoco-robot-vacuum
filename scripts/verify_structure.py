@@ -14,6 +14,7 @@ import argparse
 import ast
 import csv
 import json
+from collections import defaultdict
 import math
 import os
 import re
@@ -24,7 +25,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-CONTRACT_VERSION = "1.8.0"
+CONTRACT_VERSION = "1.9.0"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
 PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
@@ -103,7 +104,9 @@ FROZEN_SUMMARY = [
 
 FAILURE_ENUM = {
     "topple",
+    "belly_contact",
     "retreat",
+    "cross_fail",
     "timeout",
     "stall",
     "bottom_out",
@@ -174,11 +177,18 @@ def rendered_model():
     return params_io.load_and_render(MODEL_PATH)
 
 
-def outputs_run_json():
-    if not OUTPUTS_DIR.exists():
+def outputs_run_json(root=None):
+    if root is not None:
+        base = Path(root)
+        candidate = base / "run.json"
+        if not candidate.exists():
+            return None, None
+        return candidate, json.loads(read_text(candidate))
+    base = OUTPUTS_DIR
+    if not base.exists():
         return None, None
     candidates = sorted(
-        OUTPUTS_DIR.glob("*/run.json"), key=lambda path: path.stat().st_mtime, reverse=True
+        base.glob("*/run.json"), key=lambda path: path.stat().st_mtime, reverse=True
     )
     if not candidates:
         return None, None
@@ -225,7 +235,16 @@ def check_s01():
 def check_s02():
     bad = []
     for path in py_files():
-        if path.name in ("verify_structure.py", "verify_env.py"):
+        if path.name in (
+            "verify_structure.py",
+            "verify_env.py",
+            "run_oomwoo.py",
+            "generate_g25_lip_params.py",
+            "analyze_g25_contacts.py",
+            "diag_g25_first_contact.py",
+        ):
+            # 这些文件不属于 G2 run_cases 判定路径（自查器自身 / G1 冒烟 / G2.5 工具）。
+            # view.py 不再豁免：它是 UI 常量，但逐行标 `# ui-constant`，仍受本检查。
             continue
         tree = ast.parse(read_text(path))
         lines = read_text(path).splitlines()
@@ -234,7 +253,11 @@ def check_s02():
                 if node.value in (0.0, 1.0):
                     continue
                 line = lines[node.lineno - 1]
-                if "# arithmetic" in line or "# contract-tolerance" in line:
+                if (
+                    "# arithmetic" in line
+                    or "# contract-tolerance" in line
+                    or (path.name == "view.py" and "# ui-constant" in line)
+                ):
                     continue
                 bad.append(f"{path.name}:{node.lineno}={node.value}")
     add(
@@ -287,8 +310,8 @@ def check_s05():
     )
 
 
-def check_s06():
-    run_json_path, _ = outputs_run_json()
+def check_s06(root=None):
+    run_json_path, _ = outputs_run_json(root)
     if run_json_path is None:
         add("S06", None, "SKIP：尚无 outputs，集成测试会跑双向断言")
         return
@@ -344,7 +367,7 @@ def check_s08():
 def check_s09():
     problems = []
     for path in sorted(CASES_DIR.glob("*.json")):
-        if path.name == "_runner.json":
+        if path.name.startswith("_"):
             continue
         config = json.loads(read_text(path))
         unknown = set(config) - CASE_KEYS
@@ -395,7 +418,11 @@ def check_s10():
         rendered = rendered_model()
         import model_checks  # noqa: E402
 
-        ledger_rows = model_checks.load_ledger(LEDGER_PATH)
+        ledger_rows = model_checks.load_ledger(
+            LEDGER_PATH,
+            machine=params_doc["machine"],
+            config_id=params_doc["config_id"],
+        )
         problems.extend(
             model_checks.check_ledger_against_xml(ET.fromstring(rendered["text"]), ledger_rows)
         )
@@ -407,8 +434,8 @@ def check_s10():
         add("S10", True, "台账↔params↔渲染后 XML 数值一致")
 
 
-def check_s11():
-    run_json_path, run_json = outputs_run_json()
+def check_s11(root=None):
+    run_json_path, run_json = outputs_run_json(root)
     if run_json_path is None:
         add("S11", None, "SKIP：尚无 outputs")
         return
@@ -461,8 +488,12 @@ def check_s12(run_integration):
             "--out",
             str(target),
         ]
-        first = subprocess.run(command, capture_output=True, text=True)
-        second = subprocess.run(command, capture_output=True, text=True)
+        first = subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
+        second = subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         ok = first.returncode == 0 and second.returncode != 0
         add("S12", ok, f"首次 rc={first.returncode}，重复 rc={second.returncode}（应非 0）")
     finally:
@@ -519,7 +550,11 @@ def load_model():
     model = mujoco.MjModel.from_xml_string(rendered["text"])
     data = mujoco.MjData(model)
     mujoco.mj_forward(model, data)
-    ledger = model_checks.load_ledger(LEDGER_PATH)
+    ledger = model_checks.load_ledger(
+        LEDGER_PATH,
+        machine=rendered["header"]["machine"],
+        config_id=rendered["params"]["config_id"],
+    )
     return model, data, ET.fromstring(rendered["text"]), ledger
 
 
@@ -615,49 +650,312 @@ def check_s18():
         add("S18", False, "；".join(problems))
 
 
-def check_s19():
+def current_machine_rows():
     _, rows = load_ledger()
-    tol_rows = [row["param_id"] for row in rows if row["verified_tol"].strip()]
-    if tol_rows:
-        add("S19", False, f"存在 verified_tol 但本交付未建不确定度预算表：{tol_rows[:5]}")
-    else:
-        add("S19", True, "全部 verified_tol 为空，预算表约束空转（无实测数值）")
+    machine = rendered_model()["header"]["machine"]
+    prefix = f"{machine}."
+    return [row for row in rows if row["param_id"].startswith(prefix)]
+
+
+def budget_rows():
+    path = REPO_ROOT / "docs" / "不确定度预算.csv"
+    if not path.exists():
+        return None
+    with open(path, newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+S19_BUDGET_COLUMNS = (
+    "unc_id",
+    "param_id",
+    "kind",
+    "component",
+    "value",
+    "status",
+    "note",
+)
+S19_NEGLIGIBLE_KINDS = {"negligible", "ignore", "可忽略"}
+
+
+def verified_tol_value(text):
+    """只把真实数值容差当作容差；TODO(...) 等占位不是容差（S19 的"空"）。"""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
+def budget_index(budget):
+    """按 param_id 建预算索引，同时做 S19 的结构检查（唯一性 / A+B 互斥 / 枚举）。"""
+    problems = []
+    index = defaultdict(list)
+    seen_unc = set()
+    seen_pairs = set()
+    pair_kinds = defaultdict(set)
+    for lineno, row in enumerate(budget, 2):
+        missing = [name for name in S19_BUDGET_COLUMNS if name not in row]
+        if missing:
+            problems.append(f"预算表第 {lineno} 行缺列 {missing}")
+            continue
+        param_id = row["param_id"].strip()
+        kind = row["kind"].strip()
+        component = row["component"].strip()
+        status = row["status"].strip()
+        unc_id = row["unc_id"].strip()
+        if not param_id:
+            problems.append(f"预算表第 {lineno} 行 param_id 为空")
+            continue
+        if kind not in ("A", "B") and kind.lower() not in S19_NEGLIGIBLE_KINDS:
+            problems.append(f"预算表第 {lineno} 行 kind={kind!r} 不是 A/B/可忽略")
+        if status not in ("evaluated", "assumed", "pending"):
+            problems.append(f"预算表第 {lineno} 行 status={status!r} 不是三值")
+        if not unc_id:
+            problems.append(f"预算表第 {lineno} 行 unc_id 为空")
+        elif unc_id in seen_unc:
+            problems.append(f"预算表 unc_id 重复：{unc_id}")
+        seen_unc.add(unc_id)
+        pair_key = (param_id, component, kind)
+        if pair_key in seen_pairs:
+            problems.append(f"预算表同一 param_id/component/kind 重复：{pair_key}")
+        seen_pairs.add(pair_key)
+        pair_kinds[(param_id, component)].add(kind)
+        index[param_id].append(row)
+    for (param_id, component), kinds in sorted(pair_kinds.items()):
+        if "A" in kinds and "B" in kinds:
+            problems.append(
+                f"{param_id} 的分量 {component} 同时进 A 与 B（不得重计）"
+            )
+    return index, problems
+
+
+def s19_is_negligible(budget_rows_for_param):
+    """显式「可忽略」结论：kind/component 标可忽略，或 note 给出 u_B<0.1·u_A 理由。"""
+    for row in budget_rows_for_param:
+        kind = row["kind"].strip().lower()
+        component = row["component"].strip().lower()
+        note = (row.get("note") or "").strip()
+        if kind in S19_NEGLIGIBLE_KINDS or component in S19_NEGLIGIBLE_KINDS:
+            if note:
+                return True
+        if "可忽略" in note and ("u_B<0.1" in note or "<0.1·u_A" in note or "<0.1*u_A" in note):
+            return True
+    return False
+
+
+def s19_coverage(machine, machine_rows, index):
+    """规则①：非【缺失】参数必有 ≥1 个 B 分量或显式可忽略结论。
+
+    预算表完全没有该机型的行时返回 None（数据未覆盖，无法核验），
+    由调用方显式 SKIP；不把「查不到」当 PASS。
+    """
+    machine_ids = [param_id for param_id in index if param_id.startswith(f"{machine}.")]
+    non_missing = [row for row in machine_rows if row["label"].strip() != "缺失"]
+    stats = {
+        "machine_ids": len(machine_ids),
+        "non_missing": len(non_missing),
+        "covered": 0,
+        "negligible": 0,
+    }
+    if not machine_ids:
+        return None, stats
+    uncovered = []
+    for row in non_missing:
+        budget_rows_for_param = index.get(row["param_id"], [])
+        has_b = any(item["kind"].strip() == "B" for item in budget_rows_for_param)
+        if has_b:
+            stats["covered"] += 1
+            continue
+        if s19_is_negligible(budget_rows_for_param):
+            stats["negligible"] += 1
+            continue
+        uncovered.append(row["param_id"])
+    return uncovered, stats
+
+
+def s19_cross_table(all_rows, index):
+    """规则③④：真实 verified_tol 必须有预算行；有 pending 分量时必须为空。"""
+    problems = []
+    by_id = {row["param_id"]: row for row in all_rows}
+    for param_id, budget_rows_for_param in sorted(index.items()):
+        ledger_row = by_id.get(param_id)
+        if ledger_row is None:
+            continue
+        tol = verified_tol_value(ledger_row["verified_tol"])
+        if tol is None:
+            continue
+        if any(item["status"].strip() == "pending" for item in budget_rows_for_param):
+            problems.append(
+                f"{param_id} 有 pending 分量但 verified_tol={ledger_row['verified_tol']}（容差没刻度）"
+            )
+    for ledger_row in all_rows:
+        tol = verified_tol_value(ledger_row["verified_tol"])
+        if tol is not None and ledger_row["param_id"] not in index:
+            problems.append(
+                f"{ledger_row['param_id']} 有真实 verified_tol 但预算表缺行"
+            )
+    return problems
+
+
+def s19_self_test():
+    """用合成两表证明规则①（缺 B）与规则②（pending 却有容差）真的会报警。"""
+    failures = []
+    ledger = [
+        {"param_id": "t.a", "label": "工程假设", "verified_tol": ""},
+        {"param_id": "t.b", "label": "工程假设", "verified_tol": "0.01"},
+    ]
+    budget = [
+        {
+            "unc_id": "u1",
+            "param_id": "t.a",
+            "kind": "B",
+            "component": "cal",
+            "value": "0.1",
+            "status": "pending",
+            "note": "",
+        },
+        {
+            "unc_id": "u2",
+            "param_id": "t.b",
+            "kind": "B",
+            "component": "cal",
+            "value": "0.1",
+            "status": "pending",
+            "note": "",
+        },
+    ]
+    index, structural = budget_index(budget)
+    if structural:
+        failures.append(f"合成正例不应有结构错误：{structural}")
+    uncovered, _ = s19_coverage("t", ledger, index)
+    if uncovered != []:
+        failures.append(f"规则①正例被误报：{uncovered}")
+    # 删掉 t.b 的 B 行后，规则①必须报 t.b
+    only_a = [row for row in budget if row["param_id"] == "t.a"]
+    index_a, _ = budget_index(only_a)
+    uncovered_a, _ = s19_coverage("t", ledger, index_a)
+    if "t.b" not in (uncovered_a or []):
+        failures.append("规则①负例未报警（无 B 分量的非缺失参数）")
+    # pending + 真实 verified_tol 必须报
+    if not s19_cross_table(ledger, index):
+        failures.append("规则②负例未报警（pending 分量却有 verified_tol）")
+    # A/B 同名分量必须报
+    mixed = budget + [
+        {
+            "unc_id": "u3",
+            "param_id": "t.a",
+            "kind": "A",
+            "component": "cal",
+            "value": "1",
+            "status": "evaluated",
+            "note": "",
+        }
+    ]
+    _, mixed_problems = budget_index(mixed)
+    if not any("同时进 A 与 B" in item for item in mixed_problems):
+        failures.append("A/B 重计负例未报警")
+    return failures
+
+
+def check_s19():
+    """S19：打开预算表，检查覆盖、A/B 重计、verified_tol↔pending 联动。
+
+    规则①（非缺失参数有 B 分量）只有在预算表覆盖当前机型时才可判；
+    预算表没有该机型时显式 SKIP，不伪装成 PASS。结构规则③④与自测始终执行。
+    """
+    machine = rendered_model()["header"]["machine"]
+    machine_rows = current_machine_rows()
+    all_rows = load_ledger()[1]
+    budget = budget_rows()
+    if budget is None:
+        add("S19", False, "docs/不确定度预算.csv 不存在，无法核对 S19")
+        return
+    index, structural = budget_index(budget)
+    cross_problems = s19_cross_table(all_rows, index)
+    self_test = s19_self_test()
+    uncovered, stats = s19_coverage(machine, machine_rows, index)
+    b_rows = sum(1 for row in budget if row.get("kind", "").strip() == "B")
+    pending_rows = sum(
+        1 for row in budget if row.get("status", "").strip() == "pending"
+    )
+    placeholder_tol = sum(
+        1
+        for row in all_rows
+        if row["verified_tol"].strip() and verified_tol_value(row["verified_tol"]) is None
+    )
+    problems = structural + cross_problems + self_test
+    if uncovered:
+        problems += [f"规则①：非缺失参数无 B 分量/可忽略行：{pid}" for pid in uncovered[:5]]
+        if len(uncovered) > 5:
+            problems.append(f"规则①另有 {len(uncovered) - 5} 行同类问题")
+    detail = (
+        f"预算表 {len(budget)} 行（B={b_rows}, pending={pending_rows}）/"
+        f"{len(index)} 个 param_id；{machine} 台账 {stats['non_missing']} 行非缺失，"
+        f"有 B 覆盖 {stats['covered']}、可忽略 {stats['negligible']}；"
+        f"verified_tol 占位 {placeholder_tol} 行不计入真实容差；"
+        "可忽略自动判定未实现（预算表无 u_A 列），仅认显式 kind=negligible 行"
+    )
+    if problems:
+        add("S19", False, "；".join(problems[:6]) + f"（{detail}）")
+        return
+    if uncovered is None:
+        add(
+            "S19",
+            None,
+            f"SKIP：规则①未执行——预算表 0 行覆盖 {machine} 机型"
+            f"（{stats['non_missing']} 行非缺失），无法核对 B 分量完整性；"
+            f"规则②③④已执行并自测通过（{detail}）",
+        )
+        return
+    add("S19", True, f"规则①②③④与自测均通过（{detail}）")
 
 
 def check_s20():
-    _, rows = load_ledger()
-    comparison = [row for row in rows if row["verified_tol"].strip()]
+    comparison = [row for row in current_machine_rows() if row["verified_tol"].strip()]
     if comparison:
-        add("S20", False, "存在比对容差但缺 u_sim 三项五要素")
+        add("S20", False, "存在比对容差但 u_sim 三项五要素尚未实现")
     else:
-        add("S20", None, "SKIP：G2 无实测↔仿真比对行，u_sim 最低三项留给 G5")
+        add(
+            "S20",
+            None,
+            "SKIP：当前机型无实测↔仿真比对行；u_sim 三项五要素未实现，需实测数据后留 G5",
+        )
 
 
 def check_s21():
     _, rows = load_ledger()
+    machine = rendered_model()["header"]["machine"]
     ledger = {row["param_id"]: row for row in rows}
     params_doc = json.loads(read_text(PARAMS_PATH))
+    config_id = params_doc["config_id"]
     problems = []
-    needed = ["payload.empty.m", "payload.empty.com_x", "payload.empty.inertia_xx"]
+    needed = [
+        f"{machine}.{config_id}.payload.empty.m",
+        f"{machine}.{config_id}.payload.empty.com_x",
+        f"{machine}.{config_id}.payload.empty.inertia_xx",
+    ]
     for param_id in needed:
         if param_id not in ledger:
             problems.append(f"缺载荷状态行 {param_id}")
     for suffix in ("inertia_xx", "inertia_yy", "inertia_zz"):
-        param_id = f"payload.empty.{suffix}"
+        param_id = f"{machine}.{config_id}.payload.empty.{suffix}"
         if param_id in ledger:
             ref = ledger[param_id]["ref"]
             for token in ("role=", "ref_point=", "axes=", f"config_id={params_doc['config_id']}"):
                 if token not in ref:
                     problems.append(f"{param_id} ref 缺 {token}")
     for path in CASES_DIR.glob("*.json"):
-        if path.name == "_runner.json":
+        if path.name.startswith("_"):
             continue
         config = json.loads(read_text(path))
         match = re.search(r"config_id=([a-z0-9_]+)", config.get("notes", ""))
         if not match:
             problems.append(f"{path.name} notes 缺 config_id")
-        elif match.group(1) != params_doc["config_id"]:
-            problems.append(f"{path.name} config_id 与参数集不一致")
+        elif match.group(1) == params_doc["config_id"]:
+            continue  # 本机型 case，已按 prototype 参数集核对
+        # 其它机型（如 oomwoo_g25）的 case 不属于本次原型参数集，留给对应参数集核对
     add("S21", not problems, "载荷状态成套、参考点/坐标系齐备、case 与参数集同 ID" if not problems else "；".join(problems))
 
 
@@ -743,7 +1041,11 @@ def check_s22():
         problems.append("无悬挂时 run.json.columns 未标 missing=true（S22）")
 
     run_json_path, run_json = outputs_run_json()
-    if run_json and "capabilities" in run_json:
+    if (
+        run_json
+        and "capabilities" in run_json
+        and run_json.get("machine") == rendered_model()["header"]["machine"]
+    ):
         declared = run_json["capabilities"].get("has_suspension")
         missing = run_json.get("columns", {}).get("susp_L_travel_m", {}).get("missing")
         if declared != has_suspension or bool(missing) != (declared == 0):
@@ -753,6 +1055,128 @@ def check_s22():
         "S22",
         not problems,
         "has_suspension=1、行程>0；声明 0 保留关节/写 0 均报警、空列可判"
+        if not problems
+        else "；".join(problems),
+    )
+
+
+def check_s24():
+    """S24（v1.8.3）：逐 contact 三条断言 + 3 分量写进 pair 的负例 + 禁止下沉到 geom。"""
+    if not HAVE_MUJOCO:
+        add("S24", None, "SKIP：需要 MuJoCo 才能读 d.contact[i]")
+        return
+    import run_cases
+
+    problems = []
+    config = json.loads(read_text(CASES_DIR / "baseline.json"))
+    rendered = rendered_model()
+    defaults = json.loads(read_text(CASES_DIR / "_runner.json"))
+    base = mujoco.MjModel.from_xml_string(rendered["text"])
+    scenario = run_cases.build_scenario_xml(
+        rendered["text"], config, run_cases.chassis_front(base), defaults, rendered["params"]
+    )
+    lookup, ordered = run_cases.build_pair_lookup(config, "step")
+    specs = run_cases.friction_expectations(config, "step")
+
+    def assert_all(model, data):
+        names = run_cases.geom_name_table(model)
+        readback = {}
+        for index in range(data.ncon):
+            contact = data.contact[index]
+            name1 = names.get(int(contact.geom1))
+            name2 = names.get(int(contact.geom2))
+            spec = specs.get(frozenset((name1, name2)))
+            if spec is None:
+                continue
+            run_cases.check_s24_contact(contact, spec, f"{name1}--{name2}")
+            readback[lookup.get(frozenset((name1, name2)))] = [
+                float(v) for v in contact.friction
+            ]
+        return readback
+
+    model = mujoco.MjModel.from_xml_string(scenario)
+    data = mujoco.MjData(model)
+    mujoco.mj_forward(model, data)
+    try:
+        readback = assert_all(model, data)
+    except run_cases.ContractError as error:
+        problems.append(f"正例被误判：{error}")
+        readback = {}
+    if "wheel_L--floor" not in readback:
+        problems.append("正例没有覆盖到 wheel_L--floor 的 contact 真值")
+    for key, values in readback.items():
+        if len(values) > 1 and values[0] != values[1]:
+            problems.append(f"{key} 各向异性 {values[:2]}")
+
+    # 负例 ①②：把 geom 的 3 分量写法抄进 pair，必须被 friction[0]!=friction[1] 拦住
+    tree = ET.fromstring(scenario)
+    for pair in tree.iter("pair"):
+        if pair.get("geom1") == "wheel_L_tire" and pair.get("geom2") == "floor_plane":
+            pair.set("friction", "0.8 0.005 0.0001")
+    bad_model = mujoco.MjModel.from_xml_string(ET.tostring(tree, encoding="unicode"))
+    bad_data = mujoco.MjData(bad_model)
+    mujoco.mj_forward(bad_model, bad_data)
+    try:
+        assert_all(bad_model, bad_data)
+        problems.append("3 分量 pair 写法未被 S24 第②条拦住")
+    except run_cases.ContractError:
+        pass
+
+    # 禁止下沉到 geom：轮-台阶 μ 必须留在 pair，且与 geom 默认不同
+    pair_mu = float(config["environment"]["pairs"]["wheel_L--step"]["friction"][0])
+    geom_mu = float(params_io.get_param(rendered["params"], "contact.friction_s")[1]["value"])
+    pair_present = any(
+        pair.get("geom1") == "wheel_L_tire" and pair.get("geom2") == "step"
+        for pair in ET.fromstring(scenario).iter("pair")
+    )
+    if not pair_present:
+        problems.append("wheel_L_tire--step 没有 pair 元素（被下沉到 geom）")
+    if pair_mu == geom_mu:
+        problems.append("轮-台阶 μ 与 geom 默认相同，pair 级区分被合并")
+
+    add(
+        "S24",
+        not problems,
+        f"逐 contact 三条断言通过（{len(readback)} 个接触对）；3 分量 pair 被拦；轮-台阶 μ={pair_mu} 留在 pair（geom={geom_mu}）"
+        if not problems
+        else "；".join(problems),
+    )
+
+
+def check_s25():
+    """S25（v1.9.0）：契约枚举 / 取名顺序与代码三处一致，展示标签不入输出列。"""
+    import judge
+    import run_cases
+
+    problems = []
+    doc = read_text(REPO_ROOT / "docs" / "契约" / "G2-接口契约.md")
+    enum_match = re.search(r"枚举冻结（v1\.9\.0 起 12 项）：`([^`]+)`", doc)
+    order_match = re.search(
+        r"（v1\.9\.0 起写进契约，与 `judge\.FAILURE_PRIORITY` 同序）：`([^`]+)`", doc
+    )
+    if not enum_match or not order_match:
+        problems.append("契约缺 v1.9.0 枚举/取名顺序句")
+    else:
+        contract_enum = enum_match.group(1).split()
+        contract_order = [part.strip() for part in order_match.group(1).split("→")]
+        if len(contract_enum) != 12:
+            problems.append(f"契约枚举 {len(contract_enum)} 项（应为 12）")
+        if set(contract_enum) != FAILURE_ENUM:
+            problems.append("契约枚举 != verify_structure.FAILURE_ENUM")
+        if set(contract_enum) != set(run_cases.FAILURE_ENUM):
+            problems.append("契约枚举 != run_cases.FAILURE_ENUM")
+        if set(contract_enum) != set(judge.FAILURE_PRIORITY):
+            problems.append("契约枚举 != judge.FAILURE_PRIORITY")
+        if tuple(contract_order) != judge.FAILURE_PRIORITY:
+            problems.append("契约取名顺序 != judge.FAILURE_PRIORITY")
+    for label in ("cleared", "blocked", "lift_fail", "slip_stall"):
+        if label in run_cases.SUMMARY_COLUMNS or label in run_cases.TIMESERIES_COLUMNS:
+            problems.append(f"展示标签 {label!r} 进了输出列")
+
+    add(
+        "S25",
+        not problems,
+        "契约 12 枚举 == run_cases == judge，取名顺序一致；展示标签未入输出列"
         if not problems
         else "；".join(problems),
     )
@@ -788,7 +1212,7 @@ def synthetic_case(flags, bottom_out):
         columns[name] = [0.0] * n
     columns["quat_w"] = [1.0] * n
     columns["pos_x_m"] = [0.15 * t for t in columns["t_s"]]
-    columns["pos_z_m"] = [0.0] * n
+    columns["pos_z_m"] = [0.02 if t >= 0.4 else 0.0 for t in columns["t_s"]]
     columns["pitch_rad"] = [0.0] * n
     columns["vel_x_mps"] = [0.15] * n
     columns["wheel_L_speed_radps"] = [0.15 / 0.035] * n
@@ -834,6 +1258,12 @@ def synthetic_case(flags, bottom_out):
         "settle_end_s": 0.5,
         "wheel_radius_m": 0.035,
         "step_height_m": 0.02,
+        "platform_height_tol_m": 0.006,
+        "step_front_m": 0.16,
+        "step_half_width_m": 0.6,
+        "heading_rad": 0.0,
+        "com_offset_x_m": 0.0,
+        "contact_gap_tol_s": 0.05,
         "susp_range_m": 0.006,
         "susp_bottom_rel": 0.999,
         "torque_limit_L_nm": 0.8,
@@ -843,6 +1273,7 @@ def synthetic_case(flags, bottom_out):
         "climb_height_ratio": 0.9,
         "climb_hold_s": 0.2,
         "has_suspension": True,
+        "pair_friction": {key: 0.8 for key in pairs},
         "wheel_step_pairs": ["wheel_L--step", "wheel_R--step"],
         "bottom_out_pairs": ["chassis--step"],
         "all_pairs": pairs,
@@ -873,11 +1304,172 @@ def check_judge_unit_tests():
         problems.append("active 全 0 但力列非空未报错")
     except judge.JudgeError:
         pass
-    add("抽查4/6", not problems, "无接触双断言与 fail_on 单点生效" if not problems else "；".join(problems))
+
+    # 负例 1：pitch=50° 必须触发 topple（单位必须是度；v1.8.3 返工阻断 1）
+    tilted = {name: list(values) for name, values in columns.items()}
+    tilted["pitch_rad"] = [math.radians(50.0)] * len(tilted["t_s"])
+    topple_params = dict(params)
+    topple_params["fail_on"] = list(params["fail_on"]) + ["topple"]
+    verdict_tilt = judge.judge_case(tilted, topple_params)
+    if verdict_tilt["passed"] != 0 or verdict_tilt["failure_primary"] != "topple":
+        problems.append(
+            f"pitch=50° 未触发 topple：passed={verdict_tilt['passed']} "
+            f"primary={verdict_tilt['failure_primary']} "
+            f"pitch_max_deg={verdict_tilt['metrics']['pitch_max_deg']}"
+        )
+    if not 49.0 <= float(verdict_tilt["metrics"]["pitch_max_deg"]) <= 51.0:
+        problems.append(f"pitch_max_deg 不是度：{verdict_tilt['metrics']['pitch_max_deg']}")
+    if "timeout" in verdict_tilt["failure_flags"]:
+        problems.append(f"topple 仍被追加 timeout：{verdict_tilt['failure_flags']}")
+
+    # 负例 2：末帧回到地面、台阶接触中断（斜向绕行形态）不得 passed
+    detour = {name: list(values) for name, values in columns.items()}
+    for i, t in enumerate(detour["t_s"]):
+        if t >= 1.0:
+            detour["pos_z_m"][i] = 0.0
+            detour["pos_y_m"][i] = 1.2
+            for prefix in ("wheel_L--step", "wheel_R--step"):
+                detour[f"contact_{prefix}_active"][i] = "0"
+                detour[f"contact_{prefix}_normal_n"][i] = ""
+                detour[f"contact_{prefix}_tangent_n"][i] = ""
+                detour[f"contact_{prefix}_count"][i] = "0"
+    verdict_detour = judge.judge_case(detour, params)
+    if verdict_detour["passed"] != 0 or "cross_fail" not in verdict_detour["failure_flags"]:
+        problems.append(
+            f"绕行/末帧落地仍 passed={verdict_detour['passed']} "
+            f"flags={verdict_detour['failure_flags']}"
+        )
+    reasons = verdict_detour["metrics"].get("crossing", {}).get("cross_fail_reasons", [])
+    if not reasons:
+        problems.append("cross_fail 没有逐项子条件 metrics")
+
+    # 负例 3：末帧一离开台阶、另一轮仍在地面（骑棱边），但高度够平台——不得算完成
+    one_wheel = {name: list(values) for name, values in columns.items()}
+    n = len(one_wheel["t_s"])
+    floor_pairs = ["wheel_L--floor", "wheel_R--floor"]
+    for prefix in floor_pairs:
+        for suffix, fill in (
+            ("_active", "0"),
+            ("_normal_n", ""),
+            ("_tangent_n", ""),
+            ("_count", "0"),
+        ):
+            one_wheel[f"contact_{prefix}{suffix}"] = [fill] * n
+    one_wheel_params = dict(params)
+    one_wheel_params["all_pairs"] = list(params["all_pairs"]) + floor_pairs
+    one_wheel_params["pair_friction"] = dict(params["pair_friction"])
+    for key in floor_pairs:
+        one_wheel_params["pair_friction"][key] = 0.8
+    for i, t in enumerate(one_wheel["t_s"]):
+        if t >= 1.0:
+            one_wheel["pos_z_m"][i] = 0.02
+            one_wheel["contact_wheel_L--step_active"][i] = "1"
+            one_wheel["contact_wheel_R--step_active"][i] = "0"
+            one_wheel["contact_wheel_R--step_normal_n"][i] = ""
+            one_wheel["contact_wheel_R--step_tangent_n"][i] = ""
+            one_wheel["contact_wheel_R--step_count"][i] = "0"
+            one_wheel["contact_wheel_R--floor_active"][i] = "1"
+            one_wheel["contact_wheel_R--floor_normal_n"][i] = "5.0"
+            one_wheel["contact_wheel_R--floor_tangent_n"][i] = "0.0"
+            one_wheel["contact_wheel_R--floor_count"][i] = "1"
+    verdict_edge = judge.judge_case(one_wheel, one_wheel_params)
+    edge_cross = verdict_edge["metrics"].get("crossing") or {}
+    if edge_cross.get("ended_on_platform") is not False:
+        problems.append(
+            f"骑棱边（一轮台阶一轮地面）仍算 ended_on_platform：{edge_cross}"
+        )
+    if "not_ended_on_platform" not in edge_cross.get("cross_fail_reasons", []):
+        problems.append("骑棱边未记入 cross_fail 子条件")
+
+    # 负例 3b：all_pairs 没有 floor 对时，不能把「查不到地面接触」当成「末帧离地」；
+    # 否则一轮在上平台、另一轮仍在地面也会被 ended_on_platform 放行。
+    no_floor_columns = {name: list(values) for name, values in one_wheel.items()}
+    verdict_no_floor = judge.judge_case(no_floor_columns, params)
+    no_floor_cross = verdict_no_floor["metrics"].get("crossing") or {}
+    if no_floor_cross.get("no_floor_contact_at_end") is not False:
+        problems.append("缺 floor 对时把「查不到」当「末帧无地面接触」")
+    if no_floor_cross.get("ended_on_platform") is not False:
+        problems.append(
+            f"缺 floor 对时骑棱边仍算 ended_on_platform：{no_floor_cross}"
+        )
+
+    # 负例 4：|Ft|/Fn = μ + 1e-9 落在浮点容差内，不得触发 slip_force_exceeded
+    friction_edge = {name: list(values) for name, values in columns.items()}
+    for i in range(len(friction_edge["t_s"])):
+        if friction_edge["contact_wheel_L--step_active"][i] == "1":
+            # 合成时程 normal=5.0 → tangent=5*(0.8+1e-9)=4.000000005，比值 0.800000001
+            friction_edge["contact_wheel_L--step_tangent_n"][i] = "4.000000005"
+    verdict_friction = judge.judge_case(friction_edge, params)
+    if verdict_friction["metrics"].get("slip_force_exceeded") is not False:
+        problems.append(
+            "|Ft|/Fn=μ+1e-9 仍触发 slip_force_exceeded："
+            f"{verdict_friction['metrics'].get('slip_force_exceeded')}"
+        )
+    if "slip" in verdict_friction["failure_flags"]:
+        problems.append(
+            f"|Ft|/Fn=μ+1e-9 仍记 slip：flags={verdict_friction['failure_flags']}"
+        )
+    # 正对照：超出容差（0.8000016 > 0.8*(1+1e-6)）仍必须触发，防止容差把真实打滑吞掉
+    friction_over = {name: list(values) for name, values in columns.items()}
+    for i in range(len(friction_over["t_s"])):
+        if friction_over["contact_wheel_L--step_active"][i] == "1":
+            friction_over["contact_wheel_L--step_tangent_n"][i] = "4.000008"
+    verdict_over = judge.judge_case(friction_over, params)
+    if verdict_over["metrics"].get("slip_force_exceeded") is not True:
+        problems.append("|Ft|/Fn 超容差仍未触发 slip_force_exceeded")
+
+    # 抽查19：belly_contact 默认只诊断；加入 fail_on 后结论必须翻转
+    # （cross_fail 已由 §3.1 越线条件直接令 passed=0，不靠 fail_on 才生效）
+    belly = {name: list(values) for name, values in columns.items()}
+    for i, t in enumerate(belly["t_s"]):
+        for prefix in ("wheel_L--step", "wheel_R--step"):
+            belly[f"contact_{prefix}_active"][i] = "0"
+            belly[f"contact_{prefix}_normal_n"][i] = ""
+            belly[f"contact_{prefix}_tangent_n"][i] = ""
+            belly[f"contact_{prefix}_count"][i] = "0"
+        active = "1" if t >= 0.2 else "0"
+        belly["contact_chassis--step_active"][i] = active
+        belly["contact_chassis--step_normal_n"][i] = "5.0" if active == "1" else ""
+        belly["contact_chassis--step_tangent_n"][i] = "0.5" if active == "1" else ""
+        belly["contact_chassis--step_count"][i] = "1" if active == "1" else "0"
+    # 让「双轮整窗未触台阶」的时程仍满足跨越几何：补一对始终 inactive 的
+    # floor 接触对，走“末帧无地面接触且高度够平台”这一支，避免被 cross_fail
+    # 抢先判负（本例只验 belly_contact 的 fail_on 翻转）。
+    floor_pairs = ["wheel_L--floor", "wheel_R--floor"]
+    belly_params = dict(params)
+    belly_params["all_pairs"] = list(params["all_pairs"]) + floor_pairs
+    belly_params["pair_friction"] = dict(params["pair_friction"])
+    for key in floor_pairs:
+        belly_params["pair_friction"][key] = 0.8
+        for suffix, fill in (
+            ("_active", "0"),
+            ("_normal_n", ""),
+            ("_tangent_n", ""),
+            ("_count", "0"),
+        ):
+            belly[f"contact_{key}{suffix}"] = [fill] * len(belly["t_s"])
+    verdict_belly = judge.judge_case(belly, belly_params)
+    if verdict_belly["passed"] != 1 or "belly_contact" not in verdict_belly["failure_flags"]:
+        problems.append(
+            f"belly_contact 默认应只诊断：passed={verdict_belly['passed']} "
+            f"flags={verdict_belly['failure_flags']}"
+        )
+    belly_params["fail_on"] = list(params["fail_on"]) + ["belly_contact"]
+    verdict_belly_fail = judge.judge_case(belly, belly_params)
+    if (
+        verdict_belly_fail["passed"] != 0
+        or verdict_belly_fail["failure_primary"] != "belly_contact"
+    ):
+        problems.append(
+            f"belly_contact 入 fail_on 未翻转：passed={verdict_belly_fail['passed']} "
+            f"primary={verdict_belly_fail['failure_primary']}"
+        )
+
+    add("抽查4/6/19", not problems, "pitch 单位=度（50° 触发 topple）、绕行/骑棱边不通过、无接触双断言、fail_on 单点生效、|Ft|/Fn=μ+1e-9 不触发且超容差触发、belly_contact 入 fail_on 翻转" if not problems else "；".join(problems))
 
 
-def check_run_outputs():
-    run_json_path, run_json = outputs_run_json()
+def check_run_outputs(root=None):
+    run_json_path, run_json = outputs_run_json(root)
     if run_json_path is None:
         add("抽查5/7/8", None, "SKIP：尚无 outputs，--run 会生成并复核")
         return
@@ -911,7 +1503,9 @@ def integration_checks():
             "--repeat",
             "2",
         ]
-        result = subprocess.run(command, capture_output=True, text=True)
+        result = subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         ok = result.returncode == 0
         run_json = json.loads(read_text(base_out / "run.json")) if ok else {}
         add(
@@ -919,6 +1513,46 @@ def integration_checks():
             ok and run_json.get("repeat", {}).get("consistent") is True,
             "--repeat 2 两次 timeseries 与判定逐位一致" if ok else f"baseline 运行失败 rc={result.returncode}: {result.stderr[-300:]}",
         )
+
+        topple_out = temp_root / "topple"
+        topple_result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPTS_DIR / "run_cases.py"),
+                "--config",
+                str(CASES_DIR / "step_forward_60mm_topple.json"),
+                "--out",
+                str(topple_out),
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        topple_ok = False
+        detail = f"topple 负例运行失败 rc={topple_result.returncode}: {topple_result.stderr[-300:]}"
+        if topple_result.returncode == 0:
+            topple_json = json.loads(read_text(topple_out / "run.json"))
+            verdict = topple_json["cases"][0]["repeats"][0]["tiers"][0]["verdict"]
+            pitch = verdict["metrics"]["pitch_max_deg"]
+            topple_ok = (
+                verdict["status"] == "ok"
+                and verdict["passed"] is False
+                and verdict["failure_primary"] == "topple"
+                and pitch is not None
+                and float(pitch) > 25.0
+            )
+            detail = (
+                f"60 mm 台阶实跑 pitch_max={pitch:.2f}°，"
+                f"passed={verdict['passed']} primary={verdict['failure_primary']}"
+                if topple_ok
+                else f"未触发 topple：pitch={pitch} verdict={verdict}"
+            )
+        add("抽查9(topple)", topple_ok, detail)
+
+        check_s06(base_out)
+        check_s11(base_out)
+        check_run_outputs(base_out)
 
         height_config = json.loads(read_text(CASES_DIR / "baseline.json"))
         height_config["case_id"] = "step_forward_40mm"
@@ -938,6 +1572,8 @@ def integration_checks():
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         same_model = True
         if height_result.returncode == 0:
@@ -986,11 +1622,16 @@ def main():
     check_s20()
     check_s21()
     check_s22()
+    check_s24()
+    check_s25()
     check_negative_configs()
     check_judge_unit_tests()
-    check_run_outputs()
     if args.run:
         integration_checks()
+    else:
+        check_s06()
+        check_s11()
+        check_run_outputs()
 
     failed = 0
     for item in RESULTS:

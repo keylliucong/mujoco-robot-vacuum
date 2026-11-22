@@ -1,0 +1,5 @@
+pitch_set_deg=50.0
+pitch_max_deg= 50.0
+passed= False
+failure_primary= topple
+failure_flags= ['topple', 'bottom_out', 'timeout']

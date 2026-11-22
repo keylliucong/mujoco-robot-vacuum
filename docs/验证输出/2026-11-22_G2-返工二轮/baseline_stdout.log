@@ -1,0 +1,8 @@
+batch g2_r2_baseline
+contract 1.8.3
+git {'commit': '19d456e75c52d6a0d314337aac9369b29d8230f5', 'branch': 'HEAD', 'dirty': False}
+model models/baseline.xml 153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+config E:\mujoco-robot-vacuum\cases\baseline.json d900f3aa1f2d9cf4c07beb36d8b1a37997c9a6895db52c460de3eadaf125650b
+scenario_xml_sha256 b6eea90119b10b0843117b83874f84b1696a652f89b9f862f76c82484bbb6b83
+repeat_consistent True
+conclusion_level mechanism
