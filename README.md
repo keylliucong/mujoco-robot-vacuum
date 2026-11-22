@@ -12,6 +12,8 @@
 
 Windows 项目级环境已用 Python 3.13.1 和 MuJoCo 4.0.1 跑通；接触力读数已用 `mj_contactForce` 校验（平地静置、30° 斜面静置、密度翻倍三档工况 × 金字塔/椭圆两种摩擦锥，法向/切向/竖直分量误差均小于 0.001%），见[接触力读数校验](docs/接触力读数校验.md)。重建步骤见[仿真环境安装与版本记录](docs/仿真环境安装与版本.md)。扫地机整机模型待建。
 
+基准机型 oomwoo 的参考参数集已归档为 [params/oomwoo.json](params/oomwoo.json)，假设机型参数集为 [params/hypothetical.json](params/hypothetical.json)。两者从 PR #13 抽入，逐项带来源标签、结构符合 `scripts/params_io.py`，但**尚未接入** main 的 `models/baseline.xml`（该模型是 #15 的 `machine=prototype` 基线）；参数键与 #13 模型的对应关系见[映射存档](docs/试验/基准机型/oomwoo-模型映射-来自PR13.md)。仿真侧判据裁定原文见[口径裁定记录](docs/判据/口径裁定记录.md)。
+
 下一阶段用通用原型跑通三类工况与参数扫描。本机建模和独立验证依赖目标机型及 CAD、质量/质心/惯量、轮系与悬挂参数、轮端扭矩、摩擦和实测试验。
 
 - [越障动力学 PRD](docs/越障动力学PRD.md)定义首版范围、验收标准和 arXiv 等文献来源。

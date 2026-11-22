@@ -1,0 +1,54 @@
+=== MuJoCo contact force readout check ===
+Python:                     3.13.1
+MuJoCo:                     4.0.1
+NumPy:                      2.5.5
+Executable:                 E:\mujoco-robot-vacuum\.venv\Scripts\python.exe
+Platform:                   Windows-11-10.0.26200-SP0
+Git SHA:                    ddf0d57ab498ea649206837e1bd75b2ce9aac758
+gravity:                    9.81 m/s^2, timestep=0.0005 s
+error limit:                1.0% (normal force vs m*g)
+force source:               mujoco.mj_contactForce only (contact frame; 0=normal, 1-2=tangential, 3-5=torque)
+efc_force:                  excluded; under pyramidal cone it is an edge
+                            coefficient, not a force
+
+cone comparison (this run, flat resting sphere):
+  elliptic   Fn=41.092031909 N (error +0.000000%)
+  pyramidal  Fn=41.092031909 N (error +0.000000%)
+  difference between cones: 0.000000% of m*g
+  Why this project uses mj_contactForce for every output column:
+  - it returns the actual contact wrench in the contact frame (N, N*m);
+  - efc_force is a solver-row quantity and depends on cone type; under
+    pyramidal it is an edge coefficient, so it cannot be reported as force;
+  - flat static contact does not exercise tangential allocation, so the
+    two cones differ only at numerical round-off here; slope/dynamic cases
+    are outside this check.
+
+--- case=flat_sphere  cone=elliptic (mjCONE id=1) ---
+model.opt.cone:             1 (expected 1)
+model.opt.timestep:         0.0005 s
+mass (model.body_mass):     4.188790 kg
+m*g:                        41.092032 N
+sample steps:               100, contacts per sample 1..1
+geom1/geom2:                floor/ball  (force positive on geom2)
+contact normal (world):     [ 0.000000  0.000000  1.000000]
+Fn  measured (sum res[0]):  41.092031909 N
+Fn  error:                  +0.000000 %
+Fz  world (expect m*g):     41.092031909 N (+0.000000 %)
+Ft  measured (expect 0):    0.000e+00 N
+max |torque|:               0.000e+00 N*m
+residual |v|:               1.198e-13 m/s
+center drift (sample):      0.000000 mm
+penetration:                0.000246 mm
+warning.number nonzero:     0
+finite:                     True
+check cone           OK
+check geom_order     OK
+check ncon           OK
+check normal         OK
+check tangential     OK
+check settled        OK
+check penetration    OK
+check warnings       OK
+check finite         OK
+check torque         OK
+RESULT:                     OK
