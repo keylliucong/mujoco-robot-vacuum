@@ -796,15 +796,14 @@ def evaluate_case(rows: list[dict], case: dict, cfg: dict, params: dict,
     # A3：接近段加速度
     a3 = {"result": "na", "measured": None, "threshold": None}
     t_a3_start = t_drive_start + 0.5
-    t_a3_end = t_trigger if t_trigger is not None else float(times[-1])
-    if not is_step:
-        t_a3_end = float(times[-1])
+    t_a3_end = (t_trigger - 0.1) if t_trigger is not None else float(times[-1]) - 0.1
     if t_a3_end - t_a3_start >= 0.2:
         sel = np.where((times >= t_a3_start) & (times <= t_a3_end))[0]
         if sel.size >= 10:
             n = max(1, int(round(float(judge["A3"]["smooth_window_s"]) /
                                   float(model.opt.timestep))))
-            acc = np.gradient(_smooth(vx[sel], n), times[sel])
+            # 先对整条 vx 平滑，再取窗口，避免卷积边缘伪峰
+            acc = np.gradient(_smooth(vx, n)[sel], times[sel])
             value = float(np.max(np.abs(acc)))
             limit = float(judge["A3"]["accel_limit_mps2"])
             a3 = _a_result(value, limit, value <= limit)
