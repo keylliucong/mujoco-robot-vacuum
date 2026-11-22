@@ -2,7 +2,7 @@
 
 - 日期：2026-11-22
 - 任务分支：`dryrun/oomwoo-step`
-- 基线提交（Windows 实跑）：`206b05ad5d6c74920d253a979f841bc95d7226b3`
+- 基线提交（Windows 实跑）：`130e551eb9d99d110c69fcd32033640207993c1a`
 - 契约版本：`1.8.1`（v1.8.0 能力声明 + 本轮评审返工；判据集变更见文首评审返工对照表）
 - 本报告随后续文档提交更新；所有仿真数字对应上面的提交，不是报告自身的提交
 - 输入：`makerspet/oomwoo-cad@266210a47cab931c5891a07c9a29d48388a54b0c`、`makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd`
@@ -39,7 +39,7 @@
 | 2 STEP → 几何 | 部件级 + 公开尺寸链完成 | 本报告 §3 | 整机 CAD 全局系不存在 |
 | 3 几何 → MJCF | 完成（2 处试跑补丁 + 能力声明） | `models/oomwoo.xml`、`params/oomwoo.json` | `model_checks` 只认 box；无悬挂按 v1.8.0 声明 |
 | 4 工况 → runner → judge | 完成 4 配置 + 斜面观测 | Windows `outputs/oomwoo-*-win/` | 契约无 slope 工况；台阶注入降高 |
-| 5 双机执行 | 完成 | Windows worktree，SHA `206b05ad5d6c74920d253a979f841bc95d7226b3` | 无 |
+| 5 双机执行 | 完成 | Windows worktree，SHA `130e551eb9d99d110c69fcd32033640207993c1a` | 无 |
 | 6 一致性 | 完成 | 同机重复逐位一致 | 跨 Mac/Windows 非逐位一致（记录） |
 | 7 报告 | 本文件 | `docs/试跑/` | — |
 
@@ -48,14 +48,14 @@
 | 项 | Mac（只编辑/推导/提交） | Windows（只跑已推送提交） |
 | --- | --- | --- |
 | 位置 | `/Users/liucong/orca/workspaces/mujoco_/pilot-rework`（git worktree） | `E:\mujoco-robot-vacuum\.tools\worktrees\pr17-rework`（git worktree） |
-| 提交 | `206b05ad5d6c74920d253a979f841bc95d7226b3`（评审返工提交） | `206b05ad5d6c74920d253a979f841bc95d7226b3`（detached） |
+| 提交 | `130e551eb9d99d110c69fcd32033640207993c1a`（评审返工提交） | `130e551eb9d99d110c69fcd32033640207993c1a`（detached） |
 | Python | 3.13.18（CAD venv） | 3.13.1（项目 `.venv`） |
 | MuJoCo | 4.0.1（仅本地预检） | 4.0.1 |
 | NumPy | 2.5.5 | 2.5.5 |
 | CAD 内核 | `cadquery-ocp 7.9.3.1.1`（OCCT 7.9.3）+ `vtk 9.6.2` | 未安装，不跑 CAD |
 | 平台 | macOS 27.2.1 arm64 | Windows 11（`platform` 见 `run.json`） |
 
-Windows 使用独立 worktree，避免与其他 worker 共用 `E:\mujoco-robot-vacuum` 工作区；Python 仍调用主目录 `.venv`。每次 `run.json` 记录 `git.commit=206b05ad5d6c74920d253a979f841bc95d7226b3`、`git.branch=HEAD`、`git.dirty=false`。
+Windows 使用独立 worktree，避免与其他 worker 共用 `E:\mujoco-robot-vacuum` 工作区；Python 仍调用主目录 `.venv`。每次 `run.json` 记录 `git.commit=130e551eb9d99d110c69fcd32033640207993c1a`、`git.branch=HEAD`、`git.dirty=false`。
 
 ## 2. 输入与来源可信度分级
 
@@ -283,7 +283,7 @@ S22 True has_suspension=0，模型内无 susp_* 关节/执行器
 
 台阶由 `run_cases.build_scenario_xml` 注入，注入后的 XML hash 记在 `run.json.scenario_xml_sha256`。所有 step 案例用 `edge_radius_m=0`：见 §7 的“台阶注入降高”缺陷，带 R3 时实际平台只有 7 mm，会把 10 mm 工况偷偷改成 7 mm。
 
-### 6.2 Windows 结果（SHA `206b05ad5d6c74920d253a979f841bc95d7226b3`，`--repeat 2`）
+### 6.2 Windows 结果（SHA `130e551eb9d99d110c69fcd32033640207993c1a`，`--repeat 2`）
 
 | case_id | status | passed | failure_primary | failure_flags | t_trigger s | t_wheel_touch s | t_climb s | advance m | torque_max N·m | contact_max N（数值峰值） |
 | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -431,9 +431,9 @@ OOMWOO 的从动轮在车头 +0.1445 m，r=12.5 mm，定高铰；壳体离地 12
 ```powershell
 Set-Location E:\mujoco-robot-vacuum
 git fetch origin dryrun/oomwoo-step
-git worktree add --detach .tools\worktrees\pr17-rework 206b05ad5d6c74920d253a979f841bc95d7226b3
+git worktree add --detach .tools\worktrees\pr17-rework 130e551eb9d99d110c69fcd32033640207993c1a
 Set-Location .tools\worktrees\pr17-rework
-git rev-parse HEAD    # 206b05ad5d6c74920d253a979f841bc95d7226b3
+git rev-parse HEAD    # 130e551eb9d99d110c69fcd32033640207993c1a
 git status --short    # 空
 E:\mujoco-robot-vacuum\.venv\Scripts\python.exe -V   # Python 3.13.1
 E:\mujoco-robot-vacuum\.venv\Scripts\python.exe -c "import mujoco,numpy;print(mujoco.__version__, numpy.__version__)"  # 4.0.1 2.5.5
@@ -463,7 +463,7 @@ cd /Users/liucong/orca/workspaces/mujoco_/pilot-rework
 git add … && git push origin dryrun/oomwoo-step
 ```
 
-Mac 只做编辑、STEP 质量属性、模型/台账生成与提交；MuJoCo 本地预检用同一份 4.0.1，但报告数字以 Windows `206b05ad5d6c74920d253a979f841bc95d7226b3` 为准。
+Mac 只做编辑、STEP 质量属性、模型/台账生成与提交；MuJoCo 本地预检用同一份 4.0.1，但报告数字以 Windows `130e551eb9d99d110c69fcd32033640207993c1a` 为准。
 
 ## 9. 产物清单
 
