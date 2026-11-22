@@ -1,0 +1,78 @@
+param_id,xpath,value,unit,label,ref,verified_by,verified_delta,verified_tol
+m_dry,TODO(试验标定),TODO(试验标定),kg,缺失,machine=own; config_id=unloaded; docs/不确定度预算.csv（m_dry）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+m_full,TODO(试验标定),TODO(试验标定),kg,缺失,machine=own; config_id=sealed_full_water; docs/不确定度预算.csv（m_dry）；状态: 测量方案已定、待测；payload=sealed_full_water; vent=yes; dust=0.5g_cm3; draft=1,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+m_ballast,TODO(试验标定),TODO(试验标定),kg,缺失,machine=own; config_id=equiv_ballast; docs/不确定度预算.csv（m_ballast）；状态: 测量方案已定、待测；最终锁死值=m_full−m_dry（待实测）；设计点 0.50 kg 仅【工程假设】、不得作 G6 边界条件,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+com_x,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; config_id=unloaded; axes=B; docs/不确定度预算.csv（com_x）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+com_y,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; config_id=unloaded; axes=B; docs/不确定度预算.csv（com_x）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+com_z,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; config_id=unloaded; axes=B; docs/不确定度预算.csv（com_x）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+com_ballast,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; config_id=equiv_ballast; axes=B; docs/不确定度预算.csv（m_ballast）；状态: 测量方案已定、待测；最终锁死值=m_full−m_dry（待实测）,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+com_full_x,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; config_id=sealed_full_water; axes=B; docs/不确定度预算.csv（com_x）；状态: 测量方案已定、待测；payload=sealed_full_water; vent=yes; dust=0.5g_cm3; draft=1,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+com_full_z,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; config_id=sealed_full_water; axes=B; docs/不确定度预算.csv（com_x）；状态: 测量方案已定、待测；payload=sealed_full_water; vent=yes; dust=0.5g_cm3; draft=1,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+Ixx,TODO(试验标定),TODO(试验标定),kg·mm²,缺失,machine=own; config_id=unloaded; ref_point=body_CoM; axes=B; method=over_CoM; d<=5mm; docs/不确定度预算.csv（Ixx）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+Iyy,TODO(试验标定),TODO(试验标定),kg·mm²,缺失,machine=own; config_id=unloaded; ref_point=body_CoM; axes=B; method=over_CoM; d<=5mm; docs/不确定度预算.csv（Ixx）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+Izz,TODO(试验标定),TODO(试验标定),kg·mm²,缺失,machine=own; config_id=unloaded; ref_point=body_CoM; axes=B; method=over_CoM; d<=5mm; docs/不确定度预算.csv（Ixx）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+Ixy,TODO(试验标定),0,kg·mm²,待标定,machine=own; config_id=unloaded; ref_point=body_CoM; axes=B; symmetry: xz-plane mirror; pure pitch -> Ixz not in equations; Ixy=Iyz~0; 待测（本轮若无单轮/斜向子工况，按对称声明设 0）；理由: 纯俯仰下 Ixz 不出现、Ixy/Iyz 按对称设 0，陀螺项为零（详见记录表 §5）；斜向待裁；本结案只对正对门槛+纯俯仰+左右对称成立；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+Ixz,TODO(试验标定),0,kg·mm²,待标定,machine=own; config_id=unloaded; ref_point=body_CoM; axes=B; symmetry: xz-plane mirror; pure pitch -> Ixz not in equations; Ixy=Iyz~0; 待测（本轮若无单轮/斜向子工况，按对称声明设 0）；理由: 纯俯仰下 Ixz 不出现、Ixy/Iyz 按对称设 0，陀螺项为零（详见记录表 §5）；斜向待裁；本结案只对正对门槛+纯俯仰+左右对称成立；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+Iyz,TODO(试验标定),0,kg·mm²,待标定,machine=own; config_id=unloaded; ref_point=body_CoM; axes=B; symmetry: xz-plane mirror; pure pitch -> Ixz not in equations; Ixy=Iyz~0; 待测（本轮若无单轮/斜向子工况，按对称声明设 0）；理由: 纯俯仰下 Ixz 不出现、Ixy/Iyz 按对称设 0，陀螺项为零（详见记录表 §5）；斜向待裁；本结案只对正对门槛+纯俯仰+左右对称成立；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I1,TODO(试验标定),TODO(试验标定),kg·mm²,缺失,machine=own; config_id=unloaded; ref_point=body_CoM; axes=B; method=over_CoM; d<=5mm; docs/不确定度预算.csv（Ixx）；状态: 测量方案已定、待测；主轴夹角暂无字段名,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I2,TODO(试验标定),TODO(试验标定),kg·mm²,缺失,machine=own; config_id=unloaded; ref_point=body_CoM; axes=B; method=over_CoM; d<=5mm; docs/不确定度预算.csv（Ixx）；状态: 测量方案已定、待测；主轴夹角暂无字段名,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I3,TODO(试验标定),TODO(试验标定),kg·mm²,缺失,machine=own; config_id=unloaded; ref_point=body_CoM; axes=B; method=over_CoM; d<=5mm; docs/不确定度预算.csv（Ixx）；状态: 测量方案已定、待测；主轴夹角暂无字段名,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+L_track,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; docs/不确定度预算.csv（r_wheel）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+L_wb,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; docs/不确定度预算.csv（r_wheel）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+hub_z,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; docs/不确定度预算.csv（r_wheel）；状态: 测量方案已定、待测；空载/满载两态分别报,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+r_wheel,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; docs/不确定度预算.csv（r_wheel）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+r_roll,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; docs/不确定度预算.csv（r_wheel）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+clearance_min,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; docs/不确定度预算.csv（clearance_min）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+k_susp,TODO(试验标定),TODO(试验标定),N/mm,缺失,machine=own; docs/不确定度预算.csv（k_susp）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+F0,TODO(试验标定),TODO(试验标定),N,缺失,machine=own; docs/不确定度预算.csv（k_susp）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+c_susp,TODO(试验标定),TODO(试验标定),N·s/mm,缺失,machine=own; docs/不确定度预算.csv（c_susp）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+s_zero,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+travel,TODO(试验标定),TODO(试验标定),mm,缺失,machine=own; docs/不确定度预算.csv（travel）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+F_limit,TODO(试验标定),TODO(试验标定),N,缺失,machine=own; docs/不确定度预算.csv（travel）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+i_gear,TODO(试验标定),TODO(试验标定),—,缺失,machine=own; uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+mu_s,TODO(试验标定),TODO(试验标定),—,待标定,machine=own; uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测；本轮不出数,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+mu_step,TODO(试验标定),TODO(试验标定),—,待标定,machine=own; uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测；本轮不出数,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+torque_wheel,TODO(试验标定),TODO(试验标定),N·m,待标定,machine=own; uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测；本轮不出数,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+omega_wheel,TODO(试验标定),TODO(试验标定),rad/s,待标定,machine=own; uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测；本轮不出数,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I,TODO(试验标定),TODO(试验标定),A,待标定,machine=own; uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测；本轮不出数,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+U,TODO(试验标定),TODO(试验标定),V,待标定,machine=own; uB: 无对应分量行（缺口见 PR）；状态: 测量方案已定、待测；本轮不出数,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I_att_full_witness,TODO(试验标定),【缺失】,kg·mm²,缺失,machine=own; ref_point=body_CoM; axes=B; config_id=full_witness; 原因: 配重法复现不了、本轮不做实测（惯量不进准静态判据，见 docs/试验/记录表模板-2026-11-21.md §5.3）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I_att_equiv_ballast,TODO(试验标定),【缺失】,kg·mm²,缺失,machine=own; ref_point=body_CoM; axes=B; config_id=equiv_ballast; 原因: 配重法复现不了、本轮不做实测（惯量不进准静态判据，见 docs/试验/记录表模板-2026-11-21.md §5.3）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+I_att_sealed_full_water,TODO(试验标定),【缺失】,kg·mm²,缺失,machine=own; ref_point=body_CoM; axes=B; config_id=sealed_full_water; 原因: 配重法复现不了、本轮不做实测（惯量不进准静态判据，见 docs/试验/记录表模板-2026-11-21.md §5.3）；状态: 测量方案已定、待测,TODO(试验标定),TODO(试验标定),TODO(试验标定)
+m_dry,N/A(基准机型，未入 MJCF),,kg,缺失,machine=oomwoo; source=makerspet/oomwoo-one urdf/params.xacro; retrieved=2026-11-22; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro; 说明=URDF 占位质量求和 2.937 kg 未入 value：2.5 kg 筒身注释含 caster/battery，可能与 0.05 kg 从动轮重复计数，且非实测,,,
+m_full,N/A(基准机型，未入 MJCF),,kg,缺失,machine=oomwoo; 说明=基准机型无满载定义/数据；不填未测值,,,
+com_x,N/A(基准机型，未入 MJCF),2.2,mm,公开参考,machine=oomwoo; source=makerspet/oomwoo-one urdf/params.xacro; retrieved=2026-11-22; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro; 说明=仅注释值；按同一 URDF 质量/位置复算 +6.19 mm，差 3.99 mm；不是整机 CoM 基准,,,
+com_y,N/A(基准机型，未入 MJCF),,mm,缺失,machine=oomwoo; 说明=无 y 向公开值,,,
+com_z,N/A(基准机型，未入 MJCF),,mm,缺失,machine=oomwoo; 说明=z_cg 一阶变量；无可信整机 CAD/无分件密度，扫描范围未建立；实验件均匀密度单点 44.410 mm 不作基准,,,
+Ixx,N/A(基准机型，未入 MJCF),,kg·m²,缺失,machine=oomwoo; ref_point=body_CoM; axes=B; 说明=无整机惯量公开值；URDF 各 link 均质宏未汇总，且圆柱惯量 rpy 与 visual 轴差 90°、base_link inertial origin 在车体底面，不能直接用,,,
+Iyy,N/A(基准机型，未入 MJCF),,kg·m²,缺失,machine=oomwoo; ref_point=body_CoM; axes=B; 说明=同 Ixx,,,
+Izz,N/A(基准机型，未入 MJCF),,kg·m²,缺失,machine=oomwoo; ref_point=body_CoM; axes=B; 说明=同 Ixx,,,
+Ixy,N/A(基准机型，未入 MJCF),,kg·m²,缺失,machine=oomwoo; ref_point=body_CoM; axes=B; 说明=无值；不得按对称直接设 0,,,
+Ixz,N/A(基准机型，未入 MJCF),,kg·m²,缺失,machine=oomwoo; ref_point=body_CoM; axes=B; 说明=无值；不得按对称直接设 0,,,
+Iyz,N/A(基准机型，未入 MJCF),,kg·m²,缺失,machine=oomwoo; ref_point=body_CoM; axes=B; 说明=无值；不得按对称直接设 0,,,
+body_diameter,N/A(基准机型，未入 MJCF),349,mm,公开参考,machine=oomwoo; source=makerspet/oomwoo docs/ARCHITECTURE.md §4/§5.1; retrieved=2026-11-22; rev=0218857b2ecc53fb8e289b097b3bdf7a9e184386#docs/ARCHITECTURE.md; 附=oomwoo-one urdf/params.xacro base_diameter=0.349; 说明=设计基线，非实测,,,
+body_height,N/A(基准机型，未入 MJCF),95,mm,公开参考,machine=oomwoo; source=makerspet/oomwoo-one urdf/params.xacro; retrieved=2026-11-22; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro; 说明=顶部注释 ~95 mm 含 LiDAR；同文件几何推算 97 mm（79+18），差 2 mm,,,
+clearance_min,N/A(基准机型，未入 MJCF),,mm,缺失,machine=oomwoo; 说明=URDF floor_clearance=12.5 mm 只是 base_link 底面，不是最低非轮点；真实最低点未公开；不得用 12.5 顶替,,,
+wheel_track,N/A(基准机型，未入 MJCF),235,mm,公开参考,machine=oomwoo; source=makerspet/oomwoo-one urdf/params.xacro; retrieved=2026-11-22; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro; 说明=注释 measured wheel track 235 mm；同文件 bridge 常量 233 mm，差 2 mm,,,
+wheelbase,N/A(基准机型，未入 MJCF),144.5,mm,公开参考,machine=oomwoo; source=makerspet/oomwoo-one urdf/robot.urdf.xacro; retrieved=2026-11-22; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/robot.urdf.xacro; 说明=base_diameter/2−caster_inset=174.5−30；定义=驱动轮轴→从动轮中心,,,
+hub_z,N/A(基准机型，未入 MJCF),34.0,mm,公开参考,machine=oomwoo; source=makerspet/oomwoo-one urdf/robot.urdf.xacro; retrieved=2026-11-22; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/robot.urdf.xacro; 说明=wheel_diameter/2；与 lib STEP 35.805 mm 冲突,,,
+r_wheel,N/A(基准机型，未入 MJCF),34.0,mm,公开参考,machine=oomwoo; source=makerspet/oomwoo-one urdf/params.xacro; retrieved=2026-11-22; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro; 说明=URDF wheel_diameter=68 mm；BOM 对应模块第三方实测 71.5 mm（半径 35.75），见 r_wheel_lib_step,,,
+caster_diameter,N/A(基准机型，未入 MJCF),25,mm,公开参考,machine=oomwoo; source=makerspet/oomwoo-one urdf/params.xacro; retrieved=2026-11-22; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro; 说明=URDF 球径 25 mm；实物外形约 46×52 mm（商品页转述，未入台账）,,,
+i_gear,N/A(基准机型，未入 MJCF),65.36,1,公开参考,machine=oomwoo; source=makerspet/oomwoo contributions/part-specs/IKsares/drive-wheel/README.md §5; retrieved=2026-11-22; rev=0218857b2ecc53fb8e289b097b3bdf7a9e184386#contributions/part-specs/IKsares/drive-wheel/README.md; 说明=第三方单件齿数实测；同文另列 ~190:1 旧推算，不使用,,,
+T_wheel,N/A(基准机型，未入 MJCF),0.5,N·m,公开参考,machine=oomwoo; source=makerspet/oomwoo-one urdf/params.xacro; retrieved=2026-11-22; rev=a630d1c77255072d280a2a41a7a2bd1a1c98cadd#urdf/params.xacro; 说明=motor_stall_torque 用作 joint effort 上限，不是实测轮端扭矩；与第三方推算 1.14–2.80 冲突,,,
+k_susp,N/A(基准机型，未入 MJCF),,N/mm,缺失,machine=oomwoo; 说明=静态 STEP 无弹簧/运动副；URDF 无悬挂自由度,,,
+F0,N/A(基准机型，未入 MJCF),,N,缺失,machine=oomwoo; 说明=预紧力是装配状态，无公开值,,,
+c_susp,N/A(基准机型，未入 MJCF),,N·s/mm,缺失,machine=oomwoo; 说明=无公开值,,,
+travel,N/A(基准机型，未入 MJCF),,mm,缺失,machine=oomwoo; 说明=IKsares 明确把 suspension travel 列为 open,,,
+eta,N/A(基准机型，未入 MJCF),,1,缺失,machine=oomwoo; 说明=减速器效率未公开；上游推算用 0.6–0.8 区间属工程假设,,,
+mu_s,N/A(基准机型，未入 MJCF),,1,待标定,machine=oomwoo; 说明=轮-地面摩擦是接触物理量，不是几何；本轮不实测,,,
+mu_step,N/A(基准机型，未入 MJCF),,1,待标定,machine=oomwoo; 说明=轮-门槛摩擦；本轮不实测,,,
+r_wheel_lib_step,N/A(基准机型，未入 MJCF),35.805,mm,图纸推算,machine=oomwoo; source=oomwoo-cad@266210a lib/roborock/OOM-W01-drive-wheel-assembly.stp; method=brep_exact; generated_by=script@bdf5be2; rev=b996dc0e08c819fcb7a98d89658d9561a1ee2562#docs/基准机型/oomwoo-drive-wheel-dimensions.md; table_rev=0b73eda（CSV blob sha，不是 commit）; retrieved=2026-11-22; 说明=S17 四项齐（脚本@bdf5be2、输入 sha256 已核、表@b996dc0、env 已声明）；值=71.6099568158/2；表头 table_rev 是 CSV blob sha，不是 commit；无实测交叉校核，止于 sensitivity,,,
+wheel_width_lib_step,N/A(基准机型，未入 MJCF),15.760,mm,图纸推算,machine=oomwoo; source=oomwoo-cad@266210a lib/roborock/OOM-W01-drive-wheel-assembly.stp; method=brep_exact; generated_by=script@bdf5be2; rev=b996dc0e08c819fcb7a98d89658d9561a1ee2562#docs/基准机型/oomwoo-drive-wheel-dimensions.md; table_rev=0b73eda（CSV blob sha，不是 commit）; retrieved=2026-11-22; 说明=S17 四项齐；沿轮轴 z 的 B-rep 包围盒；表头 table_rev 是 CSV blob sha，不是 commit；无实测交叉校核，止于 sensitivity,,,
+wheel_mass_lib_step,N/A(基准机型，未入 MJCF),0.0623,kg,工程假设,machine=oomwoo; source=oomwoo-cad@266210a lib/roborock/OOM-W01-drive-wheel-assembly.stp; method=brep_exact; generated_by=script@bdf5be2; rev=b996dc0e08c819fcb7a98d89658d9561a1ee2562#docs/基准机型/oomwoo-drive-wheel-dimensions.md; retrieved=2026-11-22; 说明=体积 5.6606e-5 m³ × ρ=1100 kg/m³；S17 几何四项齐，但 STEP 无材料密度，ρ 是假设，质量仍只能工程假设,,,
+wheel_Ixx_lib_step,N/A(基准机型，未入 MJCF),2.00e-05,kg·m²,图纸推算,machine=oomwoo; source=oomwoo-cad@266210a lib/roborock/OOM-W01-drive-wheel-assembly.stp; method=brep_exact; generated_by=script@bdf5be2; rev=b996dc0e08c819fcb7a98d89658d9561a1ee2562#docs/基准机型/oomwoo-drive-wheel-dimensions.md; table_rev=0b73eda（CSV blob sha，不是 commit）; retrieved=2026-11-22; 说明=S17 四项齐；轮体自身惯量，ρ=1100；ref_point=component_CoM; axes=STEP；不是整机；无实测交叉校核，止于 sensitivity,,,
+wheel_Izz_lib_step,N/A(基准机型，未入 MJCF),3.77e-05,kg·m²,图纸推算,machine=oomwoo; source=oomwoo-cad@266210a lib/roborock/OOM-W01-drive-wheel-assembly.stp; method=brep_exact; generated_by=script@bdf5be2; rev=b996dc0e08c819fcb7a98d89658d9561a1ee2562#docs/基准机型/oomwoo-drive-wheel-dimensions.md; table_rev=0b73eda（CSV blob sha，不是 commit）; retrieved=2026-11-22; 说明=S17 四项齐；轮体自身惯量，ρ=1100；ref_point=component_CoM; axes=STEP；不是整机；无实测交叉校核，止于 sensitivity,,,
+m_drive_module_pair,N/A(基准机型，未入 MJCF),0.463,kg,公开参考,machine=oomwoo; source=makerspet/oomwoo contributions/part-specs/OsakaTX/README.md 商品页 listing; retrieved=2026-11-22; rev=0218857b2ecc53fb8e289b097b3bdf7a9e184386#contributions/part-specs/OsakaTX/io-board-wheel-connector-and-caster.md; 说明=listing 值，非实测，仅量级,,,
+drive_group_mass,N/A(基准机型，未入 MJCF),,kg,缺失,machine=oomwoo; 说明=整机 STEP 无装配名，不能按名称分离整驱动组并称重；模块 pair listing 值见 m_drive_module_pair,,,
+body_mass,N/A(基准机型，未入 MJCF),,kg,缺失,machine=oomwoo; 说明=无正式整机车体 STEP；实验件无材料/密度,,,
+suspension_mass,N/A(基准机型，未入 MJCF),,kg,缺失,machine=oomwoo; 说明=悬挂在驱动轮模块内部，无独立文件，不能分离,,,
