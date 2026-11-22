@@ -3,7 +3,8 @@
   "kind": "runner_defaults",
   "notes": "runner 级常量，不是 case；由 scripts/run_cases.py 读取。凡进入判定或结论的数值在 docs/参数溯源.csv 有行。",
   "drive": {
-    "speed_kp_nm_per_mps": 6.0
+    "speed_kp_nm_per_mps": 6.0,
+    "yaw_damping_nm_per_radps": 0.2
   },
   "obstacle_half_width_m": 0.6,
   "creep": {
