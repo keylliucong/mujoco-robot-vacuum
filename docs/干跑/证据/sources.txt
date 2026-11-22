@@ -1,0 +1,3 @@
+makerspet/oomwoo=0218857b2ecc53fb8e289b097b3bdf7a9e184386
+makerspet/oomwoo-cad=266210a47cab931c5891a07c9a29d48388a54b0c (ls-remote; clone interrupted)
+makerspet/oomwoo-one=a630d1c77255072d280a2a41a7a2bd1a1c98cadd (ls-remote HEAD)
