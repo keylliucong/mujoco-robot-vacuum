@@ -23,7 +23,7 @@
 | `T_wheel` | 0.5 | N·m | 公开参考 | `source=oomwoo-one urdf/params.xacro motor_stall_torque=0.5; rev=a630d1c#urdf/params.xacro` | 这是 joint `effort` 上限，不是实测轮端扭矩 |
 | `m_drive_module_pair` | 0.463 | kg | 公开参考 | `source=oomwoo contributions/part-specs/OsakaTX/README.md §Wheel Module Weight; rev=0218857#contributions/part-specs/OsakaTX/README.md` | 商品页 listing 值，非实测；只作量级 |
 
-> 组件级（驱动轮轮体）另有 5 个值在血缘闭合前只能记【工程假设】：`r_wheel_lib_step=35.805 mm`、`wheel_width_lib_step=15.760 mm`、`wheel_mass_lib_step=0.0623 kg`、`wheel_Ixx_lib_step=2.00e-05 kg·m²`、`wheel_Izz_lib_step=3.77e-05 kg·m²`。原因见 §5。
+> 组件级（驱动轮轮体）另有 5 个值：`r_wheel_lib_step=35.805 mm`、`wheel_width_lib_step=15.760 mm`、`wheel_Ixx_lib_step=2.00e-05 kg·m²`、`wheel_Izz_lib_step=3.77e-05 kg·m²` 已按 S17 四项记【图纸推算】（无实测交叉校核，止于 `sensitivity`）；`wheel_mass_lib_step=0.0623 kg` 因密度是假设，仍记【工程假设】。原因见 §5。
 
 ## 2. 台账行（`machine=oomwoo`）
 
@@ -38,14 +38,14 @@
 | `com_z` | — | 缺失 | `machine=oomwoo; 扫描范围未建立` | 空 |
 | `Ixx/Iyy/Izz` | — | 缺失 | `machine=oomwoo; ref_point=body_CoM; axes=B` | 空 |
 | `k_susp/F0/c_susp/travel` | — | 缺失 | `machine=oomwoo` | 空 |
-| `r_wheel_lib_step` | 35.805 mm | 工程假设 | `machine=oomwoo; oomwoo-cad@266210a ... table 未入库` | 空 |
+| `r_wheel_lib_step` | 35.805 mm | 图纸推算 | `machine=oomwoo; rev=b996dc0#docs/基准机型/oomwoo-drive-wheel-dimensions.md` | 空 |
 
 规则检查：
 
 - 所有行 `ref` 都带 `machine=oomwoo`；没有一行的 `label` 是【本机实测】。
 - `m_dry`、`com_y/z`、惯量、悬挂都以**行**的形式存在，值为空；没有用“没这一行”表达缺失。
 - `verified_tol` 全为空；有 `u_B pending` 就不许填 0 或估计值。
-- 组件级 `r_wheel_lib_step` 因输出尺寸表未入库，按 S17 四项缺一降【工程假设】。
+- 组件级 `r_wheel_lib_step`、`wheel_width_lib_step`、`wheel_Ixx/Izz_lib_step` 已按 S17 四项入【图纸推算】；无实测交叉校核，止于 `sensitivity`。`wheel_mass_lib_step` 因密度假设仍是【工程假设】。
 
 ## 3. 不确定度预算（哪些分量 `pending`）
 
@@ -81,7 +81,7 @@
 | `r_wheel` | 公开参考 | `mechanism` | 不可算（u_B pending） | — | N/A（u_B pending） | 68/71.5/71.61 mm 冲突；预算 `pending` |
 | `i_gear` | 公开参考 | `sensitivity` | 不可算（u_B pending） | — | N/A（u_B pending） | 第三方单件实测；预算 `assumed` |
 | `T_wheel` | 公开参考 | `mechanism` | 不可算（u_B pending） | — | N/A（u_B pending） | URDF 占位；预算 `pending` |
-| `r_wheel_lib_step` | 工程假设 | `mechanism` | 不可算（u_B pending） | — | N/A（u_B pending） | S17 输出表未入库；不得进定量结论 |
+| `r_wheel_lib_step` | 图纸推算 | `sensitivity` | 不可算（u_B pending） | — | N/A（u_B pending） | S17 四项齐；无实测交叉校核，止于 sensitivity |
 | `k_susp`/`travel` | 缺失 | `mechanism` | 不可算（u_B pending） | — | N/A（u_B pending） | 静态 STEP/URDF 都给不出 |
 
 两列的含义：
@@ -96,8 +96,8 @@
 
 1. **来源可登记**：两个仓库的 commit、License、取用子路径都固定在 `oomwoo-来源.md`；仓库内容不入库。
 2. **3D 资产可盘点**：确认有 55 个 STEP（B-rep）和 13 个 Fusion 原生文件；没有 STL/DAE/OBJ；URDF 不在两个仓库内，而在 `oomwoo-one`。
-3. **组件级准入可执行**：驱动轮组件表按 S17 四项逐项核，脚本、输入 `sha256`、环境三项当场核实，输出表已本地入库但所在分支未推送、表头 `table_rev` 是 blob 而非 commit；按“第三方可复导”标准仍降【工程假设】，而不是照抄“图纸推算”。
-4. **台账可落行**：37 行 `machine=oomwoo`，其中 11 行公开参考、5 行工程假设、19 行缺失、2 行待标定；`verified_tol` 全空，没有伪造实测。
+3. **组件级准入可执行**：驱动轮组件表按 S17 四项逐项核，脚本、输入 `sha256`、输出表、环境四项均核实；几何量按【图纸推算】入账，质量因密度假设仍【工程假设】。表头 `table_rev` 用 CSV blob sha 而非 commit，是元数据缺陷，已单列。
+4. **台账可落行**：37 行 `machine=oomwoo`，其中 11 行公开参考、4 行图纸推算、1 行工程假设、19 行缺失、2 行待标定；`verified_tol` 全空，没有伪造实测。
 5. **预算可落行**：11 条公开参考来源分量，全部 `pending`/`assumed`，没有 `evaluated`；三门槛一条都不满足时不下填。
 6. **报告骨架可穿跑**：两列等级、`verified_tol=不可算（u_B pending）`、判定=`N/A（u_B pending）`，没有比率、没有高度类单点结论。
 
@@ -110,13 +110,13 @@
 5. **URDF 的质量是占位值，且可能重复计数；inertial 还有坐标系错误。** 2.5 kg 筒身注释写“caster and battery weight”，又单列 0.05 kg 从动轮；求和 2.937 kg 不能当整机质量。`urdf/inertial.xacro` 给圆柱惯量加了 90° 的 `rpy`，而 visual 圆柱轴是 link z；`base_link` 的 inertial origin 在车体底面而不是圆柱中心。**质量、`z_cg`、整机惯量都不能直接取 URDF。**
 6. **轮径/轮距/轴距/离地间隙全有冲突。** 轮径 68 / 71.5 / 71.61 mm；轮距 235 / 233 mm；实验件轮距 305.05 mm；轴距 144.5 / 140.08 mm；离地间隙 URDF 12.5 mm 只是 `base_link` 底面，实验件最低非轮点约 1.5 mm。**没有一个“唯一真值”能直接进模型。**
 7. **悬挂参数完全缺失。** 静态 STEP 没有弹簧/运动副；URDF 的轮只有 continuous 转轴，没有悬挂平移。`k/F0/c/travel` 只能实测。
-8. **输出尺寸表的血缘未闭合。** 表已在上游分支 `keylliucong/oomwoo-baseline-params`（最新 `a5e5ff7`）本地入库，但该分支未推送；表头 `table_rev=0b73eda` 是 blob，不是 commit。S17 第 ③ 项按“第三方可复导”标准未满足，组件值只能先记【工程假设】。**这不是数值错，是血缘断了一节。**
+8. **输出尺寸表的表头元数据有缺陷。** 表已在 `keylliucong/oomwoo-baseline-params@b996dc0` 推送；但表头 `table_rev=0b73eda` 是 CSV 的 blob sha，不是 commit，不能直接当 `rev=…#path` 用。本次引用实际表提交 `rev=b996dc0`，四项仍成立；表头语义需上游修正。**这不是数值错，是元数据写法错。**
 9. **台账文件在 `main` 上不存在。** 本 PR 按契约 9 列/15 列新建 `docs/参数溯源.csv` 与 `docs/不确定度预算.csv`，只追加 `machine=oomwoo` 行；与模板分支合并时需要人工对表头/列名（尤其预算表 `label`→`status`）做一次核对。
 10. **路径口径不一致。** 上游把尺寸表放在 `docs/基准机型/`，本任务要求 `docs/试验/基准机型/`。本 PR 不复制上游尺寸表，只在 `docs/试验/基准机型/` 写接收清单、参数与穿跑样例；**两份目录不能各养一套数**，后续要定一处为唯一来源。
 
 ### 5.3 这套数据能支撑到哪
 
-- **能支撑**：机理层讨论、敏感性方向、把“基准机型”从空白变成有来源的对标对象；组件级轮径/轮宽可在表入库后走【图纸推算】。
+- **能支撑**：机理层讨论、敏感性方向、把“基准机型”从空白变成有来源的对标对象；组件级轮径/轮宽/轮体惯量已可走【图纸推算】，但止于 `sensitivity`。
 - **不能支撑**：任何整机定量结论、任何高度类判定、任何把 oomwoo 的几何当自家几何的模型。原因不是保守，是**整机质量/质心/惯量/悬挂的源头缺失**。
 
 ## 6. 复现与文件

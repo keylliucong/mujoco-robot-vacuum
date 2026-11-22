@@ -36,29 +36,29 @@
 ### 3.1 上游组件尺寸表（驱动轮轮体）
 
 表：`docs/基准机型/oomwoo-drive-wheel-dimensions.md`（工作区 untracked）
-表头声明（2026-11-22 观察，上游仍在改）：`generated_by=script@3ba546c…`、`table_rev=0b73eda…`（这是一个 blob，不是 commit）、`input_sha256=101bd1ef…`、`method=brep_exact`、`env=Python 3.13.18/gmsh 4.15.2/NumPy 2.5.5`。
+表头声明（2026-11-22 复核）：`generated_by=script@bdf5be2…`、`table_rev=0b73eda…`（这是尺寸表 CSV 的 blob sha，不是 commit）、`input_sha256=101bd1ef…`、`method=brep_exact`、`env=Python 3.13.18/gmsh 4.15.2/NumPy 2.5.5`。表本体在 `b996dc0`。
 
 | S17 项 | 核查结果 | 证据/缺口 | 判定 |
 |---|---|---|---|
-| ① 推导脚本 | 有 | `step_component_properties.py` 在 `oomwoo-baseline` 的提交 `3ba546c` 中存在 | 通过 |
+| ① 推导脚本 | 有 | `step_component_properties.py` 在 `oomwoo-baseline` 的提交 `bdf5be2` 中存在，且随 `b996dc0` 推送 | 通过 |
 | ② 输入 `sha256` | 有 | 按 `oomwoo-cad@266210a:lib/roborock/OOM-W01-drive-wheel-assembly.stp` 重算：`101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2`，829,986 bytes | 通过 |
-| ③ 输出尺寸表 | **本地入库、未推送** | 表已在上游分支 `keylliucong/oomwoo-baseline-params`（最新 `a5e5ff7`）本地入库；该分支未推送；表头 `table_rev=0b73eda` 是 blob，不是可 `rev=…#path` 解析的 commit | **待推送/待修正** |
+| ③ 输出尺寸表 | 有 | 表在 `keylliucong/oomwoo-baseline-params@b996dc0`，已推送；引用 `rev=b996dc0#docs/基准机型/oomwoo-drive-wheel-dimensions.md` 可解析；表头 `table_rev=0b73eda` 是 CSV 的 blob sha，不是 commit（语义待修正，不影响表本体可读） | 通过（表头元数据待修正） |
 | ④ 运行环境声明 | 有 | 解释器/库版本、OCC 由 gmsh 内置、`brep_exact`、无 mesh、`chord_tol/angle_tol=N/A` | 通过 |
 | 附加：mesh 豁免 | 不适用 | 方法为 B-rep 精确积分，未导出 mesh；没有“漂移÷容差”可算 | 不适用 |
 
-**结论**：四项实体齐备（脚本、输入 sha256、输出表、环境），但第 ③ 项的可复核性有两个缺陷：输出表所在分支尚未推送，表头 `table_rev` 是 blob 而不是 commit。按“第三方能按同一输入重导”的标准，当前仍**记【工程假设】**；上游推送并把 `table_rev` 改成真正的表提交后，可逐行升【图纸推算】。
+**结论**：S17 四项齐备且可复核（脚本 @bdf5be2、输入 sha256 已重算、表 @b996dc0、环境已声明）。几何量可记【图纸推算】；质量因 STEP 无材料密度、ρ 是显式假设，仍记【工程假设】。表头 `table_rev` 用 CSV 的 blob sha 而非 commit，是元数据缺陷，需上游修正，但不影响本次四项判定。
 
 ### 3.2 组件值（临时，待表入库后复核）
 
 | `param_id` | 值 | 单位 | 当前标签 | 准入后标签 | 备注 |
 |---|---:|---|---|---|---|
-| `r_wheel_lib_step` | 35.805 | mm | 工程假设 | 图纸推算（待 ③） | B-rep 包围盒 71.6099568158 mm / 2；与 IKsares 实测 71.5 mm 吻合 |
-| `wheel_width_lib_step` | 15.760 | mm | 工程假设 | 图纸推算（待 ③） | 沿轮轴方向；与 URDF 12 mm 冲突 |
-| `wheel_mass_lib_step` | 0.0623 | kg | 工程假设 | 工程假设 | 体积 5.6606e-5 m³ × ρ=1100；ρ 是假设，STEP 无材料；即使四项齐，密度假设仍在 |
-| `wheel_Ixx_lib_step` | 2.00e-5 | kg·m² | 工程假设 | 图纸推算（待 ③） | 轮体自身、关于自身质心；ρ=1100；不是整机惯量 |
-| `wheel_Izz_lib_step` | 3.77e-5 | kg·m² | 工程假设 | 图纸推算（待 ③） | 同上 |
+| `r_wheel_lib_step` | 35.805 | mm | 图纸推算 | 图纸推算 | B-rep 包围盒 71.6099568158 mm / 2；与 IKsares 实测 71.5 mm 吻合；无实测交叉校核，止于 sensitivity |
+| `wheel_width_lib_step` | 15.760 | mm | 图纸推算 | 图纸推算 | 沿轮轴方向；与 URDF 12 mm 冲突；无实测交叉校核，止于 sensitivity |
+| `wheel_mass_lib_step` | 0.0623 | kg | 工程假设 | 工程假设 | 体积 5.6606e-5 m³ × ρ=1100；ρ 是假设，STEP 无材料；S17 几何四项齐，但密度假设仍在 |
+| `wheel_Ixx_lib_step` | 2.00e-5 | kg·m² | 图纸推算 | 图纸推算 | 轮体自身、关于自身质心；ρ=1100；不是整机惯量；无实测交叉校核，止于 sensitivity |
+| `wheel_Izz_lib_step` | 3.77e-5 | kg·m² | 图纸推算 | 图纸推算 | 同上；无实测交叉校核，止于 sensitivity |
 
-> 这些是**组件级**值，不是整机。不得与 URDF 整机参数拼成一台“第三台机器”。
+> 这些是**组件级**值，不是整机。不得与 URDF 整机参数拼成一台“第三台机器”。【图纸推算】默认只到 `sensitivity`，没有 `verified_by` 就不进 `quantitative`。
 
 ## 4. 冲突清单（两个都列，不给结论）
 
@@ -94,4 +94,4 @@
 | 驱动 | 2 | 2 | 有 `i_gear`、`T_wheel`（后者是占位）；缺 `eta`、扭矩曲线 |
 | **合计** | **10** | **16** | 10 个里有 3 个是占位/近似：`body_height`、`com_x`、`T_wheel` |
 
-> 结论：**10 个有公开参考值，16 个缺失或待标定**；其中没有一个是【图纸推算】整机值。组件级驱动轮有 3 项可走【图纸推算】，但输出表尚未入库。
+> 结论：**10 个有公开参考值，16 个缺失或待标定**；其中没有一个是【图纸推算】整机值。组件级驱动轮有 4 项几何值已走【图纸推算】（轮径、轮宽、轮体 Ixx/Izz）；轮体质量因密度假设仍是【工程假设】。
