@@ -404,15 +404,15 @@ def body_length(model):
         if not name.startswith("chassis_"):
             continue
         size = model.geom_size[gid]
-        geom_type = model.geom_type[gid]
+        geom_type = int(model.geom_type[gid])
         if geom_type in (
-            mujoco.mjtGeom.mjGEOM_BOX,
-            mujoco.mjtGeom.mjGEOM_CYLINDER,
-            mujoco.mjtGeom.mjGEOM_SPHERE,
-            mujoco.mjtGeom.mjGEOM_ELLIPSOID,
+            int(mujoco.mjtGeom.mjGEOM_BOX),
+            int(mujoco.mjtGeom.mjGEOM_CYLINDER),
+            int(mujoco.mjtGeom.mjGEOM_SPHERE),
+            int(mujoco.mjtGeom.mjGEOM_ELLIPSOID),
         ):
             lengths.append(2.0 * float(size[0]))  # arithmetic
-        elif geom_type == mujoco.mjtGeom.mjGEOM_CAPSULE:
+        elif geom_type == int(mujoco.mjtGeom.mjGEOM_CAPSULE):
             lengths.append(2.0 * (float(size[0]) + float(size[1])))  # arithmetic
         else:
             lengths.append(2.0 * float(model.geom_rbound[gid]))  # arithmetic
@@ -436,25 +436,25 @@ def chassis_min_z(model, data):
             continue
         center_z = float(np.asarray(data.geom_xpos[gid], dtype=float)[2])
         size = np.asarray(model.geom_size[gid], dtype=float)
-        geom_type = model.geom_type[gid]
-        if geom_type == mujoco.mjtGeom.mjGEOM_SPHERE:
+        geom_type = int(model.geom_type[gid])
+        if geom_type == int(mujoco.mjtGeom.mjGEOM_SPHERE):
             lows.append(center_z - float(size[0]))
-        elif geom_type == mujoco.mjtGeom.mjGEOM_CYLINDER:
+        elif geom_type == int(mujoco.mjtGeom.mjGEOM_CYLINDER):
             rot = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)
             axis_z = abs(float(rot[2, 2]))
             vertical = float(size[1]) * axis_z + float(size[0]) * math.sqrt(
                 max(0.0, 1.0 - axis_z * axis_z)
             )
             lows.append(center_z - vertical)
-        elif geom_type == mujoco.mjtGeom.mjGEOM_CAPSULE:
+        elif geom_type == int(mujoco.mjtGeom.mjGEOM_CAPSULE):
             rot = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)
             axis_z = abs(float(rot[2, 2]))
             lows.append(center_z - (float(size[0]) + float(size[1]) * axis_z))
-        elif geom_type == mujoco.mjtGeom.mjGEOM_BOX:
+        elif geom_type == int(mujoco.mjtGeom.mjGEOM_BOX):
             rot = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)
             half = sum(abs(float(rot[2, i])) * float(size[i]) for i in range(3))
             lows.append(center_z - half)
-        elif geom_type == mujoco.mjtGeom.mjGEOM_ELLIPSOID:
+        elif geom_type == int(mujoco.mjtGeom.mjGEOM_ELLIPSOID):
             rot = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)
             half = math.sqrt(
                 sum((float(rot[2, i]) * float(size[i])) ** 2 for i in range(3))
