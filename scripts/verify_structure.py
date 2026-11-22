@@ -1221,7 +1221,28 @@ def check_s26():
         problems.append(
             f"基准时程应为 passed=1：status={base['status']} passed={base['passed']}"
         )
-    blinked = judge.judge_case(blink(columns, len(columns["t_s"]) - 2), params)
+    times = columns["t_s"]
+    window_end = base["metrics"]["t_trigger_s"] + params["window_s"]
+    end_index = max(
+        i
+        for i, t in enumerate(times)
+        if t <= window_end + params["timestep_s"] * 1e-6  # arithmetic
+    )
+    hold_start = min(
+        i
+        for i, t in enumerate(times)
+        if t
+        >= window_end
+        - params["end_hold_s"]
+        - params["timestep_s"] * 0.5  # arithmetic
+    )
+    end_frames = end_index - hold_start + 1
+    if end_frames != base_cross.get("end_frames"):
+        problems.append(
+            f"① 回归构造的 end_frames={end_frames} 与 judge 的 {base_cross.get('end_frames')} 不一致"
+        )
+    # 「末帧」指判定窗口末帧，不是整段时程末帧（窗口外还有仿真尾巴）。
+    blinked = judge.judge_case(blink(columns, end_index - 1), params)
     blink_cross = blinked["metrics"].get("crossing") or {}
     if (
         blinked["status"] != base["status"]
@@ -1239,22 +1260,6 @@ def check_s26():
     # ② 占空比 0.65 必须落灰带 invalid，不得由单点阈值猜一侧
     grey, grey_params = synthetic_case([], False)
     grey_cross = judge.judge_case(grey, grey_params)["metrics"].get("crossing") or {}
-    times = grey["t_s"]
-    window_end = base["metrics"]["t_trigger_s"] + grey_params["window_s"]
-    end_index = max(i for i, t in enumerate(times) if t <= window_end + grey_params["timestep_s"] * 1e-6)
-    hold_start = min(
-        i
-        for i, t in enumerate(times)
-        if t
-        >= window_end
-        - grey_params["end_hold_s"]
-        - grey_params["timestep_s"] * 0.5
-    )
-    end_frames = end_index - hold_start + 1
-    if end_frames != grey_cross.get("end_frames"):
-        problems.append(
-            f"② 回归构造的 end_frames={end_frames} 与 judge 的 {grey_cross.get('end_frames')} 不一致"
-        )
     target_on = int(round(0.65 * end_frames))  # arithmetic：落在 [0.50, 0.80)
     for i in range(hold_start + target_on, end_index + 1):
         for prefix in ("wheel_L--step", "wheel_R--step"):
