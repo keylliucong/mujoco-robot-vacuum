@@ -36,5 +36,9 @@
   },
   "repeat": {
     "key_metrics_tol": 0.0
-  }
+  },
+  "end_hold_s": 0.05,
+  "end_duty_min": 0.8,
+  "end_duty_ambiguous": 0.5,
+  "lateral_margin_body_half": 1.0
 }
