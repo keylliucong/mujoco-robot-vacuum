@@ -245,6 +245,18 @@
       "label": "工程假设",
       "ref": "machine=prototype; 单侧压缩行程上限（±6 mm）"
     },
+    "wheel.frictionloss_nm": {
+      "value": 0.002,
+      "unit": "N*m",
+      "label": "待标定",
+      "ref": "machine=prototype; 轮轴干摩擦（齿轮/轴承拖滞）；静置蠕滑红线需要它，否则自由轮无滚阻会缓慢漂移"
+    },
+    "caster.frictionloss_nm": {
+      "value": 0.0002,
+      "unit": "N*m",
+      "label": "待标定",
+      "ref": "machine=prototype; 车尾支撑轮轴承干摩擦"
+    },
     "wheel.damping_nms": {
       "value": 0.0005,
       "unit": "N*m*s",

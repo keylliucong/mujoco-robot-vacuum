@@ -3,7 +3,7 @@
   "case_id": "step_forward_20mm",
   "model": {
     "path": "models/baseline.xml",
-    "sha256": "c8817bca12e8d388b790dab40a17f460d204543920041074abad34a7f25fe26a"
+    "sha256": "24d5ca4f14b746656f3e0e0c9ca45a35725788535503cad6b7f8f43f94f86211"
   },
   "scenario": {
     "kind": "step",

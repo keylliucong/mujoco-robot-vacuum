@@ -116,6 +116,8 @@ pos.susp.z,models/baseline.xml:/worldbody/body[@name='chassis']/body[@name='whee
 susp.stiffness_n_per_m,models/baseline.xml:/worldbody/body[@name='chassis']/body[@name='wheel_L']/joint[@name='susp_L']@stiffness,2000.0,N/m,工程假设,machine=prototype; 原型悬挂刚度假设；静置压缩约 4.8 mm；4000 N/m 在 2 ms 下出现接触-弹簧极限环,,,
 susp.damping_ns_per_m,models/baseline.xml:/worldbody/body[@name='chassis']/body[@name='wheel_L']/joint[@name='susp_L']@damping,40.0,N*s/m,工程假设,machine=prototype; 原型悬挂阻尼假设；与 2000 N/m 配合静置零蠕滑,,,
 susp.travel_limit_m,models/baseline.xml:/worldbody/body[@name='chassis']/body[@name='wheel_L']/joint[@name='susp_L']@range[1],0.006,m,工程假设,machine=prototype; 单侧压缩行程上限（±6 mm）,,,
+wheel.frictionloss_nm,models/baseline.xml:/worldbody/body[@name='chassis']/body[@name='wheel_L']/joint[@name='wheel_L_spin']@frictionloss,0.002,N*m,待标定,machine=prototype; 轮轴干摩擦（齿轮/轴承拖滞）；静置蠕滑红线需要它，否则自由轮无滚阻会缓慢漂移,,,
+caster.frictionloss_nm,models/baseline.xml:/worldbody/body[@name='chassis']/body[@name='caster_rear']/joint[@name='caster_roll']@frictionloss,0.0002,N*m,待标定,machine=prototype; 车尾支撑轮轴承干摩擦,,,
 wheel.damping_nms,models/baseline.xml:/worldbody/body[@name='chassis']/body[@name='wheel_L']/joint[@name='wheel_L_spin']@damping,0.0005,N*m*s,工程假设,machine=prototype; 轮轴粘性阻尼假设,,,
 wheel.armature_kgm2,models/baseline.xml:/worldbody/body[@name='chassis']/body[@name='wheel_L']/joint[@name='wheel_L_spin']@armature,5e-05,kg*m^2,工程假设,machine=prototype; 轮轴转子惯量假设,,,
 actuator.torque_limit_nm,models/baseline.xml:/actuator/motor[@name='wheel_L']@forcerange[1],0.8,N*m,工程假设,machine=prototype; 轮端扭矩上限假设；本机轮端扭矩缺失，非实测,,,

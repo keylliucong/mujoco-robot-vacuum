@@ -47,7 +47,8 @@
 
       <!-- 万向支撑（球代替滚轮，v1 不做滚动）；置于车尾，使驱动轮先触台阶 -->
       <body name="caster_rear" pos="${pos.caster.x} ${pos.caster.y} ${pos.caster.z}">
-        <joint name="caster_roll" type="hinge" axis="0 1 0" damping="${caster.roll_damping_nms}"/>
+        <joint name="caster_roll" type="hinge" axis="0 1 0" damping="${caster.roll_damping_nms}"
+               frictionloss="${caster.frictionloss_nm}"/>
         <inertial pos="0 0 0" mass="${mass.caster}"
                   diaginertia="${inertia.caster.xx} ${inertia.caster.yy} ${inertia.caster.zz}"/>
         <geom name="caster_wheel" type="capsule"
@@ -63,7 +64,8 @@
                range="-${susp.travel_limit_m} ${susp.travel_limit_m}"
                stiffness="${susp.stiffness_n_per_m}" damping="${susp.damping_ns_per_m}"/>
         <joint name="wheel_L_spin" type="hinge" axis="0 1 0"
-               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
+               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"
+               frictionloss="${wheel.frictionloss_nm}"/>
         <inertial pos="0 0 0" mass="${mass.wheel_L}"
                   diaginertia="${inertia.wheel_L.xx} ${inertia.wheel_L.yy} ${inertia.wheel_L.zz}"/>
         <geom name="wheel_L_tire" type="capsule"
@@ -78,7 +80,8 @@
                range="-${susp.travel_limit_m} ${susp.travel_limit_m}"
                stiffness="${susp.stiffness_n_per_m}" damping="${susp.damping_ns_per_m}"/>
         <joint name="wheel_R_spin" type="hinge" axis="0 1 0"
-               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"/>
+               damping="${wheel.damping_nms}" armature="${wheel.armature_kgm2}"
+               frictionloss="${wheel.frictionloss_nm}"/>
         <inertial pos="0 0 0" mass="${mass.wheel_R}"
                   diaginertia="${inertia.wheel_R.xx} ${inertia.wheel_R.yy} ${inertia.wheel_R.zz}"/>
         <geom name="wheel_R_tire" type="capsule"
