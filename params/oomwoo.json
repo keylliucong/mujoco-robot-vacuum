@@ -225,13 +225,13 @@
       "value": 0.035805,
       "unit": "m",
       "label": "图纸推算",
-      "ref": "script=scripts/step_mass_properties.py@e2952e93fcdbbaaacc0243f76b1802158b728830; table=docs/试跑/step-质量属性-逐实体-oomwoo.csv@dbdd34b297235502f1ed6ca1c77e5e3e0f71e8dd; input_sha256=lib/roborock/OOM-W01-drive-wheel-assembly.stp@e5b80913758ef75e40c0e77a5ac3ed5aa4e3650c; 轮实体 bbox 71.610 mm 外径；与公开 0.068 m 冲突，按 STEP 取 0.07161"
+      "ref": "script=scripts/step_mass_properties.py@e2952e93fcdbbaaacc0243f76b1802158b728830; table=docs/试跑/step-质量属性-逐实体-oomwoo.csv@dbdd34b297235502f1ed6ca1c77e5e3e0f71e8dd; input_sha256=lib/roborock/OOM-W01-drive-wheel-assembly.stp@101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2; 轮实体 bbox 71.610 mm 外径；与公开 0.068 m 冲突，按 STEP 取 0.07161"
     },
     "geom.wheel_half_width_m": {
       "value": 0.00788,
       "unit": "m",
       "label": "图纸推算",
-      "ref": "script=scripts/step_mass_properties.py@e2952e93fcdbbaaacc0243f76b1802158b728830; table=docs/试跑/step-质量属性-逐实体-oomwoo.csv@dbdd34b297235502f1ed6ca1c77e5e3e0f71e8dd; input_sha256=lib/roborock/OOM-W01-drive-wheel-assembly.stp@e5b80913758ef75e40c0e77a5ac3ed5aa4e3650c; 轮实体轴向厚度 15.760 mm；与公开 12 mm 冲突，按 STEP"
+      "ref": "script=scripts/step_mass_properties.py@e2952e93fcdbbaaacc0243f76b1802158b728830; table=docs/试跑/step-质量属性-逐实体-oomwoo.csv@dbdd34b297235502f1ed6ca1c77e5e3e0f71e8dd; input_sha256=lib/roborock/OOM-W01-drive-wheel-assembly.stp@101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2; 轮实体轴向厚度 15.760 mm；与公开 12 mm 冲突，按 STEP"
     },
     "pos.susp.y": {
       "value": 0.1175,
