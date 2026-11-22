@@ -861,6 +861,8 @@ def integration_checks():
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="G2 结构自查")
     parser.add_argument("--run", action="store_true", help="含集成抽查（会跑仿真）")
     args = parser.parse_args()

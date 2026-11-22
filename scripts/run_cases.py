@@ -932,6 +932,8 @@ def validate_run_json(run_json):
 
 
 def main(argv=None):
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="G2 批运行入口")
     parser.add_argument("--config", required=True, help="单次运行的 case JSON")
     parser.add_argument("--out", required=True, help="批次输出目录")
