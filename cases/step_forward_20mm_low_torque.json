@@ -76,24 +76,6 @@
           0.0001
         ],
         "condim": 3
-      },
-      "caster--floor": {
-        "friction": [
-          0.02,
-          0.005,
-          0.0005,
-          5e-05
-        ],
-        "condim": 3
-      },
-      "caster--step": {
-        "friction": [
-          0.02,
-          0.005,
-          0.0005,
-          5e-05
-        ],
-        "condim": 3
       }
     }
   },
