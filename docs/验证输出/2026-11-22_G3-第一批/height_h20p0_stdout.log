@@ -1,0 +1,8 @@
+batch height_h20p0
+contract 1.9.0
+git {'commit': '6b5566e3821c70370e1b7f811aaa825495b2acd0', 'branch': 'trial/g3-sweep', 'dirty': True}
+model models/baseline.xml 153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+config E:\mujoco-robot-vacuum\cases\g3-b1\g3_b1_height_h20p0.json 331df5eae4b1cadec0c02e851615087094443b558616f97191e1cb8ba83b122d
+scenario_xml_sha256 b6eea90119b10b0843117b83874f84b1696a652f89b9f862f76c82484bbb6b83
+repeat_consistent True
+conclusion_level mechanism

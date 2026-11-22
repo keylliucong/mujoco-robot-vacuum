@@ -1,0 +1,8 @@
+batch bis_z_h13p5
+contract 1.9.0
+git {'commit': '8f3d47ff287bd3c08f69138d68a15f32b1a24aa6', 'branch': 'trial/g3-sweep', 'dirty': True}
+model models/baseline.xml 153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+config E:\mujoco-robot-vacuum\cases\g3-b1\bisect\g3_b1_bis_z_h13p5.json 9ecd6c154c8dd0661a3751682b48291fdf3f67bb2c39d2798f44b90d911b0540
+scenario_xml_sha256 91128affdb4436eca391d5c637d6379e45d7fb3755d6f9f87c31d017a8471b81
+repeat_consistent True
+conclusion_level mechanism

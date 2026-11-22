@@ -1,0 +1,8 @@
+batch heading_m15
+contract 1.9.0
+git {'commit': '6b5566e3821c70370e1b7f811aaa825495b2acd0', 'branch': 'trial/g3-sweep', 'dirty': True}
+model models/baseline.xml 153b76975830102fbb19e2bf5f810ece9093aa4ae511d586061f65ce68591d01
+config E:\mujoco-robot-vacuum\cases\g3-b1\g3_b1_heading_m15.json 4d8511afac80055002208909514c247ab0845425d7f0826371f2380d4ccee09d
+scenario_xml_sha256 dc81679dcf75ca62235433dc313dda4365e71bdfae5f7b9195ecbe162b42e8d3
+repeat_consistent True
+conclusion_level mechanism
