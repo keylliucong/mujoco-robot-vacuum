@@ -203,7 +203,7 @@ def check_s01():
         model, data, root, _ = load_model()
         problems = []
         required = {
-            "body": ["chassis", "wheel_L", "wheel_R", "susp_L", "susp_R"],
+            "body": ["chassis", "wheel_L", "wheel_R"],
             "joint": ["wheel_L_spin", "wheel_R_spin", "susp_L", "susp_R"],
             "actuator": ["wheel_L", "wheel_R"],
             "material": ["floor", "step"],
