@@ -149,6 +149,8 @@ scripts\view.bat --case step_10mm --config oomwoo --speed 1
 
 `view.bat` 与 `view.sh` 逻辑一致：没有 `.venv\Scripts\python.exe` 就先建环境装 `requirements.lock.txt`，然后 `python scripts\view.py`。参数完全相同；`chcp 65001` 已设好，中文 HUD 不会乱码。
 
+`scripts\*.bat` 必须保持纯 ASCII：注释和 `echo` 提示一律用英文。Windows `cmd.exe` 按本地 ANSI/OEM 代码页解析批处理，UTF-8 中文注释会被拆成命令，报出一串“不是内部或外部命令”。中文说明只写在本文件里，批处理里最多用英文提示指向 `docs` 目录。
+
 ## 自检与常见问题
 
 - **不开窗口先查链路**：`./scripts/view.sh --case flat --headless 5` 跑 5 s 仿真、打 HUD 和摘要，不开 GL 窗口。
