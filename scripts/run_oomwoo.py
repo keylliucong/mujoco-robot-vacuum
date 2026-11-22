@@ -14,6 +14,9 @@
 
 这两个补丁只影响观测/判据统计，不改变物理；判定仍然只在 judge.py。
 
+OOMWOO 无被动悬挂：模型用 `<custom><numeric name="has_suspension" data="0"/>`
+声明（契约 v1.8.0），不建 susp_L/R，输出 susp_*_travel_m 整列为空。
+
 用法（Windows，项目 .venv）：
     .venv\\Scripts\\python.exe scripts\\run_oomwoo.py \
         --config cases\\oomwoo_flat.json --out outputs\\oomwoo-flat --repeat 2
@@ -46,13 +49,13 @@ def body_length(model) -> float:
         size = np.asarray(model.geom_size[gid], dtype=float)
         geom_type = model.geom_type[gid]
         if geom_type == mujoco.mjtGeom.mjGEOM_BOX:
-            lengths.append(2.0 * float(size[0]))
+            lengths.append(2 * float(size[0]))
         elif geom_type == mujoco.mjtGeom.mjGEOM_CYLINDER:
-            lengths.append(2.0 * float(size[0]))
+            lengths.append(2 * float(size[0]))
         elif geom_type == mujoco.mjtGeom.mjGEOM_SPHERE:
-            lengths.append(2.0 * float(size[0]))
+            lengths.append(2 * float(size[0]))
         elif geom_type == mujoco.mjtGeom.mjGEOM_CAPSULE:
-            lengths.append(2.0 * (float(size[0]) + float(size[1])))
+            lengths.append(2 * (float(size[0]) + float(size[1])))
     if not lengths:
         raise run_cases.ContractError("chassis_* 中没有可求 x 向长度的几何")
     return max(lengths)
@@ -84,21 +87,6 @@ def chassis_min_z(model, data) -> float:
 run_cases.LEDGER_PATH = LEDGER
 run_cases.RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
 
-
-def build_judge_params(*args, **kwargs):
-    """OOMWOO 无被动悬挂：susp_L/R 是 ±1 µm 占位铰，名义行程 0 会让 judge 永远报
-    suspension_bottom。
-
-    这里把判定用的 susp_range_m 置为 1 m（永不到达），只影响悬挂触底诊断，
-    不改变任何物理量。上游修法见试跑报告。
-    """
-    params = _ORIGINAL_BUILD_JUDGE_PARAMS(*args, **kwargs)
-    params["susp_range_m"] = 1.0
-    return params
-
-
-_ORIGINAL_BUILD_JUDGE_PARAMS = run_cases.build_judge_params
-run_cases.build_judge_params = build_judge_params
 run_cases.model_checks.body_length = body_length
 run_cases.model_checks.chassis_min_z = chassis_min_z
 

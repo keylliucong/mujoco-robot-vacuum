@@ -24,7 +24,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-CONTRACT_VERSION = "1.7.7"
+CONTRACT_VERSION = "1.8.1"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
 PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
@@ -78,6 +78,7 @@ FROZEN_SUMMARY = [
     "failure_primary",
     "failure_flags",
     "t_trigger_s",
+    "t_wheel_touch_s",
     "t_climb_s",
     "t_recover_s",
     "advance_m",
@@ -106,6 +107,7 @@ FAILURE_ENUM = {
     "retreat",
     "timeout",
     "stall",
+    "belly_contact",
     "bottom_out",
     "suspension_bottom",
     "slip",
@@ -344,7 +346,7 @@ def check_s08():
 def check_s09():
     problems = []
     for path in sorted(CASES_DIR.glob("*.json")):
-        if path.name == "_runner.json":
+        if path.name.startswith("_"):
             continue
         config = json.loads(read_text(path))
         unknown = set(config) - CASE_KEYS
@@ -649,19 +651,66 @@ def check_s21():
             for token in ("role=", "ref_point=", "axes=", f"config_id={params_doc['config_id']}"):
                 if token not in ref:
                     problems.append(f"{param_id} ref 缺 {token}")
+    params_by_model = {
+        "models/baseline.xml": PARAMS_PATH,
+        "models/oomwoo.xml": REPO_ROOT / "params" / "oomwoo.json",
+    }
     for path in CASES_DIR.glob("*.json"):
-        if path.name == "_runner.json":
+        if path.name.startswith("_"):
             continue
         config = json.loads(read_text(path))
+        params_path = params_by_model.get(config["model"]["path"])
+        if params_path is None:
+            continue
+        case_params = json.loads(read_text(params_path))
         match = re.search(r"config_id=([a-z0-9_]+)", config.get("notes", ""))
         if not match:
             problems.append(f"{path.name} notes 缺 config_id")
-        elif match.group(1) != params_doc["config_id"]:
+        elif match.group(1) != case_params["config_id"]:
             problems.append(f"{path.name} config_id 与参数集不一致")
     add("S21", not problems, "载荷状态成套、参考点/坐标系齐备、case 与参数集同 ID" if not problems else "；".join(problems))
 
 
 # ---------------------------------------------------------------- 交付抽查
+
+
+def check_s22():
+    if not HAVE_MUJOCO:
+        add("S22", None, "SKIP：需要 MuJoCo 才能读 has_* 能力声明")
+        return
+    sys.path.insert(0, str(SCRIPTS_DIR))
+    import params_io
+    import model_checks
+
+    problems = []
+    for rel in ("models/baseline.xml", "models/oomwoo.xml"):
+        try:
+            rendered = params_io.load_and_render(REPO_ROOT / rel)
+            model = mujoco.MjModel.from_xml_string(rendered["text"])
+            susp = model_checks.has_suspension(model)
+            problems.extend(f"{rel}: {p}" for p in model_checks.check_required_names(model))
+            if susp:
+                for name in ("susp_L", "susp_R"):
+                    joint = model.joint(name)
+                    if not float(joint.range[1]) > float(joint.range[0]):
+                        problems.append(f"{rel}: {name} 行程必须 > 0")
+            else:
+                stray = [
+                    model.joint(i).name
+                    for i in range(model.njnt)
+                    if model.joint(i).name.startswith("susp_")
+                ]
+                if stray:
+                    problems.append(f"{rel}: has_suspension=0 但仍有 {stray}")
+        except Exception as error:  # noqa: BLE001
+            problems.append(f"{rel}: {error}")
+    add(
+        "S22",
+        not problems,
+        "has_suspension 声明与模型关节两端一致；无该自由度时不建 susp_*"
+        if not problems
+        else "；".join(problems),
+    )
 
 
 def check_negative_configs():
@@ -740,6 +789,7 @@ def synthetic_case(flags, bottom_out):
         "settle_end_s": 0.5,
         "wheel_radius_m": 0.035,
         "step_height_m": 0.02,
+        "has_suspension": True,
         "susp_range_m": 0.006,
         "susp_bottom_rel": 0.999,
         "torque_limit_L_nm": 0.8,
@@ -890,6 +940,7 @@ def main():
     check_s19()
     check_s20()
     check_s21()
+    check_s22()
     check_negative_configs()
     check_judge_unit_tests()
     check_run_outputs()

@@ -29,7 +29,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-CONTRACT_VERSION = "1.7.7"  # S14：等于契约文档版本；判据集仍冻结在 v1.7
+CONTRACT_VERSION = "1.8.1"  # S14：等于契约文档版本；v1.8.0 能力声明 + 评审返工
 SCHEMA_VERSION = "1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -48,6 +48,7 @@ FAILURE_ENUM = {
     "retreat",
     "timeout",
     "stall",
+    "belly_contact",
     "bottom_out",
     "suspension_bottom",
     "slip",
@@ -128,6 +129,7 @@ SUMMARY_COLUMNS = [
     "failure_primary",
     "failure_flags",
     "t_trigger_s",
+    "t_wheel_touch_s",
     "t_climb_s",
     "t_recover_s",
     "advance_m",
@@ -153,6 +155,7 @@ SUMMARY_COLUMNS = [
 
 SUMMARY_METRIC_KEYS = [
     "t_trigger_s",
+    "t_wheel_touch_s",
     "t_climb_s",
     "t_recover_s",
     "advance_m",
@@ -514,6 +517,18 @@ def geom_name_table(model):
     return {gid: model.geom(gid).name for gid in range(model.ngeom)}
 
 
+def model_has_suspension(model):
+    """能力声明（契约 v1.8.0/S22）：<custom><numeric name="has_suspension">。"""
+    try:
+        numeric = model.numeric("has_suspension")
+    except KeyError as error:
+        raise ContractError("模型缺能力声明 has_suspension（v1.8.0/S22）") from error
+    data = np.asarray(numeric.data, dtype=float).reshape(-1)
+    if data.size != 1 or float(data[0]) not in (0.0, 1.0):
+        raise ContractError("has_suspension 必须恰有一个 0/1 值")
+    return bool(round(float(data[0])))
+
+
 def build_pair_lookup(config, obstacle_shape):
     lookup = {}
     ordered = []
@@ -549,7 +564,7 @@ def make_columns(ordered_pairs):
     return TIMESERIES_COLUMNS + contact_columns(ordered_pairs) + TIMESERIES_TAIL
 
 
-def sample_row(model, data, pair_lookup, ordered_pairs, geom_names):
+def sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspension):
     xpos = np.array(data.body("chassis").xpos, dtype=float)
     xquat = np.array(data.body("chassis").xquat, dtype=float)
     qvel = np.array(data.joint("chassis_free").qvel, dtype=float)
@@ -578,8 +593,13 @@ def sample_row(model, data, pair_lookup, ordered_pairs, geom_names):
     row["wheel_R_speed_radps"] = spin_r
     row["wheel_L_torque_nm"] = float(np.asarray(data.actuator("wheel_L").force).reshape(-1)[0])
     row["wheel_R_torque_nm"] = float(np.asarray(data.actuator("wheel_R").force).reshape(-1)[0])
-    row["susp_L_travel_m"] = float(np.asarray(data.joint("susp_L").qpos).reshape(-1)[0])
-    row["susp_R_travel_m"] = float(np.asarray(data.joint("susp_R").qpos).reshape(-1)[0])
+    if has_suspension:
+        row["susp_L_travel_m"] = float(np.asarray(data.joint("susp_L").qpos).reshape(-1)[0])
+        row["susp_R_travel_m"] = float(np.asarray(data.joint("susp_R").qpos).reshape(-1)[0])
+    else:
+        # v1.8.0：没有该自由度 → 整列为空（不是 0.0），且不进 failure_flags。
+        row["susp_L_travel_m"] = None
+        row["susp_R_travel_m"] = None
 
     counts = {key: 0 for key in ordered_pairs}
     normals = {key: 0.0 for key in ordered_pairs}
@@ -689,7 +709,8 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     reset_state(model, data)
     columns = make_columns(ordered_pairs)
     rows = []
-    wheel_step = [k for k in ordered_pairs if k.startswith("wheel_") and k.endswith("--step")]
+    has_suspension = model_has_suspension(model)
+    step_pairs = [k for k in ordered_pairs if k.endswith("--step")]
     trigger_time = 0.0 if config["scenario"]["kind"] == "flat" else None
     cap_time = (
         approach["settle_s"]
@@ -703,10 +724,10 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
         ramp = min(1.0, float(data.time) / ramp_s)
         set_drive(model, data, limits, kp, speed, ramp, yaw_damping)
         step_once(model, data)
-        row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names)
+        row = sample_row(model, data, pair_lookup, ordered_pairs, geom_names, has_suspension)
         rows.append(row)
         if trigger_time is None:
-            for key in wheel_step:
+            for key in step_pairs:
                 if row[f"contact_{key}_active"] == 1:
                     trigger_time = row["t_s"]
                     break
@@ -749,12 +770,15 @@ def unit_for(column):
     return "-"
 
 
-def column_metadata(columns):
+def column_metadata(columns, has_suspension):
     meta = {}
     for column in columns:
+        missing = column.endswith("_normal_n") or column.endswith("_tangent_n")
+        if not has_suspension and column in ("susp_L_travel_m", "susp_R_travel_m"):
+            missing = True
         meta[column] = {
             "unit": unit_for(column),
-            "missing": column.endswith("_normal_n") or column.endswith("_tangent_n"),
+            "missing": missing,
         }
     return meta
 
@@ -764,6 +788,7 @@ def build_judge_params(config, defaults, model, limits, ordered_pairs, body_leng
     judge_cfg = config["judge"]
     kind = config["scenario"]["kind"]
     height = config["scenario"]["obstacle"]["height_m"] if kind == "step" else 0.0
+    has_suspension = model_has_suspension(model)
     return {
         "kind": kind,
         "timestep_s": float(model.opt.timestep),
@@ -784,7 +809,8 @@ def build_judge_params(config, defaults, model, limits, ordered_pairs, body_leng
         "settle_end_s": approach["settle_s"],
         "wheel_radius_m": radius,
         "step_height_m": height,
-        "susp_range_m": MODEL_CONSTANTS["susp_range_m"],
+        "has_suspension": has_suspension,
+        "susp_range_m": MODEL_CONSTANTS["susp_range_m"] if has_suspension else 0.0,
         "susp_bottom_rel": defaults["tolerances"]["susp_bottom_rel"],
         "torque_limit_L_nm": limits["wheel_L"],
         "torque_limit_R_nm": limits["wheel_R"],
@@ -1228,9 +1254,11 @@ def main(argv=None):
                 "regression": regression,
             }
         ],
-        "columns": column_metadata(actual_columns),
+        "columns": column_metadata(actual_columns, model_has_suspension(model)),
         "data_quality": {
             "contact_force_readout": "mj_contactForce",
+            "contact_normal_max_n": "numerical peak at the configured timestep on sharp edges; uncalibrated; relative comparison within the same configuration only; NOT a physical impulse or force",
+            "suspension": "capability declared by model numeric has_suspension; when 0, susp columns are empty (missing) and never enter failure_flags",
             "missing_representation": "empty_field",
             "condim_quoted": 3,
             "rolling_resistance": "not_modelled(condim=3)",

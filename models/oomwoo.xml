@@ -13,8 +13,8 @@
     几何：整机 Ø349 × 97（含 18 mm LiDAR 塔），壳体离地 12.5 mm；驱动轮 R=35.805 mm
     （STEP 轮实体外径 71.61 mm），轮距 235 mm，轮心高 = R。
     从动轮在车头 +x=0.1445 m（oomwoo-one URDF 的 caster 位置），半径 12.5 mm。
-    OOMWOO 无被动悬挂：susp_* 为 0.5 mm 数值伪行程 + 1e8 N/m 近刚性，只为满足契约
-    定名，不是真实悬挂；真实行程【缺失】。
+    OOMWOO 无被动悬挂：模型没有 susp_L/R 关节（能力声明 has_suspension=0），
+    行程不存在，不是 0；输出 susp_*_travel_m 整列为空。真实行程【缺失】。
 
     台阶几何由 scripts/run_cases.py 注入，不在此出现（S03）。
     时间步、积分器、求解器、摩擦锥由 cases/*.json 的 numerics 注入（S02/S15）。
@@ -22,6 +22,11 @@
   -->
   <compiler angle="radian" autolimits="true"/>
   <option gravity="${gravity.x} ${gravity.y} ${gravity.z}"/>
+
+  <!-- 能力声明（契约 v1.8.0/S22）：本机型没有被动悬挂自由度。 -->
+  <custom>
+    <numeric name="has_suspension" data="0"/>
+  </custom>
 
   <default>
     <geom condim="${contact.condim}"
@@ -70,12 +75,6 @@
               size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
               quat="0.7071067811865476 0.7071067811865476 0 0"
               material="rubber"/>
-        <!-- OOMWOO 无被动悬挂：车轮与 chassis 刚性固连。susp_L 是无行程
-             阻尼占位铰（damping=1000，无 range），挂在无碰撞小标记体上，只满足名称表；不承载。 -->
-        <body name="susp_L_marker" pos="0 0 0">
-          <joint name="susp_L" type="slide" axis="0 0 1" damping="1000"/>
-          <inertial pos="0 0 0" mass="0.001" diaginertia="1e-09 1e-09 1e-09"/>
-        </body>
       </body>
 
       <!-- 右驱动轮组：与左侧镜像，A4 断言两轮心对称且 z=R。 -->
@@ -88,12 +87,6 @@
               size="${geom.wheel_radius_m} ${geom.wheel_half_width_m}"
               quat="0.7071067811865476 0.7071067811865476 0 0"
               material="rubber"/>
-        <!-- OOMWOO 无被动悬挂：车轮与 chassis 刚性固连。susp_R 是无行程
-             阻尼占位铰，挂在无碰撞小标记体上，只满足名称表；不承载。 -->
-        <body name="susp_R_marker" pos="0 0 0">
-          <joint name="susp_R" type="slide" axis="0 0 1" damping="1000"/>
-          <inertial pos="0 0 0" mass="0.001" diaginertia="1e-09 1e-09 1e-09"/>
-        </body>
       </body>
     </body>
   </worldbody>

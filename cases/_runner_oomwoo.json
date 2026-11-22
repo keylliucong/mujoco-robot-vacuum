@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "kind": "runner_defaults",
-  "notes": "oomwoo 试跑专用 runner 常量；只改 susp_bottom_rel：OOMWOO 无被动悬挂，0.5 mm 是数值间隙，停止面命中不算悬挂触底。其余同 cases/_runner.json。",
+  "notes": "oomwoo 试跑专用 runner 常量。OOMWOO 无悬挂（模型 has_suspension=0），susp_* 列整列为空、judge 不产生 suspension_bottom；susp_bottom_rel 仅为参数字典封闭保留，不参与本机型判定。其余同 cases/_runner.json。",
   "drive": {
     "speed_kp_nm_per_mps": 6.0,
     "yaw_damping_nm_per_radps": 0.2

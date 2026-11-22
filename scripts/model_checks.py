@@ -120,15 +120,47 @@ def xml_attr(root, xpath):
     raise ModelCheckError(f"多值属性请带下标：{xpath}")
 
 
+def has_suspension(model):
+    """能力声明（契约 v1.8.0/S22）：<custom><numeric name="has_suspension">。"""
+    try:
+        numeric = model.numeric("has_suspension")
+    except KeyError as error:
+        raise ModelCheckError("模型缺能力声明 has_suspension（v1.8.0/S22）") from error
+    data = np.asarray(numeric.data, dtype=float).reshape(-1)
+    if data.size != 1 or float(data[0]) not in (0.0, 1.0):
+        raise ModelCheckError("has_suspension 必须恰有一个 0/1 值")
+    return bool(round(float(data[0])))
+
+
 def check_required_names(model):
     problems = []
+    susp = has_suspension(model)
     for kind, names in REQUIRED_NAMES.items():
         obj = getattr(model, kind)
         for name in names:
+            if not susp and name.startswith("susp_"):
+                continue
             try:
                 obj(name)
             except KeyError:
                 problems.append(f"缺 {kind} 名称：{name}")
+    if susp:
+        for name in ("susp_L", "susp_R"):
+            joint = model.joint(name)
+            low, high = (float(v) for v in joint.range)
+            if not high > low:
+                problems.append(f"{name} 行程必须 > 0（当前 {low}..{high}）")
+    else:
+        stray_joints = [model.joint(i).name for i in range(model.njnt) if model.joint(i).name.startswith("susp_")]
+        stray_actuators = [
+            model.actuator(i).name
+            for i in range(model.nu)
+            if model.actuator(i).name.startswith("susp_")
+        ]
+        if stray_joints:
+            problems.append(f"has_suspension=0 但仍有 joint：{stray_joints}")
+        if stray_actuators:
+            problems.append(f"has_suspension=0 但仍有 actuator：{stray_actuators}")
     geom_names = [model.geom(i).name for i in range(model.ngeom)]
     for prefix in REQUIRED_GEOM_PREFIXES:
         if not any(n.startswith(prefix) for n in geom_names):

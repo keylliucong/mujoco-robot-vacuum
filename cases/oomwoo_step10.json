@@ -3,7 +3,7 @@
   "case_id": "oomwoo_step10",
   "model": {
     "path": "models/oomwoo.xml",
-    "sha256": "a74f6da2f9e80c2f5430ef9d52fb9a192cd2b1aa43d131667aee4db5c6e99ee8"
+    "sha256": "9323a473c6d814a914cfb91fd0ac7772441ccf2b38112d468547df723b8be2e7"
   },
   "scenario": {
     "kind": "step",
@@ -119,6 +119,7 @@
     "fail_on": [
       "topple",
       "retreat",
+      "belly_contact",
       "timeout",
       "stall"
     ],

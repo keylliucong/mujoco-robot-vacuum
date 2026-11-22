@@ -3,7 +3,7 @@
   "case_id": "step_oblique_minus30",
   "model": {
     "path": "models/baseline.xml",
-    "sha256": "c8817bca12e8d388b790dab40a17f460d204543920041074abad34a7f25fe26a"
+    "sha256": "ed651df8d16a9a9e3661ce1872e0ed48c96d8e65ad8c9c0d38095d59dd723522"
   },
   "scenario": {
     "kind": "step",

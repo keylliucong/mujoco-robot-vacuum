@@ -1,6 +1,6 @@
 """G2 判定模块：只吃时程 + 阈值，不 import mujoco，不读模型或配置对象（S04/S09）。
 
-契约版本：v1.7（判据集）；文档 1.7.1 只含澄清。
+契约版本：v1.8.1（判据集）；文档 1.8.1 含评审返工澄清。
 本文件是唯一写 `passed` / `failure_*` 的地方；输入是 CSV 列字典（字符串原样，
 空串表示无数据）与一份扁平的数值参数字典。参数键集封闭，出现未知键即 raise，
 因此配置无法夹带期望结果（S09）。
@@ -11,11 +11,12 @@ from __future__ import annotations
 import math
 from bisect import bisect_left, bisect_right
 
-CONTRACT_VERSION = "1.7.7"
+CONTRACT_VERSION = "1.8.1"
 
 FAILURE_PRIORITY = (
     "data_invalid",
     "topple",
+    "belly_contact",
     "retreat",
     "bottom_out",
     "stall",
@@ -47,6 +48,7 @@ REQUIRED_PARAMS = frozenset(
         "settle_end_s",
         "wheel_radius_m",
         "step_height_m",
+        "has_suspension",
         "susp_range_m",
         "susp_bottom_rel",
         "torque_limit_L_nm",
@@ -167,15 +169,15 @@ def judge_case(columns, params):
     active = {k: columns[f"contact_{k}_active"] for k in pair_keys}
 
     kind = params["kind"]
+    wheel_touch_index = None
     if kind == "step":
-        trigger_index = None
-        for k in wheel_step:
-            col = active[k]
-            for i, raw in enumerate(col):
-                if raw == "1":
-                    trigger_index = i if trigger_index is None else min(trigger_index, i)
-                    break
-        if trigger_index is None:
+        # v1.8.1（评审返工 2）：t_trigger = 任一机体 geom 与台阶首次接触。
+        # 旧定义只看 wheel_step，会让“先托底/从动轮先触、后爬升”的工况把托底
+        # 延误漏在窗口外，爬升耗时系统性偏小。驱动轮首次接触另记 t_wheel_touch。
+        step_pairs = [k for k in pair_keys if k.endswith("--step")]
+        first_contact = {k: _first_active(active[k]) for k in step_pairs}
+        hits = [(i, k) for k, i in first_contact.items() if i is not None]
+        if not hits:
             return _result(
                 status="invalid",
                 invalid_reason="never_contacted",
@@ -183,9 +185,15 @@ def judge_case(columns, params):
                 params=params,
                 metrics=_empty_metrics(),
             )
+        trigger_index = min(i for i, _ in hits)
+        wheel_hits = [first_contact[k] for k in wheel_step if first_contact.get(k) is not None]
+        wheel_touch_index = min(wheel_hits) if wheel_hits else None
+        non_wheel_step = [k for k in step_pairs if k not in wheel_step]
     else:
         trigger_index = 0
+        non_wheel_step = []
     t_trigger = times[trigger_index]
+    t_wheel_touch = times[wheel_touch_index] if wheel_touch_index is not None else None
     window_end = t_trigger + params["window_s"]
     if times[-1] + step * 1e-6 < window_end:  # arithmetic
         return _result(
@@ -230,6 +238,10 @@ def judge_case(columns, params):
     torque_max_r = _abs_max(torque_r, window)
     travel_max_l = _max(travel_l, window)
     travel_max_r = _max(travel_r, window)
+    if not params["has_suspension"]:
+        # v1.8.0：没有该自由度 → 输出为空，不写 0，也不参与判据。
+        travel_max_l = None
+        travel_max_r = None
 
     slip_l = _slip_max(speed_l, vel_x, window, params)
     slip_r = _slip_max(speed_r, vel_x, window, params)
@@ -244,6 +256,13 @@ def judge_case(columns, params):
         flags.append("topple")
     if advance < 0.0:
         flags.append("retreat")
+    if kind == "step":
+        wheel_touched = any(_has_active(active[k], window) for k in wheel_step)
+        other_body_touched = any(_has_active(active[k], window) for k in non_wheel_step)
+        # 评审返工 1：驱动轮在整个窗口内够不到台阶，而壳/从动轮已经碰到台阶——
+        # 这是确定、可重复的真实托底受阻，不是“没接触所以数据无效”。
+        if other_body_touched and not wheel_touched:
+            flags.append("belly_contact")
     if any(_has_active(active[k], window) for k in bottom_out):
         flags.append("bottom_out")
     if _stall(vel_x, times, window, params):
@@ -252,7 +271,9 @@ def judge_case(columns, params):
         params["torque_limit_L_nm"], params["torque_limit_R_nm"]
     ) * (1 - params["torque_saturation_rel"]):
         flags.append("torque_limit")
-    if max(travel_max_l, travel_max_r) >= params["susp_range_m"] * params["susp_bottom_rel"]:
+    if params["has_suspension"] and max(travel_max_l, travel_max_r) >= (
+        params["susp_range_m"] * params["susp_bottom_rel"]
+    ):
         flags.append("suspension_bottom")
     if max(slip_l, slip_r) > params["slip_ratio"]:
         flags.append("slip")
@@ -275,6 +296,7 @@ def judge_case(columns, params):
 
     metrics = {
         "t_trigger_s": t_trigger,
+        "t_wheel_touch_s": t_wheel_touch,
         "t_climb_s": t_climb,
         "t_recover_s": t_recover,
         "advance_m": advance,
@@ -346,6 +368,7 @@ def _result(status, invalid_reason, flags, params, metrics, passed=None, primary
 def _empty_metrics():
     return {
         "t_trigger_s": None,
+        "t_wheel_touch_s": None,
         "t_climb_s": None,
         "t_recover_s": None,
         "advance_m": None,
@@ -392,6 +415,13 @@ def _max(series, indices):
 
 def _has_active(column, indices):
     return any(column[i] == "1" for i in indices)
+
+
+def _first_active(column):
+    for i, raw in enumerate(column):
+        if raw == "1":
+            return i
+    return None
 
 
 def _slip_max(speed_rad, vel_x, indices, params):

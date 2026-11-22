@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "config_id": "oomwoo",
   "machine": "oomwoo",
-  "note": "OOMWOO One（makerspet）参数集。几何：oomwoo-cad@266210a 的 lib/ 可信 STEP + oomwoo-one@a630d1c 的 params.xacro 公开实测值；质量/惯量：公开实测分项 + 柱体/球体假设。z_cg 缺失，占位值只用于跑通流程，不构成整机结论。",
+  "note": "OOMWOO One（makerspet）参数集。几何：oomwoo-cad@266210a 的 lib/ 可信 STEP + oomwoo-one@a630d1c 的 params.xacro 公开实测值；质量/惯量：公开实测分项 + 柱体/球体假设。z_cg 缺失，占位值只用于跑通流程，不构成整机结论。轮径取 STEP 0.07161 m（公开 0.068 m，差 5.3%）但冲突未消除，待 0.2 mm 试验标定；该项等级只到 sensitivity。",
   "params": {
     "gravity.x": {
       "value": 0.0,
@@ -225,7 +225,7 @@
       "value": 0.035805,
       "unit": "m",
       "label": "图纸推算",
-      "ref": "script=scripts/step_mass_properties.py@e2952e93fcdbbaaacc0243f76b1802158b728830; table=docs/试跑/step-质量属性-逐实体-oomwoo.csv@dbdd34b297235502f1ed6ca1c77e5e3e0f71e8dd; input_sha256=lib/roborock/OOM-W01-drive-wheel-assembly.stp@101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2; 轮实体 bbox 71.610 mm 外径；与公开 0.068 m 冲突，按 STEP 取 0.07161"
+      "ref": "script=scripts/step_mass_properties.py@e2952e93fcdbbaaacc0243f76b1802158b728830; table=docs/试跑/step-质量属性-逐实体-oomwoo.csv@dbdd34b297235502f1ed6ca1c77e5e3e0f71e8dd; input_sha256=lib/roborock/OOM-W01-drive-wheel-assembly.stp@101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2; 轮实体 bbox 71.610 mm 外径；公开 params.xacro wheel_diameter=0.068 m，差 5.3%。评审裁决取 STEP 0.07161（STEP 是实物轮扫描件，已过 S17 准入四项；params.xacro 同文件注释自述轮距才是实测），但冲突不消除：该项等级只到 sensitivity，待试验标定轮径实测（目标 0.2 mm）后裁定"
     },
     "geom.wheel_half_width_m": {
       "value": 0.00788,

@@ -3,7 +3,7 @@
   "case_id": "oomwoo_step20_casterblock",
   "model": {
     "path": "models/oomwoo.xml",
-    "sha256": "a74f6da2f9e80c2f5430ef9d52fb9a192cd2b1aa43d131667aee4db5c6e99ee8"
+    "sha256": "9323a473c6d814a914cfb91fd0ac7772441ccf2b38112d468547df723b8be2e7"
   },
   "scenario": {
     "kind": "step",
@@ -119,6 +119,7 @@
     "fail_on": [
       "topple",
       "retreat",
+      "belly_contact",
       "timeout",
       "stall"
     ],
@@ -137,5 +138,5 @@
     "contact_normal_min_n": 0.5
   },
   "seed": 0,
-  "notes": "观测算例：20 mm 高于壳体离地 12.5 mm。本模型的车头从动轮（r=12.5 mm，定高铰）与刚性壳体都会先于驱动轮接触台阶立面，预期 wheel--step 不接触（no_contact/invalid）。用于暴露“无柔性保险杠/无从动轮抬升”的建模缺口。config_id=oomwoo。"
+  "notes": "阻塞算例：20 mm 高于壳体离地 12.5 mm。车头从动轮（r=12.5 mm，定高铰）与刚性壳体先接触台阶立面，驱动轮始终够不到台阶；judge 按 v1.8.1 判 blocked/belly_contact，不再判 invalid。本模型无保险杠柔性、无前下缘倒角，所以这个 blocked 是下界（真机可能通过），不是通过/不通过结论；h≥12.5 mm 已超出本模型适用范围。config_id=oomwoo。"
 }

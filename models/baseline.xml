@@ -19,6 +19,11 @@
   <compiler angle="radian" autolimits="true"/>
   <option gravity="${gravity.x} ${gravity.y} ${gravity.z}"/>
 
+  <!-- 能力声明（契约 v1.8.0/S22）：prototype 有被动悬挂，行程必须 > 0。 -->
+  <custom>
+    <numeric name="has_suspension" data="1"/>
+  </custom>
+
   <default>
     <geom condim="${contact.condim}"
           solref="${contact.solref_timeconst_s} ${contact.solref_dampratio}"

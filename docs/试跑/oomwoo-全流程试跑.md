@@ -2,22 +2,44 @@
 
 - 日期：2026-11-22
 - 任务分支：`dryrun/oomwoo-step`
-- 基线提交（Windows 实跑）：`24f73251d02e79363dbafb8b6c34c56cd09a7538`
+- 基线提交（Windows 实跑）：`__RERUN_SHA__`
+- 契约版本：`1.8.1`（v1.8.0 能力声明 + 本轮评审返工；判据集变更见 §0 对照表）
 - 本报告随后续文档提交更新；所有仿真数字对应上面的提交，不是报告自身的提交
 - 输入：`makerspet/oomwoo-cad@266210a47cab931c5891a07c9a29d48388a54b0c`、`makerspet/oomwoo-one@a630d1c77255072d280a2a41a7a2bd1a1c98cadd`
 - 结论口径：本轮**没有判定结论**。只记录 `outcome = cleared / blocked / invalid` 和失败模式，不写“通过高度”或“能过多高”。
 
+## 评审返工对照表（PR #17）
+
+评审结论：**可作 G2 基线，但先返工 4 处**。本表逐条对照；改完后在同一分支 `dryrun/oomwoo-step` 更新 PR #17，未另开 PR。
+
+| # | 评审意见 | 改了什么 | 改在哪个文件哪一行 | 重跑后的结果 |
+| ---: | --- | --- | --- | --- |
+| 1 | `invalid:never_contacted` 方向反了：驱动轮没碰到就判无效，但 20 mm 例是真实托底受阻 | `t_trigger` 改为任一机体-台阶首次接触；新增 `belly_contact` 失败枚举：窗口内机体已碰台阶、驱动轮始终未接触时判 `blocked`，不再判 `invalid`。`never_contacted` 只保留“全程无任何接触” | `judge.py:170-207`（触发与 `belly_contact`）、`judge.py:258-266`（判负标志）、`cases/oomwoo_step10*.json`/`oomwoo_step20_casterblock.json` 的 `judge.fail_on` 加 `belly_contact` | `oomwoo_step20_casterblock`: `status=ok, passed=0, failure_primary=belly_contact`（旧：`invalid/no_contact`）；`outcome=blocked` |
+| 2 | `t_trigger` 以驱动轮接触为计时零点，先托底后爬升的工况窗口系统性偏晚 | `t_trigger` 改为任一机体 geom 与台阶首次接触；新增诊断量 `t_wheel_touch_s`，只记录驱动轮首次接触，不参与窗口起点 | `judge.py:170-196`（触发）、`judge.py:295-300`（metrics）、`scripts/run_cases.py:126-160`（summary 列）、`scripts/run_cases.py:785-814`（判参） | `oomwoo_step10`: `t_trigger=3.976 s`、`t_wheel_touch=4.906 s`、`t_climb=1.188 s`（旧 `t_trigger=4.906`、`t_climb=0.288`，托底延误 0.930 s 现计入窗口）；`step10_lowtorque`: `3.976 / 4.952` |
+| 3 | 接触峰值 230 N 不得当物理量 | 保留 `contact_normal_max_n` 仅作同配置相对比较；报告与表注明确写“2 ms 步长尖棱接触的数值峰值，未标定，不具物理量含义”，不得用于核保险杠强度 | 报告 §6.2 表注 1；`scripts/run_cases.py:1258-1262` 的 `data_quality` 增补说明 | 新配置下 `oomwoo_step10` 数值峰值为 **246.39 N**（不是 230.38；改的是模型去掉占位体后的同一算法读数），仍只作相对比较 |
+| 4 | 无悬挂机型被逼造 `susp_*` 假铰，且用 1 m 假行程掩盖“没有这个自由度” | 按契约 v1.8.0/ADR-013：模型加 `<custom><numeric name="has_suspension" data="0"/>`，删除 `susp_L/R` 与占位标记体；`susp_*_travel_m` 整列为空、`run.json.columns[...].missing=true`，不进 `failure_flags`；判定侧 `has_suspension=0` 时跳过 `suspension_bottom` | `models/oomwoo.xml:27-29`（能力声明）、`models/oomwoo.xml:74-94`（删假铰）、`scripts/model_checks.py:123-163`（S22 两端一致）、`scripts/run_cases.py:520-530`、`scripts/run_cases.py:590-605`、`scripts/run_cases.py:773-780`、`scripts/run_cases.py:791-814`、`scripts/run_oomwoo.py:87-91`（删 1 m 覆盖） | 四个工况 `susp_travel_max_*` 均空；`failure_flags` 无 `suspension_bottom`；**悬挂判据 A2 对 oomwoo 不可判（无此自由度），不是通过也不是失败**；A1/A3 随占位体删除重算并全过 |
+
+
+### 评审新增口径（必须写进报告）
+
+| 项 | 写法 |
+| --- | --- |
+| A. 适用范围硬上限 | `floor_clearance = 12.5 mm`。**h ≲ 12.5 mm：轮主导，本模型成立；h ≳ 12.5 mm：最先碰台阶的是壳体前下缘，本模型没有该处几何（直角圆柱边缘、无倒角、无保险杠柔性），结果只能当“未覆盖此机理”的证据，不能当通过/不通过。** 见 §4.3、§6.2 表注。独立模型 PR #8 的 20/30 mm 终点停在壳体半径处，是同一病的另一种表现。 |
+| B. 轮径冲突 | 取 STEP 值 **0.07161 m**（`params.xacro` 0.068 m，差 **5.3%**；轮径对通过高度是一阶）。裁决理由：STEP 是实物轮扫描件且已过 S17 准入四项；`params.xacro` 同文件注释自述轮距才是实测。**冲突不消除**，等试验标定轮径实测（目标 0.2 mm）再裁；该项等级只到 `sensitivity`。见 §4.2。 |
+| C. 质心 x 两套归属 | 上游 +2.2 mm、本报告 **+6.345 mm**，差 4.1 mm。差在分件归属：本报告把从动轮 0.05 kg 单独挂在 x=+0.1445 m。**两套分件归属不同，不可比**：本报告不拿 +2.2 mm 作校核，也不把 4.1 mm 当误差；要可比须两边照同一张分件归属表重算。本报告的口径与算式见 §3.3。 |
+
+
 ## 0. 一句话结果
 
-流程走到第 4 步（工况 → runner → judge）并在 Windows 跑完 4 个配置 + 1 个斜面观测，重复两次逐位一致；第 1 步在**整机质量属性**上卡住：`oomwoo-cad` 没有 `designs/one/stock/`，唯一“整机 STEP”是作者声明有已知设计错误的 `agentic/july-2026/device_full.step`，本轮没有用它。可信 `lib/` STEP 的部件级 B-rep 质量属性已经跑通，但整机 CoM/z_cg、惯量和装甲壳体几何仍只能假设；因此所有批次的 `conclusion_level = mechanism`。
+流程走到第 4 步（工况 → runner → judge）并在 Windows 跑完 4 个配置 + 1 个斜面观测，`--repeat 2` 同机逐位一致；第 1 步在**整机质量属性**上卡住：`oomwoo-cad` 没有 `designs/one/stock/`，唯一“整机 STEP”是作者声明有已知设计错误的 `agentic/july-2026/device_full.step`，本轮没有用它。可信 `lib/` STEP 的部件级 B-rep 质量属性已经跑通，但整机 CoM/z_cg、惯量和装甲壳体几何仍只能假设；因此所有批次的 `conclusion_level = mechanism`。评审返工后，20 mm 例由 `invalid/no_contact` 改为 `blocked/belly_contact`（本模型无保险杠柔性/前下缘倒角，该 `blocked` 是下界）；该工况 `h > 12.5 mm`，已超出本模型适用范围，只作“未覆盖此机理”的证据。
 
 | 步骤 | 状态 | 产物 | 卡点 |
 | --- | --- | --- | --- |
 | 1 STEP → 质量属性 | 部件级完成，整机级卡住 | `docs/试跑/step-质量属性-oomwoo.csv` | 无 stock 整机 STEP；z_cg 无实测 |
 | 2 STEP → 几何 | 部件级 + 公开尺寸链完成 | 本报告 §3 | 整机 CAD 全局系不存在 |
-| 3 几何 → MJCF | 完成（含 3 处试跑补丁） | `models/oomwoo.xml`、`params/oomwoo.json` | `model_checks` 只认 box；无悬挂 |
+| 3 几何 → MJCF | 完成（2 处试跑补丁 + 能力声明） | `models/oomwoo.xml`、`params/oomwoo.json` | `model_checks` 只认 box；无悬挂按 v1.8.0 声明 |
 | 4 工况 → runner → judge | 完成 4 配置 + 斜面观测 | Windows `outputs/oomwoo-*-win/` | 契约无 slope 工况；台阶注入降高 |
-| 5 双机执行 | 完成 | Windows worktree，SHA `24f7325` | 无 |
+| 5 双机执行 | 完成 | Windows worktree，SHA `__RERUN_SHA__` | 无 |
 | 6 一致性 | 完成 | 同机重复逐位一致 | 跨 Mac/Windows 非逐位一致（记录） |
 | 7 报告 | 本文件 | `docs/试跑/` | — |
 
@@ -25,15 +47,15 @@
 
 | 项 | Mac（只编辑/推导/提交） | Windows（只跑已推送提交） |
 | --- | --- | --- |
-| 位置 | `/Users/liucong/orca/workspaces/mujoco_/oomwoo-step`（git worktree） | `E:\mujoco-robot-vacuum\.tools\worktrees\oomwoo-step`（git worktree） |
-| 提交 | `24f7325` + 后续文档提交 | `24f73251d02e79363dbafb8b6c34c56cd09a7538`（detached） |
+| 位置 | `/Users/liucong/orca/workspaces/mujoco_/pilot-rework`（git worktree） | `E:\mujoco-robot-vacuum\.tools\worktrees\pr17-rework`（git worktree） |
+| 提交 | `__RERUN_SHA__`（评审返工提交） | `__RERUN_SHA__`（detached） |
 | Python | 3.13.18（CAD venv） | 3.13.1（项目 `.venv`） |
 | MuJoCo | 4.0.1（仅本地预检） | 4.0.1 |
 | NumPy | 2.5.5 | 2.5.5 |
 | CAD 内核 | `cadquery-ocp 7.9.3.1.1`（OCCT 7.9.3）+ `vtk 9.6.2` | 未安装，不跑 CAD |
 | 平台 | macOS 27.2.1 arm64 | Windows 11（`platform` 见 `run.json`） |
 
-Windows 使用独立 worktree，避免与其他 worker 共用 `E:\mujoco-robot-vacuum` 工作区；Python 仍调用主目录 `.venv`。每次 `run.json` 记录 `git.commit=24f7325…`、`git.branch=HEAD`、`git.dirty=false`。
+Windows 使用独立 worktree，避免与其他 worker 共用 `E:\mujoco-robot-vacuum` 工作区；Python 仍调用主目录 `.venv`。每次 `run.json` 记录 `git.commit=__RERUN_SHA__`、`git.branch=HEAD`、`git.dirty=false`。
 
 ## 2. 输入与来源可信度分级
 
@@ -110,19 +132,26 @@ $ git ls-tree HEAD designs/one/
 - `chassis`（壳体 2.500 + LiDAR 0.150 = 2.650 kg）
 - 左右驱动轮各 0.100 kg
 - 车头从动轮 0.050 kg
-- 两个 0.001 kg 的无碰撞占位标记体（只为满足 `susp_L/R` 名称表）
 
 | 量 | 值 | 参数等级 | 结论等级 |
 | --- | --- | --- | --- |
-| 整机质量 | **2.902 kg** | 公开参考分项 + 加和 | mechanism |
-| CoM x（B 系） | **+6.340 mm** | 工程假设 | mechanism |
+| 整机质量 | **2.900 kg** | 公开参考分项 + 加和 | mechanism |
+| CoM x（B 系） | **+6.3448 mm** | 工程假设 | mechanism |
 | CoM y | **0**（左右对称设 0） | 工程假设 | mechanism |
-| CoM z | **46.669 mm（占位）** | **缺失** | mechanism |
-| 关于 CoM 的惯量张量 | `Ixx=0.023217, Iyy=0.022246, Izz=0.042807, Ixy≈0, Ixz=-0.000215, Iyz≈0` kg·m² | 工程假设 | mechanism |
-| 三个主惯性矩 | **0.022246 / 0.023215 / 0.042809 kg·m²** | 工程假设 | mechanism |
-| 关于 B 原点 | `Ixx=0.029538, Iyy=0.028684, Izz=0.042924, Ixz=-0.001074` kg·m² | 工程假设 | mechanism |
+| CoM z | **46.6767 mm（占位）** | **缺失** | mechanism |
+| 关于 CoM 的惯量张量 | `Ixx=0.0231895, Iyy=0.0222461, Izz=0.0427792, Ixy≈0, Ixz=-0.00021485, Iyz≈0` kg·m² | 工程假设 | mechanism |
+| 三个主惯性矩 | **0.0222461 / 0.0231872 / 0.0427816 kg·m²** | 工程假设 | mechanism |
+| 关于 B 原点 | `Ixx=0.0295078, Iyy=0.0286811, Izz=0.0428959, Ixz=-0.0010737` kg·m² | 工程假设 | mechanism |
 
 读法：`参数等级` 回答“这些数从哪来”；`结论等级` 回答“拿这些数能说到多远”。z_cg 标【缺失】、CAD 全局系标【缺失】，所以整机结论只能是 `mechanism`。这与“质量分项是公开实测”不矛盾：来源硬，但缺口和容差刻度不到定量。
+
+**质心 x 的分件归属（评审新增 C）**：本报告把从动轮 0.05 kg 单独挂在 x=+0.1445 m，算式为
+
+```text
+x_com = (2.650 kg × 0.004217 m + 0.050 kg × 0.1445 m) / 2.900 kg = 0.0063448 m
+```
+
+上游给 +2.2 mm。两者差 4.1 mm，差在分件归属：若把从动轮按 x=0 计入，本报告会得到 3.85 mm；上游的 +2.2 mm 需要他们那张分件归属表才能复算。因此本报告选择**“两套归属不同，不可比”**：不拿 +2.2 mm 作校核，也不把 4.1 mm 当测量误差；要可比须两边照同一张分件归属表重算。
 
 ### 3.4 卡在哪 / 下一步
 
@@ -146,7 +175,7 @@ $ git ls-tree HEAD designs/one/
 | --- | --- | --- | --- |
 | 整机外形包围盒 | **0.349 × 0.349 × 0.097 m** | 公开参考 | `base_diameter=0.349`、壳体顶 0.079 + LiDAR 0.018；无整机 STEP 可复核 |
 | 壳体离地间隙 | **0.0125 m** | 公开参考 | `floor_clearance` |
-| 驱动轮直径 | **0.071610 m** | 图纸推算 | STEP 轮胎实体；与公开 `wheel_diameter=0.068` 冲突，按 STEP 取 0.07161 |
+| 驱动轮直径 | **0.071610 m** | 图纸推算（上限 sensitivity） | STEP 轮胎实体；与公开 `wheel_diameter=0.068` 冲突（差 5.3%），按 STEP 取 0.07161；**冲突不消除**，见 §4.4 |
 | 驱动轮宽 | **0.015760 m** | 图纸推算 | STEP 轮胎实体；与公开 0.012 冲突，按 STEP |
 | 轮距 | **0.235 m** | 公开参考 | `wheel_base`；无整机 STEP |
 | 轮心高度 | **0.035805 m** | 图纸推算 | = 轮半径（A4 约束） |
@@ -156,6 +185,36 @@ $ git ls-tree HEAD designs/one/
 | CAD 全局系 → B | **未定义** | 缺失 | 没有整机 CAD 装配，谈不上 yaw/origin |
 
 几何冲突的处理按任务要求：**从 STEP 自己算的以 STEP 为准**。轮径/轮宽与公开值不一致，是因为公开值是 URDF 里的名义值，STEP 是 Roborock 轮的三维扫描件；两者都保留在台账里，模型用 STEP 值并标注冲突。
+
+### 4.3 适用范围硬上限：`h ≲ 12.5 mm`（评审新增 A）
+
+`floor_clearance = 12.5 mm` 是本模型适用范围的硬边界，不是“还能再试试”的余量：
+
+| 台阶高度 | 最先碰台阶的几何 | 本模型能不能用 |
+| --- | --- | --- |
+| **h ≲ 12.5 mm** | 驱动轮（轮主导） | **成立**：轮缘接触、爬升机理在模型覆盖内 |
+| **h ≳ 12.5 mm** | **壳体前下缘**（圆柱直角边缘） | **不成立**：模型没有前下缘倒角、没有保险杠柔性；最先接触处的几何是错的 |
+
+因此：
+
+- **h ≲ 12.5 mm 轮主导、模型成立；h ≳ 12.5 mm 本模型不成立。** 超过 12.5 mm 的结果只能当“**未覆盖此机理**”的证据，不能当“通过/不通过”，也不能外推通过高度。
+- 20 mm 工况正落在不成立的一侧。它的 `blocked/belly_contact` 是**本模型几何**下的确定结果；因为模型没有保险杠柔性、没有前下缘倒角，真机可能通过，所以这个 `blocked` 是**下界**，不是结论。
+- 独立模型 PR #8 的 20/30 mm 结果终点都停在壳体半径处，是同一个病的另一种表现：轮子还没成为主导接触，壳体几何先决定了结局。
+
+**表注（同样适用于 §6.2 的台阶表）**：表中 `h > 12.5 mm` 的行只用于暴露“壳体前下缘接触”这一未覆盖机理；不得把该行的 `blocked` 读成机型能力。
+
+### 4.4 轮径冲突裁决：取 STEP，但不消除冲突（评审新增 B）
+
+`params.xacro` 给 `wheel_diameter = 0.068 m`，STEP 轮实体外径 **0.07161 m**，差 **5.3%**。轮径对通过高度是一阶量（爬升时轮心抬升 ≈ h），所以这不是可以“两边都记一下”的小冲突。
+
+评审裁决：**取 STEP 值 0.07161 m**。理由：
+
+1. STEP 是实物轮的三维扫描件，不是名义 URDF；
+2. 该值已过 S17 准入四项（推导脚本、输入 sha256、逐实体输出表、运行环境声明）；
+3. `params.xacro` 同文件注释自述轮距才是实测，轮径是名义值。
+
+但**冲突不消除**：本轮不宣布 0.07161 是“真值”，只宣布“在本模型里用它”。该项参数等级为【图纸推算】，按 S17 上限只到 **`sensitivity`**；等试验标定轮径实测（目标 **0.2 mm**）后再裁。裁决前的任何通过高度都带这个 5.3% 的口径风险。
+
 
 ## 5. 第 3 步：几何 → MJCF
 
@@ -176,36 +235,40 @@ XML 里没有写死物理常数：质量、CoM、惯量、几何、摩擦、接�
 - `chassis`：freejoint，圆柱壳体 `chassis_shell`（R=0.1745、半高 0.03325、中心 z=0.04575）。
 - `caster_front`：车头 +x=0.1445，绕 +y 的 `caster_roll` 铰，胶囊轮胎 r=0.0125。
 - `wheel_L/R`：轮心 `y=±0.1175, z=0.035805`，`wheel_*_spin` 绕 +y，胶囊轮胎 r=0.035805、半宽 0.00788。
-- `susp_L/R`：OOMWOO 无被动悬挂，车轮与 chassis 刚性固连。为满足契约名称表，在车轮下挂一个无碰撞小标记体，`susp_*` 是无 range 的阻尼占位滑移（damping=1000），**不承载、不参与物理**；判定用的 `susp_range_m` 在包装层置 1 m，避免把 0 行程误报成悬挂触底。
+- **无悬挂声明**：模型 `<custom><numeric name="has_suspension" data="0"/>`；不建 `susp_L/R`、不建占位标记体。`susp_*_travel_m` 整列为空（不是 0），`run.json.columns[...].missing=true`，判定侧不产生 `suspension_bottom`。
 - 执行器：`wheel_L/R` 力矩电机，`gear=1`，`forcerange=±0.5 N·m`（公开值）。
 
 ### 5.2 自检 A1–A5
 
-Windows 每次运行前由 `run_cases` 调 `model_checks.run_checks`，本地复核输出：
+Windows 每次运行前由 `run_cases` 调 `model_checks.run_checks`（含 S22 能力声明两端一致），本地复核输出：
 
 ```text
-A1 True 质量 2.902000 vs 台账 2.902000，相对偏差 1.53e-16
-A2 True CoM [0.00634 0 0.046669] vs 台账，范数差 0.000 mm
+A1 True 质量 2.900000 vs 台账 2.900000，相对偏差 <1e-12
+A2 True CoM [0.006345 0 0.046677] vs 台账，范数差 0.000 mm
 A3 True xx/yy/zz 相对偏差 1e-11 量级
 A4 True 两轮心对称、轴心 x≈0、z=R，均 0.000 mm
 A5 True XML 与 t=0 位姿均为单位位姿
+S22 True has_suspension=0，模型内无 susp_* 关节/执行器
 ```
 
-模型 sha256：`a74f6da2f9e80c2f5430ef9d52fb9a192cd2b1aa43d131667aee4db5c6e99ee8`。
+模型 sha256：`9323a473c6d814a914cfb91fd0ac7772441ccf2b38112d468547df723b8be2e7`。
+
+**悬挂判据 A2 对 oomwoo 不可判（评审返工 4）**：本机型**没有悬挂自由度**，所以这里的“悬挂偏差 A2”既不是通过、也不是失败，而是 **N/A（不可判）**。本轮只保证输出形状不产生 pass/fail：`susp_*` 列整列为空、`missing=true`、`failure_flags` 不含 `suspension_bottom`；“不可判”的判据写法归验收限。注意不要和契约 §1.1 的 **A2（整机 CoM ≤1 mm）** 混淆：契约 A2 仍然适用且通过；评审所说的悬挂 A2 是另一项。
 
 ### 5.3 卡在哪 / 下一步
 
-三处试跑补丁（都写在 `scripts/run_oomwoo.py`，没有改上游 `model_checks.py`）：
+两处试跑补丁（都写在 `scripts/run_oomwoo.py`，没有改上游 `model_checks.py`）：
 
 1. `body_length()` 只认 `chassis_*` 的 **box** 几何，圆形壳体没有 box；包装层按 cylinder 直径求车身长。
 2. `chassis_min_z()` 用包围球下界，对圆柱会给出远低于真实底面的值；包装层按 cylinder 底面求。
-3. `susp_L/R` 的“0 行程固定铰”在 MuJoCo 里不能写 `range="0 0"`（要求下界 < 上界），而且限位是软约束，实测冲击下可穿透 3–6 mm；本轮改成无 range 的阻尼占位体，并在判定参数里把行程置 1 m。
+
+旧的第三处补丁（造 `susp_*` 占位铰 + 把 `susp_range_m` 置 1 m）已按契约 v1.8.0/ADR-013 **删除**，不再用假值掩盖“没有这个自由度”。
 
 三步内可修：
 
 1. `model_checks.body_length`/`chassis_min_z` 按 geom 类型分支（cylinder→2r / z−halfheight），删掉包装层补丁。
-2. 契约允许“无悬挂机型”不建 `susp_*`，或给出 `rigid: true` 与名称表的条件分支；不要让用户为了过名称检查去造一个假铰。
-3. 若后续拿到悬挂力–位移曲线，再把占位体换成真实 spring/damper，并重跑 A4 与台阶工况。
+2. 能力声明已按 v1.8.0 落地（S22）；若后续出现“可配置悬挂”，把布尔声明升级为能力取值，而不是回到假铰。
+3. 若后续拿到悬挂力–位移曲线，必须先声明 `has_suspension=1` 并给 **>0** 行程，再把真实 spring/damper 加回并重跑 A4 与台阶工况。
 
 ## 6. 第 4 步：工况 → runner → judge
 
@@ -213,28 +276,32 @@ A5 True XML 与 t=0 位姿均为单位位姿
 
 | case_id | 场景 | 高度 | 限扭 | 配置 sha256 | scenario_xml_sha256 |
 | --- | --- | ---: | ---: | --- | --- |
-| `oomwoo_flat` | 平地直行 | — | 0.5 N·m | `cd037cbd…47f4` | `436d2ba7…174e` |
-| `oomwoo_step10` | 正向台阶 | 10 mm | 0.5 N·m | `a6851b82…dfdb` | `32a11103…e717` |
-| `oomwoo_step10_lowtorque` | 正向台阶（预期失败） | 10 mm | 0.15 N·m | `e71462d8…2972` | `32a11103…e717` |
-| `oomwoo_step20_casterblock` | 正向台阶（几何门） | 20 mm | 0.5 N·m | `0916fb11…1cd318` | `e2bf52c7…487a` |
+| `oomwoo_flat` | 平地直行 | — | 0.5 N·m | `ed1152f3…` | `5ae2bf40…` |
+| `oomwoo_step10` | 正向台阶 | 10 mm | 0.5 N·m | `2d9c4a35…` | `47f461cd…` |
+| `oomwoo_step10_lowtorque` | 正向台阶（预期失败） | 10 mm | 0.15 N·m | `06636476…` | `47f461cd…` |
+| `oomwoo_step20_casterblock` | 正向台阶（几何门） | 20 mm | 0.5 N·m | `1c0787e7…` | `794630ad…` |
 
 台阶由 `run_cases.build_scenario_xml` 注入，注入后的 XML hash 记在 `run.json.scenario_xml_sha256`。所有 step 案例用 `edge_radius_m=0`：见 §7 的“台阶注入降高”缺陷，带 R3 时实际平台只有 7 mm，会把 10 mm 工况偷偷改成 7 mm。
 
-### 6.2 Windows 结果（SHA 24f7325，`--repeat 2`）
+### 6.2 Windows 结果（SHA `__RERUN_SHA__`，`--repeat 2`）
 
-| case_id | status | passed | failure_primary | failure_flags | t_trigger s | t_climb s | advance m | torque_max N·m | contact_max N |
-| --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| `oomwoo_flat` | ok | 1 | — | — | 0.002 | — | 1.119325 | 0.012055 | 18.93 |
-| `oomwoo_step10` | ok | 1 | — | bottom_out; torque_limit; slip | 4.906 | 0.288 | 1.169351 | 0.500000 | 230.38 |
-| `oomwoo_step10_lowtorque` | ok | 0 | stall | bottom_out; stall; torque_limit; slip; timeout | 4.952 | — | 0.000114 | 0.150000 | 39.51 |
-| `oomwoo_step20_casterblock` | invalid | — | — | no_contact | — | — | — | — | — |
+| case_id | status | passed | failure_primary | failure_flags | t_trigger s | t_wheel_touch s | t_climb s | advance m | torque_max N·m | contact_max N（数值峰值） |
+| --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `oomwoo_flat` | ok | 1 | — | — | 0.002 | — | — | 1.119326 | 0.012050 | 18.93 |
+| `oomwoo_step10` | ok | 1 | — | bottom_out; torque_limit; slip | 3.976 | 4.906 | 1.188 | 1.165182 | 0.500000 | 246.39 |
+| `oomwoo_step10_lowtorque` | ok | 0 | stall | bottom_out; stall; torque_limit; slip; timeout | 3.976 | 4.952 | — | 0.134265 | 0.150000 | 100.85 |
+| `oomwoo_step20_casterblock` | ok | 0 | **belly_contact** | belly_contact; retreat; bottom_out; torque_limit; slip; timeout | 3.856 | — | — | -0.000035 | 0.500000 | 211.24 |
+
+**表注 1（接触峰值，评审返工 3）**：`contact_max N` 是 **2 ms 步长下尖棱接触的数值峰值**，不是冲击力；**未标定，不具物理量含义**。它只允许在**同一配置/同一时步**之间作相对比较，不能拿去核保险杠强度、不能当冲量或峰值接触力引用。表里的 246.39 N 不是上一版报告的 230.38 N：模型去掉占位体后同一算法读数变了，但性质仍是数值峰值。
+
+**表注 2（适用范围，评审新增 A）**：`oomwoo_step20_casterblock` 的 `h=20 mm > 12.5 mm`，落在 §4.3 的不成立区。该行的 `blocked/belly_contact` 只说明“本模型几何下壳体前下缘先挡住”，不能当机型通过/不通过；因模型无保险杠柔性、无前下缘倒角，这个 `blocked` 是**下界**（真机可能通过）。
 
 观测解读（只写观测，不写判据结论）：
 
-- **平地直行**：`outcome = cleared`。左右轮速与车身速度同源，8 s 前进 1.119 m，pitch/roll 峰值为 0.0002°/0.0000°，无打滑/无托底标记。轮端扭矩 0.012 N·m，说明该配置下平地阻力很小。
-- **10 mm 台阶**：`outcome = cleared`（仅此模型/此配置）。爬升耗时 0.288 s，恢复前进 0.168 s；轮端扭矩到 0.5 N·m 上限（`torque_limit`），前缘法向力峰值 230 N，出现 `bottom_out` 与 `slip` 诊断。没有把它写成“能过 10 mm”的结论。
-- **10 mm + 0.15 N·m**：`outcome = blocked`，`failure_mode = stall`。轮子接触台阶后 0.0001 m 内停住，扭矩长期贴 0.15 N·m 上限，8 s 窗口超时；这是预期失败算例，失败分类命中 `stall`。
-- **20 mm 台阶**：`outcome = invalid`，`failure_reason = no_contact`。车头从动轮（r=12.5 mm，定高）和刚性壳体先于驱动轮接触台阶立面，驱动轮始终没有 `wheel--step` 接触，judge 不给判定。这不是“过不去”的结论，是**模型缺少从动轮抬升/保险杠柔性**导致的无效工况。
+- **平地直行**：`outcome = cleared`。左右轮速与车身速度同源，8 s 前进 1.1193 m，pitch/roll 峰值为 0.0002°/0.0000°，无打滑/无托底标记。轮端扭矩 0.012 N·m，说明该配置下平地阻力很小。
+- **10 mm 台阶**：`outcome = cleared`（仅此模型/此配置）。`t_trigger=3.976 s` 是**车头从动轮首次碰台阶**，`t_wheel_touch=4.906 s` 才是驱动轮首次接触：托底延误 0.930 s 已计入窗口，`t_climb=1.188 s`（旧口径 0.288 s 只从驱动轮接触起算，系统性偏小）。轮端扭矩到 0.5 N·m 上限（`torque_limit`），出现 `bottom_out` 与 `slip` 诊断。没有把它写成“能过 10 mm”的结论。
+- **10 mm + 0.15 N·m**：`outcome = blocked`，`failure_mode = stall`。从动轮 3.976 s 先碰台阶，驱动轮 4.952 s 才接触；从触发点到窗口末只前进 0.134 m（旧口径只算驱动轮接触后的 0.000114 m），随后扭矩长期贴 0.15 N·m 上限、8 s 窗口超时。这是预期失败算例，失败分类命中 `stall`。
+- **20 mm 台阶**：`outcome = blocked`，`failure_mode = belly_contact`。车头从动轮（r=12.5 mm，定高）和刚性壳体先于驱动轮接触台阶立面（`t_trigger=3.856 s`），驱动轮全程没有 `wheel--step` 接触（`t_wheel_touch` 空）；judge 不再判 `invalid:never_contacted`，而是判 `blocked/belly_contact`。`advance=-0.000035 m` 表示机体被台阶顶回，`retreat` 作为诊断同时命中。**这不是“过不去”的结论**：模型缺少从动轮抬升/保险杠柔性/前下缘倒角，且 `h>12.5 mm` 已超出适用范围，所以这个 `blocked` 是下界，只作“未覆盖此机理”的证据。
 - **30° 斜面静置**：见 §6.3，两个变体都 `invalid`。
 
 ### 6.3 30° 斜面（runner 不支持，单独观测）
@@ -243,13 +310,13 @@ A5 True XML 与 t=0 位姿均为单位位姿
 
 | 变体 | 做什么 | drift | 残余速度 | outcome | invalid_reason |
 | --- | --- | ---: | ---: | --- | --- |
-| `free` | 按模型原样，无驱动、无驻车 | **89.516 m** | 12.116 m/s | invalid | `no_drivetrain_holding_model` |
-| `locked` | equality 锁住左右轮 + 从动轮转角，代表理想驻车 | **0.023014 m** | 0.002092 m/s | invalid | `creep_baseline_exceeded` |
+| `free` | 按模型原样，无驱动、无驻车 | **89.469 m** | 12.100 m/s | invalid | `no_drivetrain_holding_model` |
+| `locked` | equality 锁住左右轮 + 从动轮转角，代表理想驻车 | **0.023005 m** | 0.002091 m/s | invalid | `creep_baseline_exceeded` |
 
 观测：
 
-- `free` 直接滚下坡，10 s 走 89.5 m。模型里只有轮轴 `damping=0.0005 N·m·s` 和 `armature=5e-5`，**没有减速箱静摩擦/自锁/驻车**；这不是“斜面站不住”的物理结论，是缺物理。
-- `locked` 锁轮后仍在 10 s 内漂 23 mm、残余 2.09 mm/s，超过“无驱动 10 s 漂移 0.5 mm / 残余 1 mm/s”红线。轮速为 0，说明不是滚动，而是软接触/摩擦锥在持续切向载荷下的蠕滑。**结论：30° 静置在当前接触参数下不可判**；需要按斜面载荷重新做蠕滑基线，或收紧 `solref`/改用椭圆锥后重跑。
+- `free` 直接滚下坡，10 s 走 89.47 m。模型里只有轮轴 `damping=0.0005 N·m·s` 和 `armature=5e-5`，**没有减速箱静摩擦/自锁/驻车**；这不是“斜面站不住”的物理结论，是缺物理。
+- `locked` 锁轮后仍在 10 s 内漂 23.005 mm、残余 2.091 mm/s，超过“无驱动 10 s 漂移 0.5 mm / 残余 1 mm/s”红线。轮速为 0，说明不是滚动，而是软接触/摩擦锥在持续切向载荷下的蠕滑。**结论：30° 静置在当前接触参数下不可判**；需要按斜面载荷重新做蠕滑基线，或收紧 `solref`/改用椭圆锥后重跑。
 - 这两个变体同机重复 2 次，`timeseries.csv` 的 sha256 逐位一致。
 
 ### 6.4 蠕滑基线（每批次先跑）
@@ -262,22 +329,22 @@ residual = 0.0000 mm/s
 redline = False
 ```
 
-远低于 1 mm/s 与 0.5 mm 红线，因此**没有**触发 1 ms/0.5 ms 降档，不产生双档同报。斜面工况的 `locked` 变体则是 23 mm/2.09 mm/s，按同一红线判 `invalid`，见 §6.3。
+远低于 1 mm/s 与 0.5 mm 红线，因此**没有**触发 1 ms/0.5 ms 降档，不产生双档同报。斜面工况的 `locked` 变体则是 23.005 mm/2.091 mm/s，按同一红线判 `invalid`，见 §6.3。
 
 ### 6.5 一致性
 
 | 配置 | r1 timeseries sha256 | r2 timeseries sha256 | 逐位一致 |
 | --- | --- | --- | --- |
-| `oomwoo_flat` | `66FA8CAE…7370` | `66FA8CAE…7370` | 是 |
-| `oomwoo_step10` | `C402014F…4463` | `C402014F…4463` | 是 |
-| `oomwoo_step10_lowtorque` | `E64461B9…06F3` | `E64461B9…06F3` | 是 |
-| `oomwoo_step20_casterblock` | `9301AADF…D122` | `9301AADF…D122` | 是 |
-| `slope free` | `6F1B77A8…5360` | `6F1B77A8…5360` | 是 |
-| `slope locked` | `C5DC4071…8651` | `C5DC4071…8651` | 是 |
+| `oomwoo_flat` | `6A15DE7C…0649` | `6A15DE7C…0649` | 是 |
+| `oomwoo_step10` | `7B4C0508…1243` | `7B4C0508…1243` | 是 |
+| `oomwoo_step10_lowtorque` | `09A387C9…EDC0` | `09A387C9…EDC0` | 是 |
+| `oomwoo_step20_casterblock` | `1CF10045…439A` | `1CF10045…439A` | 是 |
+| `slope free` | `B1F4857D…61D3` | `B1F4857D…61D3` | 是 |
+| `slope locked` | `0223350D…F792` | `0223350D…F792` | 是 |
 
 `run.json.repeat.consistent` 全部为 `true`。同配置重复两次逐位一致，符合任务要求。
 
-跨机器对照：Mac 与 Windows 用同一模型/配置跑 `oomwoo_flat`，timeseries sha256 不同（Mac `d5a666da…8d7b`，Windows `66FA8CAE…7370`），但关键指标差 1.2e-5 m（advance 1.119338581 vs 1.119325082）。这是不同 CPU/SIMD 路径的浮点差异，不是配置错误。**跨平台不能声称逐位一致**；同机重复的逐位一致成立。
+本轮模型/配置已变（去掉占位体、`has_suspension=0`、`t_trigger` 语义、`fail_on` 加 `belly_contact`），旧版跨 Mac/Windows 对照数字（`d5a666da…` vs `66FA8CAE…`）作废。本轮只做 Windows 同机 `--repeat 2`；Mac 无 MuJoCo 环境，不重跑跨平台。跨平台逐位一致从未被证明，后续若要求，须固定 CPU/编译选项或改用语差比较。
 
 ## 7. 卡点清单与三步内修法
 
@@ -301,13 +368,13 @@ redline = False
 
 ### C. `model_checks` 假设“车身是 box、悬挂有行程”
 
-现状：`body_length()` 只认 box，圆壳机型直接抛错；`chassis_min_z()` 用包围球，圆柱底盘给出远低于真实底面的值；`susp_*` 的 0 行程在 MuJoCo 里不可表达（`range` 必须下界<上界，限位是软约束）。本轮三个 wrapper 补丁绕开。
+现状：`body_length()` 只认 box，圆壳机型直接抛错；`chassis_min_z()` 用包围球，圆柱底盘给出远低于真实底面的值。这两处仍由 `scripts/run_oomwoo.py` 的 wrapper 补丁绕开。悬挂侧已按契约 v1.8.0 解决：`has_suspension=0` 的机型不再被逼造 `susp_*`，`model_checks` 会检查声明与模型两端一致（S22）。
 
 三步内修：
 
 1. `body_length`/`chassis_min_z` 按 geom 类型分支（cylinder/box/sphere/capsule）。
-2. 名称表允许“无悬挂机型”省略 `susp_*`，或在契约里加 `suspension: none|passive` 枚举。
-3. 删掉 `scripts/run_oomwoo.py` 的补丁，直接跑上游 `run_cases.py` 验证。
+2. ~~名称表允许“无悬挂机型”省略 `susp_*`~~ **已由 v1.8.0 能力声明完成**；后续新增能力按同名机制加 `has_*`。
+3. 删掉 `scripts/run_oomwoo.py` 的两处几何补丁，直接跑上游 `run_cases.py` 验证。
 
 ### D. 台阶注入把平台降低了 `edge_radius`
 
@@ -321,13 +388,13 @@ redline = False
 
 ### E. 车头从动轮/刚性保险杠先于驱动轮接触
 
-OOMWOO 的从动轮在车头 +0.1445 m，r=12.5 mm，定高铰；壳体离地 12.5 mm。任何 >12.5 mm 的台阶都会先撞从动轮/壳体，驱动轮根本接触不到台阶（20 mm 工况 `no_contact`）。真实机器靠从动轮抬升/保险杠柔性/壳体前倾越过，本模型都没有。
+OOMWOO 的从动轮在车头 +0.1445 m，r=12.5 mm，定高铰；壳体离地 12.5 mm。任何 >12.5 mm 的台阶都会先撞从动轮/壳体，驱动轮根本接触不到台阶。20 mm 工况现在判 `blocked/belly_contact`（不再判 `invalid`），判的是“本模型几何下托底受阻”，不是机型能力。真实机器靠从动轮抬升/保险杠柔性/壳体前倾越过，本模型都没有。该机理的硬边界见 §4.3。
 
 三步内补：
 
 1. 给从动轮加竖向滑移 + 弹簧（行程/刚度【缺失】，先用假设值并标 工程假设），允许它被台阶抬起。
 2. 保险杠做成独立柔性体（弹簧+阻尼）或至少把前缘碰撞几何放到轮心高度以下，别让刚性圆柱直接挡在 20 mm 立面上。
-3. 重跑 10/20 mm，确认 `wheel--step` 先接触，再谈 `bottom_out`/`stall` 分类。
+3. 重跑 10/20 mm，确认 `wheel--step` 先接触，再谈 `bottom_out`/`stall` 分类；在补上倒角/柔性前，`h>12.5 mm` 的结果只作“未覆盖此机理”的证据。
 
 ### F. 契约没有斜面/静置工况
 
@@ -341,7 +408,7 @@ OOMWOO 的从动轮在车头 +0.1445 m，r=12.5 mm，定高铰；壳体离地 12
 
 ### G. `slip_ratio` 分母只用轮速，近零轮速时数值爆炸
 
-`judge._slip_max` 用 `|v_wheel − v_body| / max(|v_wheel|, ε)`。台阶接触瞬间轮速接近 0、车身还在动，比值可以到 78–273（本轮 step10 曾出现 78），既不能当物理打滑，也会把诊断列污染。
+`judge._slip_max` 用 `|v_wheel − v_body| / max(|v_wheel|, ε)`。台阶接触瞬间轮速接近 0、车身还在动，比值可以爆到很大（本轮 `step10_lowtorque` 的 `slip_max_R=186.05`，`step10` 也有 1.009），既不能当物理打滑，也会把诊断列污染。
 
 三步内修：
 
@@ -351,7 +418,11 @@ OOMWOO 的从动轮在车头 +0.1445 m，r=12.5 mm，定高铰；壳体离地 12
 
 ### H. 跨平台不是逐位一致
 
-同机 `--repeat 2` 逐位一致；Mac vs Windows 的 timeseries hash 不同，指标差 1.2e-5 m。若项目要求“跨机逐位”，需要固定 CPU/编译选项或改用语差比较；当前契约只要求同配置重复两次，本轮满足。
+同机 `--repeat 2` 逐位一致。旧版 Mac vs Windows 对照数字随模型变更作废；本轮未重跑跨平台（Mac 无 MuJoCo 环境）。若项目要求“跨机逐位”，需要固定 CPU/编译选项或改用语差比较；当前契约只要求同配置重复两次，本轮满足。
+
+### I. 结构自查 S02 仍失败（观察/CAD 脚本，非本次四项返工）
+
+`scripts/verify_structure.py` 在 Windows 上跑：S01–S22（S12/S20 SKIP）通过，**只有 S02 失败**，命中 `slope_hold.py` 的重力/角度/时长/红线字面量与 `step_mass_properties.py` 的单位换算字面量。两者是**观察脚本与离线 CAD 脚本**，不进入 G2 runner/judge 判定路径；本轮四项返工未要求改它们，故留作已知缺口，不在报告里宣称结构全绿。判定路径（`judge.py`、`run_cases.py`、`run_oomwoo.py`）已无未标注浮点字面量。
 
 ## 8. 双机执行记录（命令原文）
 
@@ -360,9 +431,9 @@ OOMWOO 的从动轮在车头 +0.1445 m，r=12.5 mm，定高铰；壳体离地 12
 ```powershell
 Set-Location E:\mujoco-robot-vacuum
 git fetch origin dryrun/oomwoo-step
-git worktree add --detach .tools\worktrees\oomwoo-step 24f73251d02e79363dbafb8b6c34c56cd09a7538
-Set-Location .tools\worktrees\oomwoo-step
-git rev-parse HEAD    # 24f73251d02e79363dbafb8b6c34c56cd09a7538
+git worktree add --detach .tools\worktrees\pr17-rework __RERUN_SHA__
+Set-Location .tools\worktrees\pr17-rework
+git rev-parse HEAD    # __RERUN_SHA__
 git status --short    # 空
 E:\mujoco-robot-vacuum\.venv\Scripts\python.exe -V   # Python 3.13.1
 E:\mujoco-robot-vacuum\.venv\Scripts\python.exe -c "import mujoco,numpy;print(mujoco.__version__, numpy.__version__)"  # 4.0.1 2.5.5
@@ -387,26 +458,27 @@ E:\mujoco-robot-vacuum\.venv\Scripts\python.exe -c "import mujoco,numpy;print(mu
 ### 8.2 Mac（编辑、STEP 推导、提交）
 
 ```bash
-cd /Users/liucong/orca/workspaces/mujoco_/oomwoo-step
+cd /Users/liucong/orca/workspaces/mujoco_/pilot-rework
 /Users/liucong/cad-scratch/venv/bin/python scripts/step_mass_properties.py …  # 见 §3.1
 git add … && git push origin dryrun/oomwoo-step
 ```
 
-Mac 只做编辑、STEP 质量属性、模型/台账生成与提交；MuJoCo 本地预检用同一份 4.0.1，但报告数字以 Windows `24f7325` 为准。
+Mac 只做编辑、STEP 质量属性、模型/台账生成与提交；MuJoCo 本地预检用同一份 4.0.1，但报告数字以 Windows `__RERUN_SHA__` 为准。
 
 ## 9. 产物清单
 
 | 路径 | 说明 |
 | --- | --- |
-| `models/oomwoo.xml` | OOMWOO MJCF 模板，`${}` 参数注入，头部含 machine/method/source |
-| `params/oomwoo.json` | 参数集（`config_id=oomwoo`），每个值带六值标签与 ref |
+| `models/oomwoo.xml` | OOMWOO MJCF 模板，`${}` 参数注入，头部含 machine/method/source；含 `has_suspension=0` 能力声明 |
+| `params/oomwoo.json` | 参数集（`config_id=oomwoo`），每个值带六值标签与 ref；轮径冲突未消除 |
 | `cases/oomwoo_flat.json` | 平地直行 |
 | `cases/oomwoo_step10.json` | 10 mm 台阶 |
 | `cases/oomwoo_step10_lowtorque.json` | 10 mm + 0.15 N·m 预期失败 |
-| `cases/oomwoo_step20_casterblock.json` | 20 mm 几何门（预期 no_contact） |
-| `cases/_runner_oomwoo.json` | 试跑 runner 常量（只放宽悬挂触底诊断） |
+| `cases/oomwoo_step20_casterblock.json` | 20 mm 几何门（判 blocked/belly_contact，作下界观测） |
+| `cases/_runner_oomwoo.json` | 试跑 runner 常量（`susp_bottom_rel` 保留但对无悬挂机型不生效） |
+| `judge.py` | 判定唯一实现；v1.8.1 的 `t_trigger`/`belly_contact`/`t_wheel_touch_s` |
 | `scripts/step_mass_properties.py` | STEP B-rep 质量属性 |
-| `scripts/run_oomwoo.py` | 复用 `run_cases.py`，注入 oomwoo 台账与几何补丁 |
+| `scripts/run_oomwoo.py` | 复用 `run_cases.py`，注入 oomwoo 台账与两处几何补丁 |
 | `scripts/slope_hold.py` | 30° 等效斜面静置观测 |
 | `docs/试跑/step-质量属性-oomwoo.csv` | 部件级汇总（带 generated_by/input_sha256） |
 | `docs/试跑/step-质量属性-逐实体-oomwoo.csv` | 逐实体明细（轮实体 71.61×15.76 mm） |
@@ -415,9 +487,14 @@ Mac 只做编辑、STEP 质量属性、模型/台账生成与提交；MuJoCo 本
 ## 10. 未覆盖 / 不得引用
 
 - 不给出“通过高度”“最大可越障高度”或任何判据结论；`cleared` 只对应列出的配置。
+- **适用范围硬上限 `h ≲ 12.5 mm`**：超过 12.5 mm 时最先接触的是壳体前下缘，本模型没有该处几何（直角圆柱边缘、无倒角、无保险杠柔性），结果只能当“未覆盖此机理”的证据，不能当通过/不通过。见 §4.3。
 - 没有本机实测：质量分项来自作者标注，轮径/轮宽来自第三方扫描件；z_cg、摩擦、接触刚度、减速箱静摩擦、悬挂（无）、保险杠柔性都缺。
 - `condim=3`，未建模滚阻/扭转摩擦；`solref/solimp` 待标定。
 - 没有整机 stock STEP，`chassis` 仍是均匀柱体，惯量偏保守/偏大未知。
-- 20 mm 工况 `invalid` 是模型几何门造成的无效数据，不是“过不去”的结论。
+- **轮径冲突未消除**：`params.xacro` 0.068 m vs STEP 0.07161 m，差 5.3%；本报告取 STEP 值，该项等级只到 `sensitivity`，待 0.2 mm 试验标定轮径后再裁。见 §4.4。
+- **质心 x 与上游不可比**：上游 +2.2 mm、本报告 +6.3448 mm，差在分件归属（从动轮 0.05 kg 是否单列在 x=+0.1445）；两套归属不同，不互相校核。见 §3.3。
+- `contact_normal_max_n` 是**数值峰值，未标定，不具物理量含义**；只能同配置相对比较，不得用于核保险杠强度。见 §6.2 表注 1。
+- **悬挂判据 A2 对 oomwoo 不可判**（无此自由度），不是通过也不是失败；输出 `susp_*` 列为空且 `missing=true`。见 §5.2。
+- 20 mm 工况 `blocked/belly_contact` 是模型几何门下的**下界**（真机可能通过），不是“过不去”的结论；且 `h>12.5 mm` 超出本模型适用范围。
 - 30° 斜面 `invalid` 是缺传动系保持 + 软接触蠕滑，不是“斜面站不住”的结论。
-- 跨 Mac/Windows 非逐位一致；定量对比要用容差，不能拿单次 hash 当复现证据。
+- 跨 Mac/Windows 非逐位一致；定量对比要用容差，不能拿单次 hash 当复现证据。本轮未重跑跨平台。
