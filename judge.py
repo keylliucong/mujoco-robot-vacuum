@@ -20,6 +20,7 @@ FAILURE_PRIORITY = (
     "topple",
     "belly_contact",
     "retreat",
+    "cross_fail",
     "bottom_out",
     "stall",
     "torque_limit",
@@ -286,12 +287,19 @@ def judge_case(columns, params):
         end_lat = -end_pos_x * sin_h + end_pos_y * cos_h
         # 质心投影比 B 原点略偏后，仍用同一 heading 方向换算
         com_s = end_s + params["com_offset_x_m"] * cos_h
-        wheel_on_top = any(
-            columns[f"contact_{k}_active"][end_index] == "1" for k in wheel_step
+        wheel_on_top_count = sum(
+            1 for k in wheel_step if columns[f"contact_{k}_active"][end_index] == "1"
         )
+        both_wheels_on_top = bool(wheel_step) and wheel_on_top_count == len(wheel_step)
+        floor_keys = [k for k in pair_keys if k.endswith("--floor")]
+        no_floor_contact_at_end = not any(
+            columns[f"contact_{k}_active"][end_index] == "1" for k in floor_keys
+        )
+        height_ok = end_pos_z >= params["step_height_m"] - params["platform_height_tol_m"]
+        # 专家返工①：任一驱动轮在上平台不算数。要么两轮都在台阶上，
+        # 要么末帧确实离地（且高度已在上平台），骑棱边（一轮台阶一轮地面）不算完成。
         ended_on_platform = bool(
-            wheel_on_top
-            or end_pos_z >= params["step_height_m"] - params["platform_height_tol_m"]
+            both_wheels_on_top or (no_floor_contact_at_end and height_ok)
         )
         reached_platform = (
             max_pos_z >= params["step_height_m"] - params["platform_height_tol_m"]
@@ -314,17 +322,32 @@ def judge_case(columns, params):
             params["timestep_s"],
         )
         contact_ok = contact_gap_max <= params["contact_gap_tol_s"]
+        cross_fail_reasons = []
+        if not crossed_front:
+            cross_fail_reasons.append("front_edge_not_passed")
+        if not within_width:
+            cross_fail_reasons.append("lateral_outside_step_width")
+        if not reached_platform:
+            cross_fail_reasons.append("platform_height_not_reached")
+        if not ended_on_platform:
+            cross_fail_reasons.append("not_ended_on_platform")
+        if not contact_ok:
+            cross_fail_reasons.append("step_contact_gap_too_long")
         crossing = {
             "end_progress_m": end_s,
             "end_lateral_m": end_lat,
             "com_progress_m": com_s,
             "max_pos_z_m": max_pos_z,
+            "wheel_on_top_count": wheel_on_top_count,
+            "both_wheels_on_top": both_wheels_on_top,
+            "no_floor_contact_at_end": no_floor_contact_at_end,
             "ended_on_platform": ended_on_platform,
             "reached_platform": reached_platform,
             "crossed_front": crossed_front,
             "within_width": within_width,
             "contact_gap_max_s": contact_gap_max,
             "contact_ok": contact_ok,
+            "cross_fail_reasons": cross_fail_reasons,
             "crossed": bool(
                 crossed_front
                 and within_width
@@ -349,7 +372,7 @@ def judge_case(columns, params):
     if any(_has_active(active[k], window) for k in bottom_out):
         flags.append("bottom_out")
     if crossing is not None and not crossing["crossed"]:
-        flags.append("bottom_out")
+        flags.append("cross_fail")
     if _stall(vel_x, times, window, params):
         flags.append("stall")
     if max(torque_max_l, torque_max_r) >= max(

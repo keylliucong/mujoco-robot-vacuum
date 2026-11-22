@@ -47,6 +47,7 @@ FAILURE_ENUM = {
     "topple",
     "belly_contact",
     "retreat",
+    "cross_fail",
     "timeout",
     "stall",
     "bottom_out",
@@ -866,9 +867,15 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     )
     max_steps = int(round(defaults["time"]["max_sim_s"] / step))
     ramp_s = approach["settle_s"]
+    # 控制更新固定成时间周期（默认 20 ms），步间 ctrl 保持不变；否则缩小时步
+    # 会把速度环更新率按 1/h 抬高，kp/yaw_damping 的等效增益随时步变。
+    control_period = float(defaults["drive"]["update_period_s"])
+    next_control = 0.0
     for _ in range(max_steps):
-        ramp = min(1.0, float(data.time) / ramp_s)
-        set_drive(model, data, limits, kp, speed, ramp, yaw_damping)
+        if data.time + step * 0.5 >= next_control:  # arithmetic
+            ramp = min(1.0, float(data.time) / ramp_s)
+            set_drive(model, data, limits, kp, speed, ramp, yaw_damping)
+            next_control += control_period
         step_once(model, data)
         row = sample_row(
             model,
@@ -1443,6 +1450,13 @@ def main(argv=None):
         [(item["case_id"], item["sha256"]) for item in scenario_cases]
     )
     base_tier = repeat_results[0]["tiers"][0]
+    tier_steps = sorted(
+        {
+            float(tier["timestep_s"])
+            for item in repeat_results
+            for tier in item["tiers"]
+        }
+    )
 
     run_json = {
         "contract_version": CONTRACT_VERSION,
@@ -1547,6 +1561,23 @@ def main(argv=None):
                 ),
             },
             "pair_friction_readback": base_tier["friction_readback"],
+            "peak_contact_force": {
+                "identity": "numerical_peak_determined_by_solref_and_timestep",
+                "physical_meaning": False,
+                "allowed_comparison": "同机型、同 h、同 solref 下比较不同几何/摩擦/限扭配置（相对）",
+                "forbidden": [
+                    "跨 h 或跨 solref 当物理量比较",
+                    "作强度/保险杠输入",
+                    "使用“冲击力”表述",
+                ],
+                "timestep_study": {
+                    "performed": len(tier_steps) > 1,
+                    "tiers_s": tier_steps,
+                    "converged": None,
+                    "note": "未证明时步收敛前，峰值只能 relative-only",
+                },
+                "load_spectrum_export": "relative-only",
+            },
             "warnings": {
                 "numbers": sorted(
                     {

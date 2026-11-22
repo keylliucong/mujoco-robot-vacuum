@@ -105,6 +105,7 @@ FAILURE_ENUM = {
     "topple",
     "belly_contact",
     "retreat",
+    "cross_fail",
     "timeout",
     "stall",
     "bottom_out",
@@ -1053,13 +1054,54 @@ def check_judge_unit_tests():
                 detour[f"contact_{prefix}_tangent_n"][i] = ""
                 detour[f"contact_{prefix}_count"][i] = "0"
     verdict_detour = judge.judge_case(detour, params)
-    if verdict_detour["passed"] != 0 or "bottom_out" not in verdict_detour["failure_flags"]:
+    if verdict_detour["passed"] != 0 or "cross_fail" not in verdict_detour["failure_flags"]:
         problems.append(
             f"绕行/末帧落地仍 passed={verdict_detour['passed']} "
             f"flags={verdict_detour['failure_flags']}"
         )
+    reasons = verdict_detour["metrics"].get("crossing", {}).get("cross_fail_reasons", [])
+    if not reasons:
+        problems.append("cross_fail 没有逐项子条件 metrics")
 
-    add("抽查4/6", not problems, "pitch 单位=度（50° 触发 topple）、绕行不通过、无接触双断言与 fail_on 单点生效" if not problems else "；".join(problems))
+    # 负例 3：末帧一离开台阶、另一轮仍在地面（骑棱边），但高度够平台——不得算完成
+    one_wheel = {name: list(values) for name, values in columns.items()}
+    n = len(one_wheel["t_s"])
+    floor_pairs = ["wheel_L--floor", "wheel_R--floor"]
+    for prefix in floor_pairs:
+        for suffix, fill in (
+            ("_active", "0"),
+            ("_normal_n", ""),
+            ("_tangent_n", ""),
+            ("_count", "0"),
+        ):
+            one_wheel[f"contact_{prefix}{suffix}"] = [fill] * n
+    one_wheel_params = dict(params)
+    one_wheel_params["all_pairs"] = list(params["all_pairs"]) + floor_pairs
+    one_wheel_params["pair_friction"] = dict(params["pair_friction"])
+    for key in floor_pairs:
+        one_wheel_params["pair_friction"][key] = 0.8
+    for i, t in enumerate(one_wheel["t_s"]):
+        if t >= 1.0:
+            one_wheel["pos_z_m"][i] = 0.02
+            one_wheel["contact_wheel_L--step_active"][i] = "1"
+            one_wheel["contact_wheel_R--step_active"][i] = "0"
+            one_wheel["contact_wheel_R--step_normal_n"][i] = ""
+            one_wheel["contact_wheel_R--step_tangent_n"][i] = ""
+            one_wheel["contact_wheel_R--step_count"][i] = "0"
+            one_wheel["contact_wheel_R--floor_active"][i] = "1"
+            one_wheel["contact_wheel_R--floor_normal_n"][i] = "5.0"
+            one_wheel["contact_wheel_R--floor_tangent_n"][i] = "0.0"
+            one_wheel["contact_wheel_R--floor_count"][i] = "1"
+    verdict_edge = judge.judge_case(one_wheel, one_wheel_params)
+    edge_cross = verdict_edge["metrics"].get("crossing") or {}
+    if edge_cross.get("ended_on_platform") is not False:
+        problems.append(
+            f"骑棱边（一轮台阶一轮地面）仍算 ended_on_platform：{edge_cross}"
+        )
+    if "not_ended_on_platform" not in edge_cross.get("cross_fail_reasons", []):
+        problems.append("骑棱边未记入 cross_fail 子条件")
+
+    add("抽查4/6", not problems, "pitch 单位=度（50° 触发 topple）、绕行/骑棱边不通过、无接触双断言与 fail_on 单点生效" if not problems else "；".join(problems))
 
 
 def check_run_outputs(root=None):
