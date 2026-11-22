@@ -11,10 +11,10 @@
       "ref": "machine=prototype; 原型机身质量假设，非 oomwoo、非本机实测"
     },
     "mass.caster": {
-      "value": 0.02,
+      "value": 0.03,
       "unit": "kg",
       "label": "工程假设",
-      "ref": "machine=prototype; 原型前支撑质量假设"
+      "ref": "machine=prototype; 车尾万向支撑质量假设"
     },
     "mass.wheel_L": {
       "value": 0.05,
@@ -84,19 +84,19 @@
       "ref": "machine=prototype; 按主轴假设设 0（原型假设）"
     },
     "inertia.caster.xx": {
-      "value": 1.8e-06,
+      "value": 1.08e-05,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "machine=prototype; 球体估算"
     },
     "inertia.caster.yy": {
-      "value": 1.8e-06,
+      "value": 1.08e-05,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "machine=prototype; 球体估算"
     },
     "inertia.caster.zz": {
-      "value": 1.8e-06,
+      "value": 1.08e-05,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "machine=prototype; 球体估算"
@@ -174,10 +174,10 @@
       "ref": "machine=prototype; 前支撑居中"
     },
     "pos.caster.z": {
-      "value": 0.015,
+      "value": 0.03,
       "unit": "m",
       "label": "工程假设",
-      "ref": "machine=prototype; 前支撑球心高度=半径"
+      "ref": "machine=prototype; 车尾支撑球心高度=半径"
     },
     "contact.caster_solref_timeconst_s": {
       "value": 0.003,
@@ -186,10 +186,10 @@
       "ref": "machine=prototype; 万向球接触时间常数；取 0.003 使静置穿透 <0.5 mm，避免整车低头 2.4°"
     },
     "geom.caster.radius": {
-      "value": 0.015,
+      "value": 0.03,
       "unit": "m",
       "label": "工程假设",
-      "ref": "machine=prototype; 前支撑球半径"
+      "ref": "machine=prototype; 车尾支撑球半径；须大于台阶高度 20 mm，否则卡在台阶立面"
     },
     "geom.wheel_radius_m": {
       "value": 0.035,
