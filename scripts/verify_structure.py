@@ -501,7 +501,7 @@ def check_s14():
     add(
         "S14",
         ok,
-        f"run_cases={version} judge={judge_version} 契约文档={doc_version}（版本串相等；判据集冻结在 v1.7）"
+        f"run_cases={version} judge={judge_version} 契约文档={doc_version}（版本串相等；判据集 v1.8.1）"
         if ok
         else f"版本不一致：run_cases={version} judge={judge_version} 文档={doc_version}",
     )
