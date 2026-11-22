@@ -66,6 +66,8 @@
 | `unc.oomwoo.m_drive_module_pair.listing` | `m_drive_module_pair` | `instrument` | `pending` | 商品页 listing，非实测 |
 
 > 三门槛（有效期、量程覆盖、适用条件覆盖）一条都不满足，所以没有 `evaluated`。按封顶规则：`pending` → 结论封顶 `mechanism`；`assumed` → 结论封顶 `sensitivity`。**不往上填。**
+>
+> `m_dry`、`com_z`、整机惯量、悬挂参数没有预算行：这些参数当前没有值，也就没有可评的分量；等有实测/可信来源后再建行。**“没有预算行”不等于“分量已评估为 0”。**
 
 ## 4. 报告骨架（两列等级）
 
