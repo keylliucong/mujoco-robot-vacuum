@@ -205,7 +205,9 @@ def load_model_stack(config, config_id, skip_checks):
     base_data = mujoco.MjData(base_model)
     mujoco.mj_forward(base_model, base_data)
 
-    ledger, _labels = run_cases.load_ledger_rows(params_document["machine"])
+    ledger, _labels = run_cases.load_ledger_rows(
+        params_document["machine"], params_document["config_id"]
+    )
     if skip_checks:
         print("[view] 已跳过 A1–A5 与台账比对（--skip-checks）")
     else:
