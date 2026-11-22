@@ -773,11 +773,17 @@ def evaluate_case(rows: list[dict], case: dict, cfg: dict, params: dict,
             q0 = float(static_susp[side])
             dev = max(dev, float(np.max(np.abs(q - q0))) if q.size else 0.0)
         travel_ref = min(float(travel["L"]), float(travel["R"]))
-        limit = min(float(judge["A2"]["abs_limit_m"]),
-                    float(judge["A2"]["travel_frac_limit"]) * travel_ref)
-        a2 = _a_result(dev, limit, dev < limit)
-        a2["travel_m"] = travel_ref
-        a2["basis"] = "max |q_susp - q_static| in crossing window; compression positive"
+        if travel_ref < 1e-4:
+            a2 = {"result": "na", "measured": dev, "threshold": None,
+                  "travel_m": travel_ref,
+                  "basis": "首版悬挂为 0 行程固定铰（1 µm 数值限位）；A2 不适用，"
+                           "悬挂行程/限位需实测后启用"}
+        else:
+            limit = min(float(judge["A2"]["abs_limit_m"]),
+                        float(judge["A2"]["travel_frac_limit"]) * travel_ref)
+            a2 = _a_result(dev, limit, dev < limit)
+            a2["travel_m"] = travel_ref
+            a2["basis"] = "max |q_susp - q_static| in crossing window; compression positive"
 
     # A3：接近段加速度
     a3 = {"result": "na", "measured": None, "threshold": None}
@@ -891,7 +897,7 @@ def evaluate_case(rows: list[dict], case: dict, cfg: dict, params: dict,
     sat_frac = float(np.mean(sat_mask[cross])) if np.any(cross) else 0.0
 
     susp_bottom = False
-    if t_trigger is not None:
+    if t_trigger is not None and min(float(travel["L"]), float(travel["R"])) >= 1e-4:
         sel = np.where(times >= t_trigger)[0]
         for side in ("L", "R"):
             q = np.array([r[f"susp_{side}_travel_m"] for r in rows], dtype=float)[sel]
