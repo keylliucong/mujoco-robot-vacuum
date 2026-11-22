@@ -1,8 +1,9 @@
 """G2 判定模块：只吃时程 + 阈值，不 import mujoco，不读模型或配置对象（S04/S09）。
 
-契约版本：v1.9.0（文档）；判据集在 v1.7 基础上吸收 v1.8.2 的
-`t_trigger` 口径（首次任一机体-台阶接触），并按 v1.9.0 增加 `belly_contact`
-与 `cross_fail` 失败模式（契约正文已同步）。
+契约版本：v1.10.0（文档）；判据集在 v1.7 基础上吸收 v1.8.2 的
+`t_trigger` 口径（首次任一机体-台阶接触），按 v1.9.0 增加 `belly_contact`
+与 `cross_fail` 失败模式，并按 v1.10.0 把末态改为窗口占空比、横向越界改为
+`invalid`（契约正文已同步）。
 本文件是唯一写 `passed` / `failure_*` 的地方；输入是 CSV 列字典（字符串原样，
 空串表示无数据）与一份扁平的数值参数字典。参数键集封闭，出现未知键即 raise，
 因此配置无法夹带期望结果（S09）。
@@ -13,10 +14,9 @@ from __future__ import annotations
 import math
 from bisect import bisect_left, bisect_right
 
-CONTRACT_VERSION = "1.9.0"
+CONTRACT_VERSION = "1.10.0"
 
 FAILURE_PRIORITY = (
-    "data_invalid",
     "topple",
     "belly_contact",
     "retreat",
@@ -27,7 +27,6 @@ FAILURE_PRIORITY = (
     "suspension_bottom",
     "slip",
     "timeout",
-    "no_contact",
 )
 
 REQUIRED_PARAMS = frozenset(
@@ -54,6 +53,9 @@ REQUIRED_PARAMS = frozenset(
         "platform_height_tol_m",
         "step_front_m",
         "step_half_width_m",
+        "end_hold_s",
+        "end_duty_min",
+        "end_duty_ambiguous",
         "heading_rad",
         "com_offset_x_m",
         "contact_gap_tol_s",
@@ -197,14 +199,14 @@ def judge_case(columns, params):
     trigger_source = ""
     if kind == "step":
         # v1.8.2：t_trigger = 首次任一机体-台阶接触。旧定义只看驱动轮，
-        # 台阶高于离地间隙时永不触发，会把真实托底漏成 invalid/no_contact。
+        # 台阶高于离地间隙时永不触发，会把真实托底漏成 invalid:never_contacted。
         hits = [(first_active(k), k) for k in step_pairs]
         hits = [(i, k) for i, k in hits if i is not None]
         if not hits:
             return _result(
                 status="invalid",
                 invalid_reason="never_contacted",
-                flags=["no_contact"],
+                flags=[],
                 params=params,
                 metrics=_empty_metrics(),
             )
@@ -224,7 +226,7 @@ def judge_case(columns, params):
         return _result(
             status="invalid",
             invalid_reason="data_invalid",
-            flags=["data_invalid", "timeout"],
+            flags=[],
             params=params,
             metrics=_empty_metrics(),
         )
@@ -250,7 +252,7 @@ def judge_case(columns, params):
         return _result(
             status="invalid",
             invalid_reason="data_invalid",
-            flags=["data_invalid"],
+            flags=[],
             params=params,
             metrics=_empty_metrics(),
         )
@@ -292,22 +294,37 @@ def judge_case(columns, params):
         )
         both_wheels_on_top = bool(wheel_step) and wheel_on_top_count == len(wheel_step)
         floor_keys = [k for k in pair_keys if k.endswith("--floor")]
-        # 没有地面接触对时不能把「查不到」当成「无接触」；此时只认双轮都在
-        # 上平台，避免 all_pairs 漏配 floor 又把骑棱边判成完成跨越。
+        # 没有地面接触对时不能把「查不到」当成「无接触」（诊断字段）。
         no_floor_contact_at_end = bool(floor_keys) and not any(
             columns[f"contact_{k}_active"][end_index] == "1" for k in floor_keys
-        )
-        height_ok = end_pos_z >= params["step_height_m"] - params["platform_height_tol_m"]
-        # 专家返工①：任一驱动轮在上平台不算数。要么两轮都在台阶上，
-        # 要么末帧确实离地（且高度已在上平台），骑棱边（一轮台阶一轮地面）不算完成。
-        ended_on_platform = bool(
-            both_wheels_on_top or (no_floor_contact_at_end and height_ok)
         )
         reached_platform = (
             max_pos_z >= params["step_height_m"] - params["platform_height_tol_m"]
         )
         crossed_front = com_s >= params["step_front_m"]
-        within_width = abs(end_lat) <= params["step_half_width_m"]
+        # v1.10.0（S26）：末态不是一帧，是末 end_hold_s 内的占空比。
+        # 灰带 [end_duty_ambiguous, end_duty_min) 判 invalid:end_state_ambiguous，
+        # 不由单点阈值猜一侧。
+        hold_start = bisect_left(
+            times, window_end - params["end_hold_s"] - step * 0.5  # arithmetic
+        )
+        hold_indices = list(range(hold_start, end_index + 1))
+        if not hold_indices:
+            hold_indices = [end_index]
+        both_on_top_flags = []
+        for i in hold_indices:
+            count_i = sum(
+                1 for k in wheel_step if columns[f"contact_{k}_active"][i] == "1"
+            )
+            both_on_top_flags.append(bool(wheel_step) and count_i == len(wheel_step))
+        end_frames = len(hold_indices)
+        end_duty = sum(1 for flag in both_on_top_flags if flag) / end_frames
+        end_state_ambiguous = (
+            params["end_duty_ambiguous"] <= end_duty < params["end_duty_min"]
+        )
+        ended_on_platform = end_duty >= params["end_duty_min"]
+        # 横向越界不是能力失败，是试验条件问题（运行时兜底；前置校验在 runner）。
+        lateral_exit = abs(end_lat) > params["step_half_width_m"]
         # 从首触到质心越过前缘，机体-台阶接触允许的空档不超过上限；
         # 空档越大越像"飞过去"或"绕过去"，不是跨越。
         cross_index = end_index
@@ -327,8 +344,6 @@ def judge_case(columns, params):
         cross_fail_reasons = []
         if not crossed_front:
             cross_fail_reasons.append("front_edge_not_passed")
-        if not within_width:
-            cross_fail_reasons.append("lateral_outside_step_width")
         if not reached_platform:
             cross_fail_reasons.append("platform_height_not_reached")
         if not ended_on_platform:
@@ -344,18 +359,18 @@ def judge_case(columns, params):
             "both_wheels_on_top": both_wheels_on_top,
             "no_floor_contact_at_end": no_floor_contact_at_end,
             "ended_on_platform": ended_on_platform,
+            "end_duty": end_duty,
+            "end_hold_s": params["end_hold_s"],
+            "end_frames": end_frames,
+            "end_state_ambiguous": end_state_ambiguous,
+            "lateral_exit": lateral_exit,
             "reached_platform": reached_platform,
             "crossed_front": crossed_front,
-            "within_width": within_width,
             "contact_gap_max_s": contact_gap_max,
             "contact_ok": contact_ok,
             "cross_fail_reasons": cross_fail_reasons,
             "crossed": bool(
-                crossed_front
-                and within_width
-                and reached_platform
-                and ended_on_platform
-                and contact_ok
+                crossed_front and reached_platform and ended_on_platform and contact_ok
             ),
         }
 
@@ -437,6 +452,28 @@ def judge_case(columns, params):
         "trigger_source": trigger_source,
         "crossing": crossing,
     }
+    # v1.10.0：invalid 不是失败类别——不写 failure_primary / failure_flags，
+    # 也不进通过率分母。运行时横向兜底优先于灰带（几何已确定的先报）。
+    if crossing is not None and crossing["lateral_exit"]:
+        invalid = _result(
+            status="invalid",
+            invalid_reason="lateral_exit_step_width",
+            flags=[],
+            params=params,
+            metrics=metrics,
+        )
+        invalid["trigger_source"] = trigger_source
+        return invalid
+    if crossing is not None and crossing["end_state_ambiguous"]:
+        invalid = _result(
+            status="invalid",
+            invalid_reason="end_state_ambiguous",
+            flags=[],
+            params=params,
+            metrics=metrics,
+        )
+        invalid["trigger_source"] = trigger_source
+        return invalid
     result = _result(
         status="ok",
         invalid_reason="",

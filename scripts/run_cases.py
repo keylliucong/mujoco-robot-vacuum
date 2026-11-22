@@ -1,6 +1,6 @@
 """G2 批运行入口：模型 + case JSON → outputs/<batch_id>/{run.json,summary.csv,<case>/timeseries.csv}。
 
-契约 v1.7（文档版本 1.7.1）。要点：
+契约 v1.10.0（文档版本 1.10.0）。要点：
 - 台阶不写进 MJCF，由本文件按 scenario.obstacle 注入，记 scenario_xml_sha256；
 - 每批次先跑「静置蠕滑基线」，红线（>1 mm/s 或 10 s 漂移 >0.5 mm）触发 1 ms / 0.5 ms
   降档重跑，双档同报（run.json.cases[].repeats[].tiers[]）；
@@ -29,7 +29,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-CONTRACT_VERSION = "1.9.0"  # S14：等于契约文档版本；v1.9.0 枚举含 belly_contact / cross_fail
+CONTRACT_VERSION = "1.10.0"  # S14：等于契约文档版本；v1.10.0 末态窗口 + invalid 后缀
 SCHEMA_VERSION = "1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -54,8 +54,6 @@ FAILURE_ENUM = {
     "suspension_bottom",
     "slip",
     "torque_limit",
-    "no_contact",
-    "data_invalid",
 }
 
 PAIR_GEOMS = {
@@ -924,6 +922,17 @@ def format_value(value):
     return f"{value:.9f}"
 
 
+def status_token(verdict):
+    """summary.csv 的 status 格式（v1.10.0）：ok｜invalid:<reason>｜diverged。"""
+    status = verdict["status"]
+    if status == "ok":
+        return "ok"
+    if status == "invalid":
+        reason = verdict.get("invalid_reason") or ""
+        return f"invalid:{reason}" if reason else "invalid"
+    return status
+
+
 def write_timeseries(path, columns, table):
     with open(path, "w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle, lineterminator="\n")
@@ -998,7 +1007,12 @@ def build_judge_params(
         "step_height_m": height,
         "platform_height_tol_m": platform_height_tol_m,
         "step_front_m": step_front_m,
-        "step_half_width_m": obstacle["top_width_m"] / 2.0,  # arithmetic
+        # v1.10.0：横向参照是台阶真实横向半宽（_runner.json），
+        # 不是 obstacle.top_width_m/2（那是顶面沿前进方向的宽度）。
+        "step_half_width_m": defaults["obstacle_half_width_m"],
+        "end_hold_s": defaults["end_hold_s"],
+        "end_duty_min": defaults["end_duty_min"],
+        "end_duty_ambiguous": defaults["end_duty_ambiguous"],
         "heading_rad": math.radians(config["scenario"]["heading_deg"]),
         "com_offset_x_m": MODEL_CONSTANTS["com_offset_B_m"][0],
         "contact_gap_tol_s": defaults["tolerances"]["step_contact_gap_tol_s"],
@@ -1057,6 +1071,36 @@ def chassis_front(model):
     if front is None:
         raise ContractError("chassis_* 中没有几何")
     return front
+
+
+def chassis_half_width(model):
+    """chassis_* 几何在 y 方向的半宽（v1.10.0 前置横向校验用）。
+
+    与 ``model_checks.body_length`` 同口径：box 取 size[1]，cylinder/sphere 取
+    半径 size[0]，ellipsoid 取 size[1]，capsule 取半径 size[0]，其它用包围球。
+    """
+    values = []
+    for gid in range(model.ngeom):
+        name = model.geom(gid).name
+        if not name.startswith("chassis_"):
+            continue
+        size = model.geom_size[gid]
+        geom_type = int(model.geom_type[gid])
+        if geom_type == int(mujoco.mjtGeom.mjGEOM_BOX):
+            values.append(float(size[1]))
+        elif geom_type in (
+            int(mujoco.mjtGeom.mjGEOM_CYLINDER),
+            int(mujoco.mjtGeom.mjGEOM_SPHERE),
+            int(mujoco.mjtGeom.mjGEOM_CAPSULE),
+        ):
+            values.append(float(size[0]))
+        elif geom_type == int(mujoco.mjtGeom.mjGEOM_ELLIPSOID):
+            values.append(float(size[1]))
+        else:
+            values.append(float(model.geom_rbound[gid]))
+    if not values:
+        raise ContractError("chassis_* 中没有可求横向半宽的几何")
+    return max(values)
 
 
 def path_for_report(path):
@@ -1294,6 +1338,26 @@ def main(argv=None):
         if stage["kind"] == "step"
         else 0.0
     )
+    # v1.10.0 前置 fail-fast：配置不成立就别跑。所需横向半宽按航向扫过的
+    # 横向行程估算；不足则整批非 0 退出、不产 summary.csv（out_dir 尚未创建）。
+    if stage["kind"] == "step":
+        min_advance_m = config["judge"]["min_advance_body_lengths"] * body_length_m
+        body_half_width_m = chassis_half_width(base_model)
+        margin_body_half = float(defaults["lateral_margin_body_half"])
+        heading_rad = math.radians(stage["heading_deg"])
+        need_half_width_m = (
+            abs(math.tan(heading_rad)) * (min_advance_m + body_length_m)
+            + margin_body_half * body_half_width_m
+        )
+        bench_half_width_m = float(defaults["obstacle_half_width_m"])
+        if bench_half_width_m < need_half_width_m:
+            raise ContractError(
+                "step_too_narrow_for_heading：台架横向半宽不足，整批拒绝运行且不产 summary.csv；"
+                f"所需半宽 need={need_half_width_m:.6f} m > 实际半宽 actual={bench_half_width_m:.6f} m"
+                f"（heading={stage['heading_deg']:g}°, min_advance={min_advance_m:.6f} m, "
+                f"body_length={body_length_m:.6f} m, body_half_width={body_half_width_m:.6f} m, "
+                f"lateral_margin_body_half={margin_body_half:g}）"
+            )
 
     scenario_xml = build_scenario_xml(
         model_text, config, chassis_front_m, defaults, params_document
@@ -1428,7 +1492,7 @@ def main(argv=None):
             {
                 "case_id": config["case_id"],
                 "repeat": repeat,
-                "status": base["status"],
+                "status": status_token(base),
                 "passed": "" if base["passed"] is None else int(base["passed"]),
                 "failure_primary": base["failure_primary"],
                 "failure_flags": ";".join(base["failure_flags"]),
@@ -1567,7 +1631,9 @@ def main(argv=None):
                 "config": path_for_report(config_path),
                 "config_sha256": config_sha,
                 "scenario_xml_sha256": scenario_sha,
+                "status": status_token(base_tier["verdict"]),
                 "trigger_source": base_tier["trigger_source"],
+                "crossing": base_tier["verdict"]["metrics"].get("crossing"),
                 "friction_readback": base_tier["friction_readback"],
                 "repeats": repeat_results,
                 "regression": regression,

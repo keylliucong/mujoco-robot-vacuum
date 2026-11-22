@@ -22,6 +22,8 @@ ADR（Architecture Decision Record，架构决策记录）把契约裁定从个�
 | ADR-014 | 台账键法：`machine` 前缀进键 | 已采纳 | v1.8.1（开版触发①） | [ADR-014-台账键法与机型前缀.md](ADR-014-台账键法与机型前缀.md) |
 | ADR-015 | 干跑暴露的四条字面错误：符号 / 触发条件 / 批次指纹 / 逐位一致 | 已采纳 | v1.8.2（开版触发①） | [ADR-015-干跑暴露的四条字面错误.md](ADR-015-干跑暴露的四条字面错误.md) |
 | ADR-016 | 受阻要有名字：`belly_contact` / `cross_fail` | 已采纳 | v1.9.0（开版触发①） | [ADR-016-受阻要有名字-belly-contact与越过五条件.md](ADR-016-受阻要有名字-belly-contact与越过五条件.md) |
+| ADR-017 | 台账键形三段 `<machine>.<config_id>.<量名>` | 已采纳 | v1.9.1（开版触发①） | [ADR-017-台账键形三段-config_id.md](ADR-017-台账键形三段-config_id.md) |
+| ADR-018 | 单帧与几何边界不该当判据 | 已采纳 | v1.10.0（开版触发①） | [ADR-018-单帧与几何边界不该当判据.md](ADR-018-单帧与几何边界不该当判据.md) |
 | ADR-017 | 台账键形归架构师，形状定为三段（`machine.config_id.量名`） | 已采纳 | v1.9.1（开版触发①，取代 ADR-014 的两段式） | [ADR-017-台账键形三段-config_id.md](ADR-017-台账键形三段-config_id.md) |
 
 

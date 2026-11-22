@@ -25,7 +25,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-CONTRACT_VERSION = "1.9.0"
+CONTRACT_VERSION = "1.10.0"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
 PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
@@ -113,8 +113,6 @@ FAILURE_ENUM = {
     "suspension_bottom",
     "slip",
     "torque_limit",
-    "no_contact",
-    "data_invalid",
 }
 
 CASE_KEYS = {
@@ -1150,17 +1148,17 @@ def check_s25():
 
     problems = []
     doc = read_text(REPO_ROOT / "docs" / "契约" / "G2-接口契约.md")
-    enum_match = re.search(r"枚举冻结（v1\.9\.0 起 12 项）：`([^`]+)`", doc)
+    enum_match = re.search(r"枚举冻结（v1\.10\.0 起 10 项）：`([^`]+)`", doc)
     order_match = re.search(
         r"（v1\.9\.0 起写进契约，与 `judge\.FAILURE_PRIORITY` 同序）：`([^`]+)`", doc
     )
     if not enum_match or not order_match:
-        problems.append("契约缺 v1.9.0 枚举/取名顺序句")
+        problems.append("契约缺 v1.10.0 枚举/取名顺序句")
     else:
         contract_enum = enum_match.group(1).split()
         contract_order = [part.strip() for part in order_match.group(1).split("→")]
-        if len(contract_enum) != 12:
-            problems.append(f"契约枚举 {len(contract_enum)} 项（应为 12）")
+        if len(contract_enum) != 10:
+            problems.append(f"契约枚举 {len(contract_enum)} 项（应为 10）")
         if set(contract_enum) != FAILURE_ENUM:
             problems.append("契约枚举 != verify_structure.FAILURE_ENUM")
         if set(contract_enum) != set(run_cases.FAILURE_ENUM):
@@ -1169,6 +1167,28 @@ def check_s25():
             problems.append("契约枚举 != judge.FAILURE_PRIORITY")
         if tuple(contract_order) != judge.FAILURE_PRIORITY:
             problems.append("契约取名顺序 != judge.FAILURE_PRIORITY")
+    # 防呆：枚举与契约对表相等，但某项在 judge 里没有 `flags.append("<项>")`
+    # 产出点，就是死值——死值不算一致。
+    tree = ast.parse(read_text(REPO_ROOT / "judge.py"))
+    produced = set()
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "append"
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "flags"
+            and node.args
+            and isinstance(node.args[0], ast.Constant)
+            and isinstance(node.args[0].value, str)
+        ):
+            produced.add(node.args[0].value)
+    dead = sorted(set(FAILURE_ENUM) - produced)
+    extra = sorted(produced - set(FAILURE_ENUM))
+    if dead:
+        problems.append(f"失败枚举项无 flags.append 产出点（死值）：{dead}")
+    if extra:
+        problems.append(f"judge 产出点不在失败枚举内：{extra}")
     for label in ("cleared", "blocked", "lift_fail", "slip_stall"):
         if label in run_cases.SUMMARY_COLUMNS or label in run_cases.TIMESERIES_COLUMNS:
             problems.append(f"展示标签 {label!r} 进了输出列")
@@ -1176,7 +1196,222 @@ def check_s25():
     add(
         "S25",
         not problems,
-        "契约 12 枚举 == run_cases == judge，取名顺序一致；展示标签未入输出列"
+        "契约 10 枚举 == run_cases == judge，取名顺序一致，每项都有 flags.append 产出点；展示标签未入输出列"
+        if not problems
+        else "；".join(problems),
+    )
+
+
+def check_s26():
+    """S26（v1.10.0/抽查 20）：末态窗口占空比、灰带 invalid、前置台架宽度 fail-fast。
+
+    三条回归：
+    ① 末帧前一帧零接触、末帧接触 → 结论不得翻转；
+    ② 末 50 ms 占空比 0.65 → invalid:end_state_ambiguous；
+    ③ 台架半宽 0.02 + 15° → 整批非 0 退出且无 summary.csv。
+    """
+    import judge
+
+    problems = []
+    defaults = json.loads(read_text(CASES_DIR / "_runner.json"))
+    for key in ("end_hold_s", "end_duty_min", "end_duty_ambiguous", "lateral_margin_body_half"):
+        if key not in defaults:
+            problems.append(f"cases/_runner.json 缺 {key}")
+    if not problems and not (
+        float(defaults["end_duty_ambiguous"])
+        < float(defaults["end_duty_min"])
+        <= 1.0
+    ):
+        problems.append("end_duty_ambiguous 必须小于 end_duty_min 且后者 <= 1")
+
+    def blink(columns, index):
+        out = {name: list(values) for name, values in columns.items()}
+        for prefix in ("wheel_L--step", "wheel_R--step"):
+            out[f"contact_{prefix}_active"][index] = "0"
+            out[f"contact_{prefix}_normal_n"][index] = ""
+            out[f"contact_{prefix}_tangent_n"][index] = ""
+            out[f"contact_{prefix}_count"][index] = "0"
+        return out
+
+    # ① 单帧噪声不得翻转结论
+    columns, params = synthetic_case([], False)
+    base = judge.judge_case(columns, params)
+    base_cross = base["metrics"].get("crossing") or {}
+    if base["status"] != "ok" or base["passed"] != 1:
+        problems.append(
+            f"基准时程应为 passed=1：status={base['status']} passed={base['passed']}"
+        )
+    times = columns["t_s"]
+    window_end = base["metrics"]["t_trigger_s"] + params["window_s"]
+    end_index = max(
+        i
+        for i, t in enumerate(times)
+        if t <= window_end + params["timestep_s"] * 1e-6  # arithmetic
+    )
+    hold_start = min(
+        i
+        for i, t in enumerate(times)
+        if t
+        >= window_end
+        - params["end_hold_s"]
+        - params["timestep_s"] * 0.5  # arithmetic
+    )
+    end_frames = end_index - hold_start + 1
+    if end_frames != base_cross.get("end_frames"):
+        problems.append(
+            f"① 回归构造的 end_frames={end_frames} 与 judge 的 {base_cross.get('end_frames')} 不一致"
+        )
+    # 「末帧」指判定窗口末帧，不是整段时程末帧（窗口外还有仿真尾巴）。
+    blinked = judge.judge_case(blink(columns, end_index - 1), params)
+    blink_cross = blinked["metrics"].get("crossing") or {}
+    if (
+        blinked["status"] != base["status"]
+        or blinked["passed"] != base["passed"]
+        or blink_cross.get("crossed") != base_cross.get("crossed")
+    ):
+        problems.append(
+            "① 末帧前一帧零接触翻转了结论："
+            f"base={base['status']}/{base['passed']}/{base_cross.get('crossed')} "
+            f"blink={blinked['status']}/{blinked['passed']}/{blink_cross.get('crossed')}"
+        )
+    if not blink_cross.get("end_duty", 0.0) > float(defaults["end_duty_min"]):
+        problems.append(f"① 单帧噪声后 end_duty={blink_cross.get('end_duty')} 不应跌出平台")
+
+    # ② 占空比 0.65 必须落灰带 invalid，不得由单点阈值猜一侧
+    grey, grey_params = synthetic_case([], False)
+    grey_cross = judge.judge_case(grey, grey_params)["metrics"].get("crossing") or {}
+    target_on = int(round(0.65 * end_frames))  # arithmetic：落在 [0.50, 0.80)
+    for i in range(hold_start + target_on, end_index + 1):
+        for prefix in ("wheel_L--step", "wheel_R--step"):
+            grey[f"contact_{prefix}_active"][i] = "0"
+            grey[f"contact_{prefix}_normal_n"][i] = ""
+            grey[f"contact_{prefix}_tangent_n"][i] = ""
+            grey[f"contact_{prefix}_count"][i] = "0"
+    grey_verdict = judge.judge_case(grey, grey_params)
+    duty = (grey_verdict["metrics"].get("crossing") or {}).get("end_duty")
+    if grey_verdict["status"] != "invalid" or grey_verdict["invalid_reason"] != "end_state_ambiguous":
+        problems.append(
+            f"② 占空比 {duty} 未落 invalid:end_state_ambiguous："
+            f"status={grey_verdict['status']} reason={grey_verdict['invalid_reason']}"
+        )
+    if (
+        grey_verdict["passed"] is not None
+        or grey_verdict["failure_primary"]
+        or grey_verdict["failure_flags"]
+    ):
+        problems.append(
+            "② invalid 仍写了 passed/failure_*："
+            f"passed={grey_verdict['passed']} primary={grey_verdict['failure_primary']!r} "
+            f"flags={grey_verdict['failure_flags']}"
+        )
+    if duty is not None and not 0.5 <= duty < 0.8:
+        problems.append(f"② 构造的 end_duty={duty} 不在灰带内，回归无效")
+    if HAVE_MUJOCO:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+        import run_cases
+
+        token = run_cases.status_token(grey_verdict)
+        if token != "invalid:end_state_ambiguous":
+            problems.append(f"② summary status 格式不是 invalid:<reason>：{token}")
+
+    # ②b 运行时横向兜底：末态 |lat| > 台架半宽 → invalid:lateral_exit_step_width
+    lateral, lateral_params = synthetic_case([], False)
+    for i, t in enumerate(lateral["t_s"]):
+        if t >= 1.0:
+            lateral["pos_y_m"][i] = 1.2  # arithmetic：0.6 m 之外
+    lateral_verdict = judge.judge_case(lateral, lateral_params)
+    lateral_cross = lateral_verdict["metrics"].get("crossing") or {}
+    if (
+        lateral_verdict["status"] != "invalid"
+        or lateral_verdict["invalid_reason"] != "lateral_exit_step_width"
+        or lateral_cross.get("lateral_exit") is not True
+    ):
+        problems.append(
+            "②b 末态横向 1.2 m 未判 invalid:lateral_exit_step_width："
+            f"status={lateral_verdict['status']} reason={lateral_verdict['invalid_reason']} "
+            f"lateral_exit={lateral_cross.get('lateral_exit')}"
+        )
+    if (
+        lateral_verdict["passed"] is not None
+        or lateral_verdict["failure_primary"]
+        or lateral_verdict["failure_flags"]
+    ):
+        problems.append("②b 横向 invalid 仍写了 passed/failure_*")
+
+    # ③ 台架半宽不足：整批非 0 退出、不产 summary.csv
+    if not HAVE_MUJOCO:
+        add(
+            "S26",
+            None if not problems else False,
+            "① 单帧不翻转、② 0.65 灰带 invalid 通过；③ SKIP：需要 MuJoCo"
+            if not problems
+            else "；".join(problems) + "；③ SKIP：需要 MuJoCo",
+        )
+        return
+
+    temp_root = Path(tempfile.mkdtemp(prefix="g2-s26-"))
+    try:
+        narrow_runner = temp_root / "_runner.json"
+        narrow = json.loads(read_text(CASES_DIR / "_runner.json"))
+        narrow["obstacle_half_width_m"] = 0.02  # arithmetic：狭窄台架
+        narrow_runner.write_text(json.dumps(narrow, ensure_ascii=False), encoding="utf-8")
+        oblique = json.loads(read_text(CASES_DIR / "baseline.json"))
+        oblique["case_id"] = "step_oblique_15_narrow"
+        oblique["scenario"]["heading_deg"] = 15.0
+        oblique.pop("regression_expect", None)
+        oblique_path = temp_root / "oblique15.json"
+        oblique_path.write_text(json.dumps(oblique, ensure_ascii=False), encoding="utf-8")
+        out_dir = temp_root / "batch"
+        driver = temp_root / "drive.py"
+        driver.write_text(
+            "import sys\n"
+            "from pathlib import Path\n"
+            f"sys.path.insert(0, {str(SCRIPTS_DIR)!r})\n"
+            "import run_cases\n"
+            "run_cases.RUNNER_DEFAULTS = Path(sys.argv[1])\n"
+            "try:\n"
+            "    raise SystemExit(run_cases.main(sys.argv[2:]))\n"
+            "except (run_cases.ContractError, run_cases.params_io.ParamError,\n"
+            "        run_cases.model_checks.ModelCheckError, run_cases.judge.JudgeError) as error:\n"
+            "    print(f'CONTRACT ERROR: {error}', file=sys.stderr)\n"
+            "    raise SystemExit(2)\n",
+            encoding="utf-8",
+        )
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(driver),
+                str(narrow_runner),
+                "--config",
+                str(oblique_path),
+                "--out",
+                str(out_dir),
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=300,
+        )
+        summary_exists = (out_dir / "summary.csv").exists()
+        ok = (
+            result.returncode != 0
+            and "step_too_narrow_for_heading" in result.stderr
+            and not summary_exists
+        )
+        detail = (
+            f"③ rc={result.returncode}、报 step_too_narrow_for_heading、无 summary.csv "
+            f"（need/actual：{result.stderr.strip().splitlines()[-1][:160] if result.stderr.strip() else '无 stderr'}）"
+        )
+        if not ok:
+            problems.append(detail)
+    finally:
+        shutil.rmtree(temp_root, ignore_errors=True)
+
+    add(
+        "S26",
+        not problems,
+        "① 末帧前一帧零接触不翻转；② 占空比 0.65 → invalid:end_state_ambiguous；②b 横向 1.2 m → invalid:lateral_exit_step_width；③ 台架半宽 0.02 + 15° 整批非 0 且无 summary.csv"
         if not problems
         else "；".join(problems),
     )
@@ -1261,6 +1496,9 @@ def synthetic_case(flags, bottom_out):
         "platform_height_tol_m": 0.006,
         "step_front_m": 0.16,
         "step_half_width_m": 0.6,
+        "end_hold_s": 0.05,
+        "end_duty_min": 0.8,
+        "end_duty_ambiguous": 0.5,
         "heading_rad": 0.0,
         "com_offset_x_m": 0.0,
         "contact_gap_tol_s": 0.05,
@@ -1322,12 +1560,14 @@ def check_judge_unit_tests():
     if "timeout" in verdict_tilt["failure_flags"]:
         problems.append(f"topple 仍被追加 timeout：{verdict_tilt['failure_flags']}")
 
-    # 负例 2：末帧回到地面、台阶接触中断（斜向绕行形态）不得 passed
+    # 负例 2：末帧回到地面、台阶接触中断（纵向绕行形态）不得 passed。
+    # 横向位移保持 0.2 m（< 台阶半宽 0.6 m），否则按 v1.10.0 先判
+    # invalid:lateral_exit_step_width，测不到 cross_fail。
     detour = {name: list(values) for name, values in columns.items()}
     for i, t in enumerate(detour["t_s"]):
         if t >= 1.0:
             detour["pos_z_m"][i] = 0.0
-            detour["pos_y_m"][i] = 1.2
+            detour["pos_y_m"][i] = 0.2
             for prefix in ("wheel_L--step", "wheel_R--step"):
                 detour[f"contact_{prefix}_active"][i] = "0"
                 detour[f"contact_{prefix}_normal_n"][i] = ""
@@ -1342,6 +1582,27 @@ def check_judge_unit_tests():
     reasons = verdict_detour["metrics"].get("crossing", {}).get("cross_fail_reasons", [])
     if not reasons:
         problems.append("cross_fail 没有逐项子条件 metrics")
+
+    # 负例 2b：末态横向越出台架 → invalid:lateral_exit_step_width（v1.10.0）
+    lateral = {name: list(values) for name, values in columns.items()}
+    for i, t in enumerate(lateral["t_s"]):
+        if t >= 1.0:
+            lateral["pos_y_m"][i] = 1.2
+    verdict_lateral = judge.judge_case(lateral, params)
+    if (
+        verdict_lateral["status"] != "invalid"
+        or verdict_lateral["invalid_reason"] != "lateral_exit_step_width"
+    ):
+        problems.append(
+            "横向越界未判 invalid:lateral_exit_step_width："
+            f"status={verdict_lateral['status']} reason={verdict_lateral['invalid_reason']}"
+        )
+    if verdict_lateral["failure_primary"] or verdict_lateral["failure_flags"]:
+        problems.append("横向越界的 invalid 写了 failure_*")
+    if "lateral_outside_step_width" in json.dumps(
+        verdict_lateral["metrics"], ensure_ascii=False
+    ):
+        problems.append("cross_fail_reasons 仍残留 lateral_outside_step_width")
 
     # 负例 3：末帧一离开台阶、另一轮仍在地面（骑棱边），但高度够平台——不得算完成
     one_wheel = {name: list(values) for name, values in columns.items()}
@@ -1449,10 +1710,16 @@ def check_judge_unit_tests():
         ):
             belly[f"contact_{key}{suffix}"] = [fill] * len(belly["t_s"])
     verdict_belly = judge.judge_case(belly, belly_params)
-    if verdict_belly["passed"] != 1 or "belly_contact" not in verdict_belly["failure_flags"]:
+    # v1.10.0：末态改窗口占空比后，双轮整窗未触台阶 ⇒ end_duty=0 ⇒ cross_fail，
+    # passed 必然为 0；belly_contact 仍只是诊断标记（默认不在 fail_on 里）。
+    if (
+        verdict_belly["status"] != "ok"
+        or verdict_belly["passed"] != 0
+        or "belly_contact" not in verdict_belly["failure_flags"]
+    ):
         problems.append(
-            f"belly_contact 默认应只诊断：passed={verdict_belly['passed']} "
-            f"flags={verdict_belly['failure_flags']}"
+            f"belly_contact 默认应只诊断且末态窗口给出 cross_fail：status={verdict_belly['status']} "
+            f"passed={verdict_belly['passed']} flags={verdict_belly['failure_flags']}"
         )
     belly_params["fail_on"] = list(params["fail_on"]) + ["belly_contact"]
     verdict_belly_fail = judge.judge_case(belly, belly_params)
@@ -1624,6 +1891,7 @@ def main():
     check_s22()
     check_s24()
     check_s25()
+    check_s26()
     check_negative_configs()
     check_judge_unit_tests()
     if args.run:
