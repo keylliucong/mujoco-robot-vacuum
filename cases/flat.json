@@ -3,7 +3,7 @@
   "case_id": "flat_forward",
   "model": {
     "path": "models/baseline.xml",
-    "sha256": "13197cfeb01b7a6df0578732857a6fdc5ca52acf3ab6142b1ace7c1b25a38fa6"
+    "sha256": "469fd2fd5d8d16da86a1d8fbbebf50c764627461fc662f8bbc3e095b6637b140"
   },
   "scenario": {
     "kind": "flat",
