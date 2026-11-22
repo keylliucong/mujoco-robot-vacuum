@@ -60,7 +60,7 @@ PAIR_GEOMS = {
     "wheel_L": ("wheel_L_tire",),
     "wheel_R": ("wheel_R_tire",),
     "chassis": ("chassis_shell",),
-    "caster": ("caster_ball",),
+    "caster": ("caster_wheel",),
     "floor": ("floor_plane",),
     "step": ("step", "step_edge"),
 }
