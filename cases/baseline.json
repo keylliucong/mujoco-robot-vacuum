@@ -6,7 +6,7 @@
     "template_path": "models/baseline.xml",
     "template_sha256": "f2eeafdc6755d58d2fe7beffa26f37c4e5713562a6f66eb7fa13ed42fc244463",
     "params_path": "params/oomwoo.json",
-    "params_sha256": "657f3fad008d11ef3925da4a3f818a84524c1a1ab498b55801396119d4f02100",
+    "params_sha256": "c994aaba8e8fa73526d5ba604b0b92dea8c1b5e20816b7a0b838bd687ab4359a",
     "config_id": "oomwoo_public_v1"
   },
   "judge": {

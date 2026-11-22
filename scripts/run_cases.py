@@ -1028,6 +1028,7 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
     integral_clamp = float(pv(params, "control.integral_clamp_nm"))
     torque_filter_s = float(pv(params, "control.torque_filter_s"))
     torque_rate_limit = float(pv(params, "control.torque_rate_limit_nm_per_s"))
+    approach_accel = float(pv(params, "control.approach_accel_mps2"))
     act_id = {s: _act_id(model, ACT_WHEEL[s]) for s in ("L", "R")}
 
     wheel_body = {s: _body_id(model, BODY_WHEEL[s]) for s in ("L", "R")}
@@ -1128,9 +1129,12 @@ def run_case(model_xml: str, case: dict, cfg: dict, params: dict,
             break
 
         if t_now >= t_drive_start:
+            # 速度斜坡：从 0 按 approach_accel 上升，避免指令阶跃
+            ramp_speed = min(speed, approach_accel * (t_now - t_drive_start))
+            ramp_omega = ramp_speed / radius
             for side in ("L", "R"):
                 omega = float(data.qvel[wheel_dof[side]])
-                err = target_omega - omega
+                err = ramp_omega - omega
                 int_err[side] += err * dt
                 lim = integral_clamp / max(ki, 1e-12)
                 int_err[side] = max(-lim, min(lim, int_err[side]))

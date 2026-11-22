@@ -824,6 +824,13 @@
       "label": "工程假设",
       "ref": "URDF 无后支撑",
       "note": "后从动支撑，镜像前支撑；为数值稳定新增"
+    },
+    "control.approach_accel_mps2": {
+      "value": 0.05,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "scripts/run_cases.py",
+      "note": "接近段速度斜坡，使 A3 可测；未标定"
     }
   },
   "missing": [

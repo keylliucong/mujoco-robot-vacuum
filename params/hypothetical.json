@@ -580,6 +580,13 @@
       "label": "工程假设",
       "ref": "",
       "note": "力矩速率限幅"
+    },
+    "control.approach_accel_mps2": {
+      "value": 0.05,
+      "unit": "m/s^2",
+      "label": "工程假设",
+      "ref": "scripts/run_cases.py",
+      "note": "接近段速度斜坡"
     }
   },
   "missing": [
