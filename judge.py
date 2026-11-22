@@ -17,7 +17,6 @@ from bisect import bisect_left, bisect_right
 CONTRACT_VERSION = "1.10.0"
 
 FAILURE_PRIORITY = (
-    "data_invalid",
     "topple",
     "belly_contact",
     "retreat",
@@ -28,7 +27,6 @@ FAILURE_PRIORITY = (
     "suspension_bottom",
     "slip",
     "timeout",
-    "no_contact",
 )
 
 REQUIRED_PARAMS = frozenset(
@@ -201,7 +199,7 @@ def judge_case(columns, params):
     trigger_source = ""
     if kind == "step":
         # v1.8.2：t_trigger = 首次任一机体-台阶接触。旧定义只看驱动轮，
-        # 台阶高于离地间隙时永不触发，会把真实托底漏成 invalid/no_contact。
+        # 台阶高于离地间隙时永不触发，会把真实托底漏成 invalid:never_contacted。
         hits = [(first_active(k), k) for k in step_pairs]
         hits = [(i, k) for i, k in hits if i is not None]
         if not hits:

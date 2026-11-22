@@ -113,8 +113,6 @@ FAILURE_ENUM = {
     "suspension_bottom",
     "slip",
     "torque_limit",
-    "no_contact",
-    "data_invalid",
 }
 
 CASE_KEYS = {
@@ -1150,17 +1148,17 @@ def check_s25():
 
     problems = []
     doc = read_text(REPO_ROOT / "docs" / "契约" / "G2-接口契约.md")
-    enum_match = re.search(r"枚举冻结（v1\.9\.0 起 12 项）：`([^`]+)`", doc)
+    enum_match = re.search(r"枚举冻结（v1\.10\.0 起 10 项）：`([^`]+)`", doc)
     order_match = re.search(
         r"（v1\.9\.0 起写进契约，与 `judge\.FAILURE_PRIORITY` 同序）：`([^`]+)`", doc
     )
     if not enum_match or not order_match:
-        problems.append("契约缺 v1.9.0 枚举/取名顺序句")
+        problems.append("契约缺 v1.10.0 枚举/取名顺序句")
     else:
         contract_enum = enum_match.group(1).split()
         contract_order = [part.strip() for part in order_match.group(1).split("→")]
-        if len(contract_enum) != 12:
-            problems.append(f"契约枚举 {len(contract_enum)} 项（应为 12）")
+        if len(contract_enum) != 10:
+            problems.append(f"契约枚举 {len(contract_enum)} 项（应为 10）")
         if set(contract_enum) != FAILURE_ENUM:
             problems.append("契约枚举 != verify_structure.FAILURE_ENUM")
         if set(contract_enum) != set(run_cases.FAILURE_ENUM):
@@ -1169,6 +1167,28 @@ def check_s25():
             problems.append("契约枚举 != judge.FAILURE_PRIORITY")
         if tuple(contract_order) != judge.FAILURE_PRIORITY:
             problems.append("契约取名顺序 != judge.FAILURE_PRIORITY")
+    # 防呆：枚举与契约对表相等，但某项在 judge 里没有 `flags.append("<项>")`
+    # 产出点，就是死值——死值不算一致。
+    tree = ast.parse(read_text(REPO_ROOT / "judge.py"))
+    produced = set()
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "append"
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "flags"
+            and node.args
+            and isinstance(node.args[0], ast.Constant)
+            and isinstance(node.args[0].value, str)
+        ):
+            produced.add(node.args[0].value)
+    dead = sorted(set(FAILURE_ENUM) - produced)
+    extra = sorted(produced - set(FAILURE_ENUM))
+    if dead:
+        problems.append(f"失败枚举项无 flags.append 产出点（死值）：{dead}")
+    if extra:
+        problems.append(f"judge 产出点不在失败枚举内：{extra}")
     for label in ("cleared", "blocked", "lift_fail", "slip_stall"):
         if label in run_cases.SUMMARY_COLUMNS or label in run_cases.TIMESERIES_COLUMNS:
             problems.append(f"展示标签 {label!r} 进了输出列")
@@ -1176,7 +1196,7 @@ def check_s25():
     add(
         "S25",
         not problems,
-        "契约 12 枚举 == run_cases == judge，取名顺序一致；展示标签未入输出列"
+        "契约 10 枚举 == run_cases == judge，取名顺序一致，每项都有 flags.append 产出点；展示标签未入输出列"
         if not problems
         else "；".join(problems),
     )
@@ -1294,6 +1314,30 @@ def check_s26():
         if token != "invalid:end_state_ambiguous":
             problems.append(f"② summary status 格式不是 invalid:<reason>：{token}")
 
+    # ②b 运行时横向兜底：末态 |lat| > 台架半宽 → invalid:lateral_exit_step_width
+    lateral, lateral_params = synthetic_case([], False)
+    for i, t in enumerate(lateral["t_s"]):
+        if t >= 1.0:
+            lateral["pos_y_m"][i] = 1.2  # arithmetic：0.6 m 之外
+    lateral_verdict = judge.judge_case(lateral, lateral_params)
+    lateral_cross = lateral_verdict["metrics"].get("crossing") or {}
+    if (
+        lateral_verdict["status"] != "invalid"
+        or lateral_verdict["invalid_reason"] != "lateral_exit_step_width"
+        or lateral_cross.get("lateral_exit") is not True
+    ):
+        problems.append(
+            "②b 末态横向 1.2 m 未判 invalid:lateral_exit_step_width："
+            f"status={lateral_verdict['status']} reason={lateral_verdict['invalid_reason']} "
+            f"lateral_exit={lateral_cross.get('lateral_exit')}"
+        )
+    if (
+        lateral_verdict["passed"] is not None
+        or lateral_verdict["failure_primary"]
+        or lateral_verdict["failure_flags"]
+    ):
+        problems.append("②b 横向 invalid 仍写了 passed/failure_*")
+
     # ③ 台架半宽不足：整批非 0 退出、不产 summary.csv
     if not HAVE_MUJOCO:
         add(
@@ -1367,7 +1411,7 @@ def check_s26():
     add(
         "S26",
         not problems,
-        "① 末帧前一帧零接触不翻转；② 占空比 0.65 → invalid:end_state_ambiguous；③ 台架半宽 0.02 + 15° 整批非 0 且无 summary.csv"
+        "① 末帧前一帧零接触不翻转；② 占空比 0.65 → invalid:end_state_ambiguous；②b 横向 1.2 m → invalid:lateral_exit_step_width；③ 台架半宽 0.02 + 15° 整批非 0 且无 summary.csv"
         if not problems
         else "；".join(problems),
     )

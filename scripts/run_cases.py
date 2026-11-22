@@ -54,8 +54,6 @@ FAILURE_ENUM = {
     "suspension_bottom",
     "slip",
     "torque_limit",
-    "no_contact",
-    "data_invalid",
 }
 
 PAIR_GEOMS = {
