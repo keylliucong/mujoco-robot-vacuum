@@ -89,7 +89,22 @@ def xml_attr(root, xpath):
             if node is None:
                 raise ModelCheckError(f"XML 路径不存在：{xpath}")
     last = parts[-1]
-    attr_part = last.partition("@")[2]
+    tag_part, _, attr_part = last.partition("@")
+    if tag_part:
+        tag, _, predicate = tag_part.partition("[")
+        if predicate:
+            name = predicate.split("'")[1]
+            for child in node.findall(tag):
+                if child.get("name") == name:
+                    node = child
+                    break
+            else:
+                raise ModelCheckError(f"XML 路径不存在：{xpath}")
+        else:
+            child = node.find(tag)
+            if child is None:
+                raise ModelCheckError(f"XML 路径不存在：{xpath}")
+            node = child
     index = None
     if "[" in attr_part:
         attr_part, _, idx = attr_part.partition("[")
