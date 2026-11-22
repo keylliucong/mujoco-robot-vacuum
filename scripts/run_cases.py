@@ -1482,7 +1482,12 @@ def main(argv: list[str] | None = None) -> int:
             f"config_id mismatch: params={model_config_id}, cases={bad}"
         )
 
-    base_model = mujoco.MjModel.from_xml_string(model_xml)
+    flat_case_for_validation = next(
+        (c for c in cfg["cases"] if c["scenario"]["kind"] == "flat"), None)
+    if flat_case_for_validation is None:
+        raise SystemExit("config has no flat case for model validation")
+    validation_xml = build_scenario_xml(model_xml, flat_case_for_validation, params)
+    base_model = mujoco.MjModel.from_xml_string(validation_xml)
     model_meta = validate_model(base_model, params, template_path, model_sha)
 
     # 接触读数前置条件
