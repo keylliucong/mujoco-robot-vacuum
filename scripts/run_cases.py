@@ -835,6 +835,13 @@ def chassis_front(model):
     return front
 
 
+def path_for_report(path):
+    try:
+        return str(path.relative_to(REPO_ROOT)).replace(os.sep, "/")
+    except ValueError:
+        return str(path).replace(os.sep, "/")
+
+
 def git_info():
     import subprocess
 
@@ -1121,7 +1128,7 @@ def main(argv=None):
                 "failure_flags": ";".join(base["failure_flags"]),
                 "metrics": base["metrics"],
                 "timestep_s": float(config["numerics"]["timestep_s"]),
-                "output_dir": str(case_dir.relative_to(REPO_ROOT)).replace(os.sep, "/"),
+                "output_dir": path_for_report(case_dir),
             }
         )
         repeat_results.append(
@@ -1161,13 +1168,13 @@ def main(argv=None):
         },
         "machine": params_document["machine"],
         "params": {
-            "path": str(rendered["params_path"].relative_to(REPO_ROOT)).replace(os.sep, "/"),
+            "path": path_for_report(rendered["params_path"]),
             "sha256": sha256_file(rendered["params_path"]),
             "config_id": params_document["config_id"],
             "missing": params_io.missing_ids(params_document),
         },
         "config": {
-            "path": str(config_path.relative_to(REPO_ROOT)).replace(os.sep, "/"),
+            "path": path_for_report(config_path),
             "sha256": config_sha,
         },
         "scenario_xml_sha256": scenario_sha,
@@ -1221,7 +1228,7 @@ def main(argv=None):
         "cases": [
             {
                 "case_id": config["case_id"],
-                "config": str(config_path.relative_to(REPO_ROOT)).replace(os.sep, "/"),
+                "config": path_for_report(config_path),
                 "config_sha256": config_sha,
                 "scenario_xml_sha256": scenario_sha,
                 "repeats": repeat_results,
