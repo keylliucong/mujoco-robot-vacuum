@@ -47,9 +47,12 @@
 
       <!-- 万向支撑（球代替滚轮，v1 不做滚动）；置于车尾，使驱动轮先触台阶 -->
       <body name="caster_rear" pos="${pos.caster.x} ${pos.caster.y} ${pos.caster.z}">
+        <joint name="caster_roll" type="hinge" axis="0 1 0" damping="${caster.roll_damping_nms}"/>
         <inertial pos="0 0 0" mass="${mass.caster}"
                   diaginertia="${inertia.caster.xx} ${inertia.caster.yy} ${inertia.caster.zz}"/>
-        <geom name="caster_ball" type="sphere" size="${geom.caster.radius}" material="rubber"
+        <geom name="caster_wheel" type="capsule"
+              size="${geom.caster.radius} ${geom.caster.half_width}"
+              quat="0.7071067811865476 0.7071067811865476 0 0" material="rubber"
               solref="${contact.caster_solref_timeconst_s} ${contact.solref_dampratio}"/>
       </body>
 

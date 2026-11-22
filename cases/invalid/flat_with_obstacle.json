@@ -3,7 +3,7 @@
   "case_id": "invalid_flat_with_obstacle",
   "model": {
     "path": "models/baseline.xml",
-    "sha256": "3848321c2edaeb0ac008c18b3fdc54142f81209d6bee96d5bd8728b21453dcca"
+    "sha256": "c8817bca12e8d388b790dab40a17f460d204543920041074abad34a7f25fe26a"
   },
   "scenario": {
     "kind": "flat",

@@ -84,19 +84,19 @@
       "ref": "machine=prototype; 按主轴假设设 0（原型假设）"
     },
     "inertia.caster.xx": {
-      "value": 1.08e-05,
+      "value": 7e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "machine=prototype; 球体估算"
     },
     "inertia.caster.yy": {
-      "value": 1.08e-05,
+      "value": 1.35e-05,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "machine=prototype; 球体估算"
     },
     "inertia.caster.zz": {
-      "value": 1.08e-05,
+      "value": 7e-06,
       "unit": "kg*m^2",
       "label": "工程假设",
       "ref": "machine=prototype; 球体估算"
@@ -189,7 +189,19 @@
       "value": 0.03,
       "unit": "m",
       "label": "工程假设",
-      "ref": "machine=prototype; 车尾支撑球半径；须大于台阶高度 20 mm，否则卡在台阶立面"
+      "ref": "machine=prototype; 车尾支撑轮半径；须大于台阶高度 20 mm，否则卡在台阶立面"
+    },
+    "geom.caster.half_width": {
+      "value": 0.005,
+      "unit": "m",
+      "label": "工程假设",
+      "ref": "machine=prototype; 车尾支撑轮半宽（全宽 10 mm）"
+    },
+    "caster.roll_damping_nms": {
+      "value": 0.0005,
+      "unit": "N*m*s",
+      "label": "工程假设",
+      "ref": "machine=prototype; 车尾支撑轮滚动阻尼"
     },
     "geom.wheel_radius_m": {
       "value": 0.035,
