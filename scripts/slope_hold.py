@@ -5,7 +5,7 @@
 ------------
 契约 v1.7 的 ``scenario.kind`` 只有 ``flat`` / ``step``，runner/obstacle.py 只
 注入水平地面与台阶；judge 的平地段还要求车身速度稳定在指令速度附近，静置斜面
-必然判 ``invalid:not_settled``。所以斜面只能做**观测**，不能走 G2 判定。
+必然判 ``invalid:data_invalid``（v1.8.1 起稳态不足并入 data_invalid）。所以斜面只能做**观测**，不能走 G2 判定。
 
 物理等价
 --------

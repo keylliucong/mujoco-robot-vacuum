@@ -212,10 +212,12 @@ def judge_case(columns, params):
         lo = bisect_left(times, settle_at - params["settle_window_s"] - step * 0.5)  # arithmetic
     settle_speeds = [v for v in vel_x[lo:hi] if v is not None]
     if settle_speeds and abs(_mean(settle_speeds) - params["speed_mps"]) > params["settle_tol_mps"]:
+        # v1.8.1（评审返工 1）：invalid 只保留四类；触发前稳态不足归入
+        # data_invalid，不再单列 not_settled。
         return _result(
             status="invalid",
-            invalid_reason="not_settled",
-            flags=[],
+            invalid_reason="data_invalid",
+            flags=["data_invalid"],
             params=params,
             metrics=_empty_metrics(),
         )
