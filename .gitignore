@@ -10,7 +10,8 @@ outputs/
 MUJOCO_LOG.TXT
 logs/
 data/private/
-# 文献原件：仓库只收公开许可的 6 篇 PDF；其余 PDF 与非公开原件一律不入库
+# 文献原件：按白名单逐篇入库（11 篇）；其余 PDF 与非公开原件一律不入库
+# 其中 5 篇为出版社/待核版本，版权与许可状态见 refs/README.md，仅供本项目内部研究使用
 refs/*.pdf
 !refs/Dreame_CN117958664B.pdf
 !refs/Dyson_GB2611795A.pdf
@@ -18,6 +19,11 @@ refs/*.pdf
 !refs/Seo_Kang_2024_Biomimetics_curved_spoke_stair.pdf
 !refs/Won_2022_SciRep_2DOF_wheel.pdf
 !refs/Wilhelm_2007_thesis.pdf
+!refs/Choi_2017_MMT_required_friction.pdf
+!refs/Wilhelm_2007_IROS_deformable_wheel_step.pdf
+!refs/Chamorro_2024_arXiv_2402.06143.pdf
+!refs/Gasparino_2022_arXiv_2203.12071.pdf
+!refs/Kovalev_2025_arXiv_2508.04696.pdf
 refs/_private/
 refs/relay-result.txt
 
