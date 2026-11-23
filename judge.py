@@ -1,11 +1,11 @@
 """G2 判定模块：只吃时程 + 阈值，不 import mujoco，不读模型或配置对象（S04/S09）。
 
-契约版本：v1.10.1（文档）；判据集在 v1.7 基础上吸收 v1.8.2 的
+契约版本：v1.11.0（文档）；判据集在 v1.7 基础上吸收 v1.8.2 的
 `t_trigger` 口径（首次任一机体-台阶接触），按 v1.9.0 增加 `belly_contact`
 与 `cross_fail` 失败模式，按 v1.10.0 把末态改为窗口占空比、横向越界改为
-`invalid`，并按 v1.10.1 增加 `invalid:lateral_drift_untrusted`（扣掉航向
-几何横移后的横向漂移不可信）；`lateral_exit_step_width` 仍只表示几何出界
-（契约正文已同步）。
+`invalid`，按 v1.10.1 增加 `invalid:lateral_drift_untrusted`，按 v1.11.0
+把「越过」换成后缘量并新增 `kind=ramp` 三判退；`lateral_exit_step_width`
+仍只表示几何出界（契约正文已同步）。
 本文件是唯一写 `passed` / `failure_*` 的地方；输入是 CSV 列字典（字符串原样，
 空串表示无数据）与一份扁平的数值参数字典。参数键集封闭，出现未知键即 raise，
 因此配置无法夹带期望结果（S09）。
@@ -16,7 +16,7 @@ from __future__ import annotations
 import math
 from bisect import bisect_left, bisect_right
 
-CONTRACT_VERSION = "1.10.1"
+CONTRACT_VERSION = "1.11.0"
 
 FAILURE_PRIORITY = (
     "topple",
@@ -75,6 +75,19 @@ REQUIRED_PARAMS = frozenset(
         "wheel_step_pairs",
         "bottom_out_pairs",
         "all_pairs",
+        "x_rear_B_m",
+        "z_rear_m",
+        "z_cg_m",
+        "ramp_angle_rad",
+        "ramp_length_m",
+        "ramp_width_m",
+        "ramp_top_platform_m",
+        "ramp_top_front_m",
+        "ramp_start_m",
+        "ramp_start_side_tol_m",
+        "ramp_top_duty",
+        "post_cross_window_s",
+        "ramp_detach_hold_s",
     }
 )
 
@@ -200,8 +213,8 @@ def judge_case(columns, params):
 
     kind = params["kind"]
     trigger_source = ""
-    if kind == "step":
-        # v1.8.2：t_trigger = 首次任一机体-台阶接触。旧定义只看驱动轮，
+    if kind in ("step", "ramp"):
+        # v1.8.2：t_trigger = 首次任一机体-台阶/坡面接触。旧定义只看驱动轮，
         # 台阶高于离地间隙时永不触发，会把真实托底漏成 invalid:never_contacted。
         hits = [(first_active(k), k) for k in step_pairs]
         hits = [(i, k) for i, k in hits if i is not None]
@@ -282,21 +295,40 @@ def judge_case(columns, params):
     end_pos_y = _last(pos_y, end_index)
     max_pos_z = _max(pos_z, window)
     crossing = None
-    if kind == "step":
-        # 跨越证据（v1.8.3 返工）：机体确实从台阶前缘上方过去，而不是绕开。
-        # 以 heading 为前进方向把位置投影到台阶坐标系：s 为沿前进方向进度，
-        # lat 为横向偏移。台阶前缘平面过 (step_front_m, 0)，法向为 heading。
+    z_error_max = None
+    if kind in ("step", "ramp"):
+        # 跨越证据：以 heading 为前进方向把位置投影到障碍坐标系。
+        # v1.11.0：判定量换成车身最后缘——s_rear = s − L_rear，
+        # L_rear = x_rear_B·cosθ + (z_cg − z_rear)·sinθ（θ 取判定末帧俯仰）。
+        # 质心投影只留作诊断，不再参与 passed。
         cos_h = math.cos(params["heading_rad"])
         sin_h = math.sin(params["heading_rad"])
-        end_s = end_pos_x * cos_h + end_pos_y * sin_h
+        # 坡道的 s 原点在坡脚；台阶的 s 是台阶坐标系世界投影（step_front_m 同系）。
+        s_offset = params["ramp_start_m"] if kind == "ramp" else 0.0
+        end_s = end_pos_x * cos_h + end_pos_y * sin_h - s_offset
         end_lat = -end_pos_x * sin_h + end_pos_y * cos_h
-        # 质心投影比 B 原点略偏后，仍用同一 heading 方向换算
+        pitch_end = _value(pitch, end_index)
+        l_rear = params["x_rear_B_m"] * math.cos(pitch_end) + (
+            params["z_cg_m"] - params["z_rear_m"]
+        ) * math.sin(pitch_end)
         com_s = end_s + params["com_offset_x_m"] * cos_h
+        floor_keys = [k for k in pair_keys if k.endswith("--floor")]
+        common_crossing = {
+            "end_progress_m": end_s,
+            "end_lateral_m": end_lat,
+            "com_progress_m": com_s,
+            "max_pos_z_m": max_pos_z,
+            "x_rear_B_m": params["x_rear_B_m"],
+            "z_rear_m": params["z_rear_m"],
+            "L_rear_m": l_rear,
+            "pitch_rad": pitch_end,
+        }
+
+    if kind == "step":
         wheel_on_top_count = sum(
             1 for k in wheel_step if columns[f"contact_{k}_active"][end_index] == "1"
         )
         both_wheels_on_top = bool(wheel_step) and wheel_on_top_count == len(wheel_step)
-        floor_keys = [k for k in pair_keys if k.endswith("--floor")]
         # 没有地面接触对时不能把「查不到」当成「无接触」（诊断字段）。
         no_floor_contact_at_end = bool(floor_keys) and not any(
             columns[f"contact_{k}_active"][end_index] == "1" for k in floor_keys
@@ -304,7 +336,7 @@ def judge_case(columns, params):
         reached_platform = (
             max_pos_z >= params["step_height_m"] - params["platform_height_tol_m"]
         )
-        crossed_front = com_s >= params["step_front_m"]
+        crossed_front = end_s - l_rear >= params["step_front_m"]
         # v1.10.0（S26）：末态不是一帧，是末 end_hold_s 内的占空比。
         # 灰带 [end_duty_ambiguous, end_duty_min) 判 invalid:end_state_ambiguous，
         # 不由单点阈值猜一侧。
@@ -339,12 +371,12 @@ def judge_case(columns, params):
         )
         drift_ratio = drift_excess / max(advance_positive, params["min_advance_m"])
         drift_untrusted = drift_ratio >= params["lateral_drift_untrusted_ratio"]
-        # 从首触到质心越过前缘，机体-台阶接触允许的空档不超过上限；
+        # 从首触到后缘越过前缘，机体-台阶接触允许的空档不超过上限；
         # 空档越大越像"飞过去"或"绕过去"，不是跨越。
         cross_index = end_index
         for i in window:
-            s_i = pos_x[i] * cos_h + pos_y[i] * sin_h
-            if s_i + params["com_offset_x_m"] * cos_h >= params["step_front_m"]:
+            s_i = pos_x[i] * cos_h + pos_y[i] * sin_h - s_offset
+            if s_i - l_rear >= params["step_front_m"]:
                 cross_index = i
                 break
         contact_gap_max = _contact_gap(
@@ -365,10 +397,8 @@ def judge_case(columns, params):
         if not contact_ok:
             cross_fail_reasons.append("step_contact_gap_too_long")
         crossing = {
-            "end_progress_m": end_s,
-            "end_lateral_m": end_lat,
-            "com_progress_m": com_s,
-            "max_pos_z_m": max_pos_z,
+            **common_crossing,
+            "s_rear_m": end_s - l_rear,
             "wheel_on_top_count": wheel_on_top_count,
             "both_wheels_on_top": both_wheels_on_top,
             "no_floor_contact_at_end": no_floor_contact_at_end,
@@ -390,9 +420,142 @@ def judge_case(columns, params):
                 crossed_front and reached_platform and ended_on_platform and contact_ok
             ),
         }
+    elif kind == "ramp":
+        # v1.11.0 §3.2：坡道三判退（跌落 / 未登顶整体未过 / 失速）。
+        # 不新增失败类别：跌落→topple、未登顶/整体未过→cross_fail、失速→stall。
+        ramp_top_front = params["ramp_top_front_m"]
+        end_s_rear = end_s - l_rear
+        crossed_front = end_s_rear >= ramp_top_front
+        # t_cross_s = s_rear 首次到达坡顶前沿；登顶占空比窗口锚在它上面，
+        # 不开到 run 末端（短平台上会混进下坡帧）。
+        t_cross_index = None
+        for i in window:
+            s_i = pos_x[i] * cos_h + pos_y[i] * sin_h - s_offset
+            if s_i - l_rear >= ramp_top_front:
+                t_cross_index = i
+                break
+        t_cross_s = times[t_cross_index] if t_cross_index is not None else None
+        top_pairs = [
+            k
+            for k in pair_keys
+            if k.startswith("wheel_") and k.endswith("--step_top")
+        ]
+
+        def both_wheels_on_ramp_top(i):
+            return bool(top_pairs) and all(
+                columns[f"contact_{k}_active"][i] == "1" for k in top_pairs
+            )
+
+        if t_cross_index is not None:
+            top_start = bisect_left(
+                times,
+                times[t_cross_index]
+                - params["post_cross_window_s"]
+                - step * 0.5,  # arithmetic
+            )
+            top_indices = list(range(top_start, t_cross_index + 1))
+            top_frames = len(top_indices)
+            top_hits = sum(1 for i in top_indices if both_wheels_on_ramp_top(i))
+            top_duty = top_hits / top_frames if top_frames else 0.0
+            post_end = (
+                bisect_right(
+                    times,
+                    times[t_cross_index] + params["post_cross_window_s"] + step * 0.5,  # arithmetic
+                )
+                - 1
+            )
+            post_cross_floor_contact = any(
+                columns[f"contact_{k}_active"][i] == "1"
+                for i in range(t_cross_index + 1, post_end + 1)
+                for k in floor_keys
+            )
+        else:
+            top_frames = 0
+            top_duty = 0.0
+            post_cross_floor_contact = False
+        # 跌落：坡道接触对全为空 + pos_z ≤ z0+5 mm + 此前爬升 ≥50 mm，
+        # 持续 ramp_detach_hold_s 后 latch。阈值是专家给的可执行定义（任务 C）。
+        ramp_pairs = [
+            k
+            for k in pair_keys
+            if k.endswith("--step") or k.endswith("--step_top")
+        ]
+        z0 = _value(pos_z, trigger_index)
+        climbed = False
+        detach_run = 0
+        detach_frames = 0
+        detached = False
+        z_error_max = 0.0
+        for i in window:
+            dz = pos_z[i] - z0
+            if dz >= 0.05:  # contract-tolerance：此前 max(pos_z−z0) ≥ 50 mm
+                climbed = True
+            s_i = pos_x[i] * cos_h + pos_y[i] * sin_h - s_offset
+            if s_i <= 0.0:
+                z_ramp = 0.0
+            elif s_i >= ramp_top_front:
+                z_ramp = params["ramp_length_m"] * math.sin(params["ramp_angle_rad"])
+            else:
+                z_ramp = s_i * math.tan(params["ramp_angle_rad"])
+            z_error_max = max(z_error_max, abs(pos_z[i] - z_ramp))
+            ramp_active = any(columns[f"contact_{k}_active"][i] == "1" for k in ramp_pairs)
+            low = pos_z[i] <= z0 + 0.005  # contract-tolerance：z0 + 5 mm
+            if climbed and not ramp_active and low:
+                detach_run += 1
+                detach_frames += 1
+                if detach_run * step >= params["ramp_detach_hold_s"]:
+                    detached = True
+                    break
+            else:
+                detach_run = 0
+        still_on_start = end_s < 0.0
+        ended_on_ramp_top = (
+            crossed_front
+            and top_duty >= params["ramp_top_duty"]
+            and not post_cross_floor_contact
+        )
+        cross_fail_reasons = []
+        if not crossed_front:
+            cross_fail_reasons.append("rear_edge_not_passed")
+        if still_on_start:
+            cross_fail_reasons.append("still_on_start_side")
+        if top_duty < params["ramp_top_duty"]:
+            cross_fail_reasons.append("ramp_top_not_reached")
+        if post_cross_floor_contact:
+            cross_fail_reasons.append("left_ramp_top_after_cross")
+        crossing = {
+            **common_crossing,
+            "s_rear_m": end_s_rear,
+            "ramp_top_front_m": ramp_top_front,
+            "ramp_start_side_tol_m": params["ramp_start_side_tol_m"],
+            "t_cross_s": t_cross_s,
+            "ramp_top_duty_actual": top_duty,
+            "post_cross_floor_contact": post_cross_floor_contact,
+            "ramp_top_frames": top_frames,
+            "detached": detached,
+            "detach_frames": detach_frames,
+            "still_on_start_side": still_on_start,
+            "ended_on_ramp_top": ended_on_ramp_top,
+            "crossed_front": crossed_front,
+            "cross_fail_reasons": cross_fail_reasons,
+            "crossed": bool(crossed_front and ended_on_ramp_top),
+            # 与 step 分支同名的诊断键：坡道不判横向越界/灰带。
+            "ended_on_platform": ended_on_ramp_top,
+            "end_duty": top_duty,
+            "end_state_ambiguous": False,
+            "lateral_exit": False,
+            "lateral_drift_excess_m": 0.0,
+            "lateral_drift_ratio": 0.0,
+            "lateral_drift_untrusted": False,
+        }
 
     flags = []
-    if pitch_max > params["tilt_pitch_deg"] or roll_max > params["tilt_roll_deg"]:
+    detached = bool(crossing is not None and crossing.get("detached"))
+    if (
+        pitch_max > params["tilt_pitch_deg"]
+        or roll_max > params["tilt_roll_deg"]
+        or detached
+    ):
         flags.append("topple")
     if advance < 0.0:
         flags.append("retreat")
@@ -447,6 +610,15 @@ def judge_case(columns, params):
             # fail_on 未列入的观测异常也要如实报，不得一律落成 timeout。
             primary = next((f for f in FAILURE_PRIORITY if f in observed), "timeout")
 
+    ramp_metrics = None
+    if kind == "ramp" and crossing is not None:
+        ramp_metrics = {
+            "s_m": crossing["end_progress_m"],
+            "s_rear_m": crossing["s_rear_m"],
+            "z_error_m": z_error_max,
+            "detach_frames": crossing["detach_frames"],
+            "top_duty": crossing["ramp_top_duty_actual"],
+        }
     metrics = {
         "t_trigger_s": t_trigger,
         "t_wheel_touch_s": t_wheel_touch,
@@ -468,6 +640,7 @@ def judge_case(columns, params):
         "slip_force_exceeded": slip_force,
         "trigger_source": trigger_source,
         "crossing": crossing,
+        "ramp": ramp_metrics,
     }
     # v1.10.0：invalid 不是失败类别——不写 failure_primary / failure_flags，
     # 也不进通过率分母。运行时横向兜底优先于灰带（几何已确定的先报）；
@@ -580,6 +753,7 @@ def _empty_metrics():
         "slip_force_exceeded": None,
         "trigger_source": "",
         "crossing": None,
+        "ramp": None,
     }
 
 

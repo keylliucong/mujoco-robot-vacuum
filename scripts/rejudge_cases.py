@@ -16,7 +16,7 @@
 - 用 v1.10.0 的 _runner.json 重建 judge 参数（含 end_hold_s / end_duty_* /
   obstacle_half_width_m）；
 - 先做 v1.10.0 前置横向校验（step_too_narrow_for_heading）：不通过则整批
-  标记 invalid，不再看运行时判据；
+  标 reject（v1.11.0 起它是配置拒绝码，不是 invalid），不再看运行时判据；
 - 否则调用 judge.judge_case 重判该 tier 的 timeseries.csv。
 """
 
@@ -194,12 +194,13 @@ def rejudge_tier(ctx, timeseries_path, timestep_s, limits, scenario_sha, config_
 
     precheck = ctx["precheck"]
     if precheck is not None and not precheck["ok"]:
-        status = "invalid"
-        invalid_reason = "step_too_narrow_for_heading"
+        # v1.11.0：step_too_narrow_for_heading 是配置拒绝码，不是运行期 invalid。
+        status = "reject"
+        invalid_reason = ""
         passed = None
         primary = ""
         flags = []
-        report_outcome = "invalid:step_too_narrow_for_heading"
+        report_outcome = "reject:step_too_narrow_for_heading"
     else:
         status = verdict["status"]
         invalid_reason = verdict.get("invalid_reason") or ""

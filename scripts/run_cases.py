@@ -29,7 +29,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-CONTRACT_VERSION = "1.10.1"  # S14：等于契约文档版本；v1.10.1 增 invalid 词表一项
+CONTRACT_VERSION = "1.11.0"  # S14：等于契约文档版本；v1.11.0 增坡道结构与后缘越过
 SCHEMA_VERSION = "1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -56,6 +56,25 @@ FAILURE_ENUM = {
     "torque_limit",
 }
 
+# v1.11.0 §3 / S27：配置拒绝码与运行期 invalid_reason 是两张表。
+# 拒绝码只出现在 fail-fast 报错文案与 rejected.json；不得进 summary.csv。
+REJECT_CODES = frozenset(
+    {
+        "step_too_narrow_for_heading",
+        "ramp_angle_out_of_range",
+        "ramp_platform_too_short_for_verdict",
+        "missing_guardrail_geometry",
+        "undeclared_guardrail_geometry",
+        "ramp_too_short_for_verdict",
+        "rear_edge_derivation_mismatch",
+    }
+)
+
+GUARDRAIL_VALUES = frozenset({"none", "both", "left", "right"})
+
+# v1.11.0 §3.2：坡道起始侧容差低于 3 mm 时判不了任何东西，整批拒绝。
+RAMP_MIN_TOLERANCE_M = 0.003  # contract-tolerance
+
 PAIR_GEOMS = {
     "wheel_L": ("wheel_L_tire",),
     "wheel_R": ("wheel_R_tire",),
@@ -64,7 +83,9 @@ PAIR_GEOMS = {
     "chassis": ("chassis_shell", "chassis_front_lip"),
     "caster": ("caster_wheel",),
     "floor": ("floor_plane",),
+    # step 是坡面/台阶本体；step_top 是坡顶平台（v1.11.0 登顶占空比用）。
     "step": ("step", "step_edge"),
+    "step_top": ("step_top",),
 }
 
 CASE_KEYS = {
@@ -81,9 +102,17 @@ CASE_KEYS = {
     "notes",
 }
 
-SCENARIO_KEYS = {"kind", "obstacle", "heading_deg", "approach"}
+SCENARIO_KEYS = {"kind", "obstacle", "ramp", "heading_deg", "approach"}
 APPROACH_KEYS = {"speed_mps", "start_distance_m", "settle_s", "settle_tol_mps"}
 OBSTACLE_KEYS = {"shape", "height_m", "edge_radius_m", "top_width_m"}
+RAMP_KEYS = {
+    "angle_deg",
+    "length_m",
+    "width_m",
+    "top_platform_m",
+    "approach_distance_m",
+    "guardrail",
+}
 NUMERICS_KEYS = {"timestep_s", "integrator", "solver", "cone", "iterations"}
 JUDGE_KEYS = {
     "window_s",
@@ -204,6 +233,19 @@ class ContractError(RuntimeError):
     """契约违规：一律 raise，不静默降级。"""
 
 
+class RejectError(ContractError):
+    """v1.11.0 配置拒绝（fail-fast）：必须留 rejected.json，整批非 0 退出。"""
+
+    def __init__(self, code, message, required=None, actual=None):
+        if code not in REJECT_CODES:
+            raise ContractError(f"未登记的拒绝码：{code!r}")
+        self.code = code
+        self.message = message
+        self.required = required
+        self.actual = actual
+        super().__init__(f'reject_code="{code}": {message}')
+
+
 def sha256_file(path):
     digest = hashlib.sha256()
     with open(path, "rb") as handle:
@@ -265,16 +307,22 @@ def load_case(path):
     require_keys(config["judge"], JUDGE_KEYS, "judge")
     require_keys(config["judge"]["stall"], {"speed_mps", "duration_s"}, "judge.stall")
     require_keys(config["judge"]["tilt"], {"pitch_deg", "roll_deg"}, "judge.tilt")
-    if config["scenario"]["kind"] not in ("flat", "step"):
-        raise ContractError("scenario.kind 只能是 flat 或 step")
-    if config["scenario"]["kind"] == "flat":
-        if "obstacle" in config["scenario"]:
-            raise ContractError("flat 工况禁止出现 obstacle 块（抽查 2）")
-    else:
-        if "obstacle" not in config["scenario"]:
+    scenario = config["scenario"]
+    kind = scenario["kind"]
+    if kind not in ("flat", "step", "ramp"):
+        raise ContractError("scenario.kind 只能是 flat、step 或 ramp（v1.11.0）")
+    # v1.11.0：kind / obstacle / ramp 三者互斥。step 必带 obstacle、ramp 必带
+    # ramp、flat 两者都不许有；同现即 raise（不是“以 kind 为准”地忽略另一个）。
+    if kind == "flat":
+        if "obstacle" in scenario or "ramp" in scenario:
+            raise ContractError("flat 工况禁止出现 obstacle 或 ramp 块（kind 互斥）")
+    elif kind == "step":
+        if "obstacle" not in scenario:
             raise ContractError("step 工况缺 scenario.obstacle")
-        require_keys(config["scenario"]["obstacle"], OBSTACLE_KEYS, "scenario.obstacle")
-        obstacle = config["scenario"]["obstacle"]
+        if "ramp" in scenario:
+            raise ContractError("step 工况禁止出现 ramp 块（kind 互斥）")
+        require_keys(scenario["obstacle"], OBSTACLE_KEYS, "scenario.obstacle")
+        obstacle = scenario["obstacle"]
         if obstacle["shape"] not in ("box", "cylinder"):
             raise ContractError("obstacle.shape 只能是 box 或 cylinder")
         if obstacle["height_m"] <= 0:
@@ -283,6 +331,29 @@ def load_case(path):
             raise ContractError("obstacle.edge_radius_m 必须 >= 0")
         if obstacle["shape"] == "box" and obstacle["top_width_m"] <= 0:
             raise ContractError("obstacle.top_width_m 必须 > 0")
+    else:
+        if "ramp" not in scenario:
+            raise ContractError("ramp 工况缺 scenario.ramp")
+        if "obstacle" in scenario:
+            raise ContractError("ramp 工况禁止出现 obstacle 块（kind 互斥）")
+        require_keys(scenario["ramp"], RAMP_KEYS, "scenario.ramp")
+        ramp = scenario["ramp"]
+        if not isinstance(ramp["angle_deg"], (int, float)):
+            raise ContractError("ramp.angle_deg 必须是数值")
+        if ramp["length_m"] <= 0:
+            raise ContractError("ramp.length_m 必须 > 0")
+        if ramp["width_m"] <= 0:
+            raise ContractError("ramp.width_m 必须 > 0")
+        if ramp["top_platform_m"] <= 0:
+            raise ContractError("ramp.top_platform_m 必须 > 0")
+        if ramp["approach_distance_m"] < 0:
+            raise ContractError("ramp.approach_distance_m 必须 >= 0")
+        if ramp["guardrail"] not in GUARDRAIL_VALUES:
+            raise ContractError(
+                f"ramp.guardrail 只能是 none/both/left/right：{ramp['guardrail']!r}"
+            )
+        # 坡度范围 3–15° 是配置拒绝码 ramp_angle_out_of_range，在 main 的
+        # fail-fast 预检里抛（要留 rejected.json），这里只校验类型。
     heading = config["scenario"]["heading_deg"]
     if abs(heading) > 60:
         raise ContractError("heading_deg 超出 ±60")
@@ -365,11 +436,11 @@ def parse_config_id(config):
     return match.group(1)
 
 
-def pair_geom_names(key, obstacle_shape):
+def pair_geom_names(key, obstacle_kind):
     a, _, b = key.partition("--")
     names_a = list(PAIR_GEOMS[a])
     names_b = list(PAIR_GEOMS[b])
-    if obstacle_shape != "step":
+    if obstacle_kind == "flat":
         names_b = [n for n in names_b if not n.startswith("step")]
     return names_a, names_b
 
@@ -507,6 +578,51 @@ def build_scenario_xml(model_text, config, chassis_front_m, defaults, params_doc
                     "material": "step",
                 },
             )
+    elif kind == "ramp":
+        ramp = config["scenario"]["ramp"]
+        angle = math.radians(float(ramp["angle_deg"]))
+        length = float(ramp["length_m"])
+        width = float(ramp["width_m"])
+        top_platform = float(ramp["top_platform_m"])
+        x_foot = chassis_front_m + float(ramp["approach_distance_m"])
+        horizontal = length * math.cos(angle)  # arithmetic：坡长沿水平投影
+        height = length * math.sin(angle)  # arithmetic：坡高由 length·sin(angle) 派生
+        thickness = height  # arithmetic：斜面厚度取坡高，保证坡脚与地面衔接
+        worldbody = root.find("worldbody")
+        if worldbody is None:
+            raise ContractError("模型缺 worldbody")
+        # 斜面：一块绕 y 轴转 -angle 的 box，顶面从坡脚 (x_foot, 0) 到
+        # 坡顶 (x_foot+horizontal, height)。顶面中心沿法向下移 thickness/2。
+        surface_mid_x = x_foot + horizontal / 2.0  # arithmetic
+        surface_mid_z = height / 2.0  # arithmetic
+        center_x = surface_mid_x + thickness / 2.0 * math.sin(angle)  # arithmetic
+        center_z = surface_mid_z - thickness / 2.0 * math.cos(angle)  # arithmetic
+        quat = f"{math.cos(angle / 2.0)} 0 {-math.sin(angle / 2.0)} 0"  # arithmetic
+        ET.SubElement(
+            worldbody,
+            "geom",
+            {
+                "name": "step",
+                "type": "box",
+                "size": f"{length / 2.0} {width / 2.0} {thickness / 2.0}",  # arithmetic
+                "pos": f"{center_x} 0 {center_z}",
+                "quat": quat,
+                "material": "step",
+            },
+        )
+        # 坡顶平台：顶面 z=height，从坡顶前沿沿 +x 延伸 top_platform_m。
+        x_top = x_foot + horizontal
+        ET.SubElement(
+            worldbody,
+            "geom",
+            {
+                "name": "step_top",
+                "type": "box",
+                "size": f"{top_platform / 2.0} {width / 2.0} {thickness / 2.0}",  # arithmetic
+                "pos": f"{x_top + top_platform / 2.0} 0 {height - thickness / 2.0}",  # arithmetic
+                "material": "step",
+            },
+        )
 
     geom_names = {geom.get("name") for geom in root.iter("geom")}
     pair_elements = []
@@ -608,15 +724,15 @@ def geom_name_table(model):
     return {gid: model.geom(gid).name for gid in range(model.ngeom)}
 
 
-def build_pair_lookup(config, obstacle_shape):
+def build_pair_lookup(config, obstacle_kind):
     lookup = {}
     ordered = []
     for key in config["environment"]["pairs"]:
-        names_a, names_b = pair_geom_names(key, obstacle_shape)
+        names_a, names_b = pair_geom_names(key, obstacle_kind)
         found = False
         for name_a in names_a:
             for name_b in names_b:
-                if name_b.startswith("step") and obstacle_shape != "step":
+                if name_b.startswith("step") and obstacle_kind not in ("step", "ramp"):
                     continue
                 lookup[frozenset((name_a, name_b))] = key
                 found = True
@@ -871,7 +987,12 @@ def run_case(model, data, config, defaults, limits, ordered_pairs, pair_lookup, 
     trigger_source = "flat" if config["scenario"]["kind"] == "flat" else ""
     cap_time = (
         approach["settle_s"]
-        + approach["start_distance_m"] / speed
+        + (
+            config["scenario"]["ramp"]["approach_distance_m"]
+            if config["scenario"]["kind"] == "ramp"
+            else approach["start_distance_m"]
+        )
+        / speed
         + defaults["time"]["approach_margin_s"]
         + window
     )
@@ -989,12 +1110,21 @@ def build_judge_params(
     pair_friction,
     platform_height_tol_m,
     step_front_m,
+    rear_geometry=None,
 ):
     approach = config["scenario"]["approach"]
     judge_cfg = config["judge"]
     kind = config["scenario"]["kind"]
-    obstacle = config["scenario"]["obstacle"] if kind == "step" else {"height_m": 0.0, "top_width_m": 0.0}
-    height = obstacle["height_m"]
+    if kind == "step":
+        height = config["scenario"]["obstacle"]["height_m"]
+    elif kind == "ramp":
+        height = ramp_derived(config, defaults)["ramp_height_m"]
+    else:
+        height = 0.0
+    if rear_geometry is None:
+        rear_geometry = rear_edge_geometry(model)
+    ramp_values = ramp_derived(config, defaults) if kind == "ramp" else {}
+    ramp = config["scenario"].get("ramp") if kind == "ramp" else None
     return {
         "kind": kind,
         "timestep_s": float(model.opt.timestep),
@@ -1037,6 +1167,23 @@ def build_judge_params(
         "slip_eps_mps": defaults["tolerances"]["slip_eps_mps"],
         "climb_height_ratio": defaults["tolerances"]["climb_height_ratio"],
         "climb_hold_s": defaults["tolerances"]["climb_hold_s"],
+        # v1.11.0 后缘越过：三个几何量运行时从模型算，不落 params/runner/台账。
+        "x_rear_B_m": rear_geometry["x_rear_B_m"],
+        "z_rear_m": rear_geometry["z_rear_m"],
+        "z_cg_m": rear_geometry["z_cg_m"],
+        # v1.11.0 坡道：派生量与 _runner.json 常量（effective 值）。
+        "ramp_angle_rad": ramp_values.get("ramp_angle_rad", 0.0),
+        "ramp_length_m": float(ramp["length_m"]) if ramp else 0.0,
+        "ramp_width_m": float(ramp["width_m"]) if ramp else 0.0,
+        "ramp_top_platform_m": float(ramp["top_platform_m"]) if ramp else 0.0,
+        "ramp_top_front_m": ramp_values.get("ramp_top_front_m", 0.0),
+        "ramp_start_m": (chassis_front(model) + float(ramp["approach_distance_m"]))
+        if ramp
+        else 0.0,
+        "ramp_start_side_tol_m": ramp_values.get("ramp_start_side_tol_m", 0.0),
+        "ramp_top_duty": float(defaults["ramp_top_duty"]),
+        "post_cross_window_s": float(defaults["post_cross_window_s"]),
+        "ramp_detach_hold_s": float(defaults["ramp_detach_hold_s"]),
         "pair_friction": {
             key: float(pair_friction[key]) for key in ordered_pairs
         },
@@ -1115,6 +1262,199 @@ def chassis_half_width(model):
     return max(values)
 
 
+def guardrail_geom_names(model):
+    """模型侧护栏只认 `guardrail_*` 命名（v1.11.0 双向检查）。"""
+    return sorted(
+        name
+        for name in (model.geom(gid).name for gid in range(model.ngeom))
+        if name.startswith("guardrail_")
+    )
+
+
+def _geom_x_half_extent(model, gid):
+    """规则式：按 geom 类型查 size 的 x 向半长/半径（契约 §3.1）。"""
+    size = model.geom_size[gid]
+    geom_type = int(model.geom_type[gid])
+    if geom_type == int(mujoco.mjtGeom.mjGEOM_BOX):
+        return float(size[0])
+    if geom_type in (
+        int(mujoco.mjtGeom.mjGEOM_CYLINDER),
+        int(mujoco.mjtGeom.mjGEOM_SPHERE),
+        int(mujoco.mjtGeom.mjGEOM_CAPSULE),
+        int(mujoco.mjtGeom.mjGEOM_ELLIPSOID),
+    ):
+        return float(size[0])
+    return float(model.geom_rbound[gid])
+
+
+def _geom_aabb_world(model, data, gid):
+    """几何式：把 model.geom_aabb 的 8 个角点转到世界系，返回 (x_min,x_max,z_min)。"""
+    local = np.asarray(model.geom_aabb[gid], dtype=float).reshape(2, 3)
+    rot = np.asarray(data.geom_xmat[gid], dtype=float).reshape(3, 3)
+    pos = np.asarray(data.geom_xpos[gid], dtype=float)
+    xs = []
+    zs = []
+    for sx in (local[0][0], local[1][0]):
+        for sy in (local[0][1], local[1][1]):
+            for sz in (local[0][2], local[1][2]):
+                world = rot @ np.array([sx, sy, sz]) + pos
+                xs.append(float(world[0]))
+                zs.append(float(world[2]))
+    return min(xs), max(xs), min(zs)
+
+
+def rear_edge_geometry(model):
+    """运行时从模型算 x_rear_B / z_rear / z_cg（不落 params/runner/台账）。
+
+    x_rear_B 用两条**不同算法**互校（契约 §3.1）：
+      ① 规则式：chassis_* 且参与碰撞的 geom，max(|x_c| + 按类型的半长/半径)；
+      ② 几何式：同一批 geom 的本地 AABB 转世界系，max(|x_min|, |x_max|)。
+    偏差 >2% → rear_edge_derivation_mismatch（fail-fast 拒绝码）。
+    """
+    chassis_gids = [
+        gid
+        for gid in range(model.ngeom)
+        if model.geom(gid).name.startswith("chassis_")
+        and (int(model.geom_contype[gid]) != 0 or int(model.geom_conaffinity[gid]) != 0)
+    ]
+    if not chassis_gids:
+        raise ContractError("chassis_* 中没有参与碰撞的几何，无法求 x_rear_B")
+    rule_values = []
+    for gid in chassis_gids:
+        rule_values.append(
+            abs(float(model.geom_pos[gid][0])) + _geom_x_half_extent(model, gid)
+        )
+    x_rule = max(rule_values)
+    data = mujoco.MjData(model)
+    mujoco.mj_forward(model, data)
+    geometric_x = []
+    z_lows = []
+    for gid in chassis_gids:
+        x_min, x_max, z_min = _geom_aabb_world(model, data, gid)
+        geometric_x.append(max(abs(x_min), abs(x_max)))
+        z_lows.append(z_min)
+    x_geometric = max(geometric_x)
+    deviation = abs(x_rule - x_geometric) / max(x_rule, x_geometric)
+    if deviation > 0.02:  # contract-tolerance：契约规定 >2% 拒绝
+        raise RejectError(
+            "rear_edge_derivation_mismatch",
+            "后缘 x_rear_B 两条独立算法偏差超过 2%："
+            f"rule={x_rule:.6f} m, geometric={x_geometric:.6f} m, "
+            f"relative={deviation:.6f}",
+            required={"relative_max": 0.02},  # contract-tolerance
+            actual={"rule_m": x_rule, "geometric_m": x_geometric, "relative": deviation},
+        )
+    body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "chassis")
+    if body_id < 0:
+        raise ContractError("模型缺 chassis body")
+    return {
+        "x_rear_B_m": x_rule,
+        "z_rear_m": min(z_lows),
+        "z_cg_m": float(model.body_ipos[body_id][2]),
+        "x_rear_B_geometric_m": x_geometric,
+        "derivation_relative": deviation,
+    }
+
+
+def ramp_derived(config, defaults):
+    """坡道派生量：坡高、水平坡长（坡顶前沿）、起始侧位置容差。"""
+    ramp = config["scenario"]["ramp"]
+    angle = math.radians(float(ramp["angle_deg"]))
+    length = float(ramp["length_m"])
+    return {
+        "ramp_angle_rad": angle,
+        "ramp_height_m": length * math.sin(angle),  # arithmetic
+        "ramp_top_front_m": length * math.cos(angle),  # arithmetic：水平投影
+        "ramp_start_side_tol_m": min(0.010, 0.02 * length),  # contract-tolerance：契约 §3.2
+    }
+
+
+def required_platform_m(body_length_m, speed_mps, defaults):
+    """v1.11.0 派生校验：平台长度 >= 车身长 + v × post_cross_window_s。"""
+    return body_length_m + speed_mps * float(defaults["post_cross_window_s"])
+
+
+def check_fail_fast(config, defaults, base_model, body_length_m, rear_geometry):
+    """v1.11.0 配置拒绝码：整批非 0 退出、不产 summary.csv、只留 rejected.json。"""
+    stage = config["scenario"]
+    kind = stage["kind"]
+    if kind == "ramp":
+        ramp = stage["ramp"]
+        angle = float(ramp["angle_deg"])
+        if not 3.0 <= angle <= 15.0:  # contract-tolerance：IEC 62849 §6.4 区间
+            raise RejectError(
+                "ramp_angle_out_of_range",
+                f"ramp.angle_deg={angle:g}° 不在 3–15°",
+                required={"min_deg": 3.0, "max_deg": 15.0},  # contract-tolerance
+                actual={"angle_deg": angle},
+            )
+        derived = ramp_derived(config, defaults)
+        top_platform = float(ramp["top_platform_m"])
+        speed = float(stage["approach"]["speed_mps"])
+        required = required_platform_m(body_length_m, speed, defaults)
+        if top_platform < required:
+            message = (
+                f"platform {top_platform:.3f} m < required {required:.3f} m"
+                f"（body {body_length_m:.3f} + v {speed:g}×"
+                f"{float(defaults['post_cross_window_s']):g}）"
+            )
+            raise RejectError(
+                "ramp_platform_too_short_for_verdict",
+                message,
+                required={"top_platform_m": required},
+                actual={"top_platform_m": top_platform},
+            )
+        tolerance = derived["ramp_start_side_tol_m"]
+        if tolerance < RAMP_MIN_TOLERANCE_M:  # contract-tolerance：比噪声还小的容差判不了
+            raise RejectError(
+                "ramp_too_short_for_verdict",
+                "ramp_start_side_tol_m="
+                f"{tolerance:.6f} m < {RAMP_MIN_TOLERANCE_M:g} m（length_m={float(ramp['length_m']):g}）",
+                required={"ramp_start_side_tol_m": RAMP_MIN_TOLERANCE_M},
+                actual={"ramp_start_side_tol_m": tolerance},
+            )
+        guardrail = ramp["guardrail"]
+        names = guardrail_geom_names(base_model)
+        if guardrail != "none" and not names:
+            raise RejectError(
+                "missing_guardrail_geometry",
+                f"guardrail={guardrail!r} 但模型没有 guardrail_* geom",
+                required={"guardrail_geom_count": 1},
+                actual={"guardrail_geom_names": names},
+            )
+        if guardrail == "none" and names:
+            raise RejectError(
+                "undeclared_guardrail_geometry",
+                f"guardrail=none 但模型有 guardrail_* geom：{names}",
+                required={"guardrail": "none"},
+                actual={"guardrail_geom_names": names},
+            )
+    if kind == "step":
+        min_advance_m = config["judge"]["min_advance_body_lengths"] * body_length_m
+        body_half_width_m = chassis_half_width(base_model)
+        margin_body_half = float(defaults["lateral_margin_body_half"])
+        heading_rad = math.radians(stage["heading_deg"])
+        need_half_width_m = (
+            abs(math.tan(heading_rad)) * (min_advance_m + body_length_m)
+            + margin_body_half * body_half_width_m
+        )
+        bench_half_width_m = float(defaults["obstacle_half_width_m"])
+        if bench_half_width_m < need_half_width_m:
+            raise RejectError(
+                "step_too_narrow_for_heading",
+                "台架横向半宽不足；"
+                f"所需半宽 need={need_half_width_m:.6f} m > 实际半宽 actual="
+                f"{bench_half_width_m:.6f} m"
+                f"（heading={stage['heading_deg']:g}°, min_advance={min_advance_m:.6f} m, "
+                f"body_length={body_length_m:.6f} m, "
+                f"body_half_width={body_half_width_m:.6f} m, "
+                f"lateral_margin_body_half={margin_body_half:g}）",
+                required={"half_width_m": need_half_width_m},
+                actual={"half_width_m": bench_half_width_m},
+            )
+
+
+
 def path_for_report(path):
     try:
         return str(path.relative_to(REPO_ROOT)).replace(os.sep, "/")
@@ -1153,7 +1493,40 @@ def dedupe_overrides(overrides):
     return seen
 
 
+def write_rejected(out_dir, config_path, config, model_path, model_sha, error, started_utc, argv=None):
+    """v1.11.0 §3.3：被拒批次留 rejected.json，与 summary.csv 互斥。"""
+    out_dir = Path(out_dir)
+    if (out_dir / "summary.csv").exists():
+        raise ContractError("rejected.json 与 summary.csv 不得同时存在（§3.3）")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "contract_version": CONTRACT_VERSION,
+        "schema_version": SCHEMA_VERSION,
+        "batch_id": out_dir.name,
+        "config": {
+            "path": path_for_report(config_path),
+            "sha256": sha256_file(config_path),
+        },
+        "model": {
+            "path": path_for_report(model_path),
+            "sha256": model_sha,
+        },
+        "reject_code": error.code,
+        "required": error.required,
+        "actual": error.actual,
+        "message": f'reject_code="{error.code}": {error.message}',
+        "git": git_info(),
+        "argv": list(sys.argv if argv is None else argv),
+        "started_utc": started_utc,
+    }
+    (out_dir / "rejected.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+
+
 def write_summary(path, rows, config, model_sha, config_sha, level):
+    if (Path(path).parent / "rejected.json").exists():
+        raise ContractError("summary.csv 与 rejected.json 不得同时存在（§3.3）")
     with open(path, "w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(SUMMARY_COLUMNS)
@@ -1350,27 +1723,26 @@ def main(argv=None):
         if stage["kind"] == "step"
         else 0.0
     )
-    # v1.10.0 前置 fail-fast：配置不成立就别跑。所需横向半宽按航向扫过的
-    # 横向行程估算；不足则整批非 0 退出、不产 summary.csv（out_dir 尚未创建）。
-    if stage["kind"] == "step":
-        min_advance_m = config["judge"]["min_advance_body_lengths"] * body_length_m
-        body_half_width_m = chassis_half_width(base_model)
-        margin_body_half = float(defaults["lateral_margin_body_half"])
-        heading_rad = math.radians(stage["heading_deg"])
-        need_half_width_m = (
-            abs(math.tan(heading_rad)) * (min_advance_m + body_length_m)
-            + margin_body_half * body_half_width_m
+    # v1.11.0 fail-fast：拒绝码先于 out_dir 创建；被拒也要留 rejected.json。
+    # 后缘几何的互校、坡度/平台/坡长/护栏/台架宽度都在这里判。
+    try:
+        rear_geometry = rear_edge_geometry(base_model)
+        check_fail_fast(
+            config, defaults, base_model, body_length_m, rear_geometry
         )
-        bench_half_width_m = float(defaults["obstacle_half_width_m"])
-        if bench_half_width_m < need_half_width_m:
-            raise ContractError(
-                'invalid_reason="step_too_narrow_for_heading"：'
-                "台架横向半宽不足，整批拒绝运行且不产 summary.csv；"
-                f"所需半宽 need={need_half_width_m:.6f} m > 实际半宽 actual={bench_half_width_m:.6f} m"
-                f"（heading={stage['heading_deg']:g}°, min_advance={min_advance_m:.6f} m, "
-                f"body_length={body_length_m:.6f} m, body_half_width={body_half_width_m:.6f} m, "
-                f"lateral_margin_body_half={margin_body_half:g}）"
-            )
+    except RejectError as error:
+        write_rejected(
+            out_dir,
+            config_path,
+            config,
+            model_path,
+            model_sha,
+            error,
+            started,
+            argv=[sys.executable] + (sys.argv if argv is None else list(argv)),
+        )
+        print(f'CONTRACT ERROR: reject_code="{error.code}": {error.message}', file=sys.stderr)
+        return 2
 
     scenario_xml = build_scenario_xml(
         model_text, config, chassis_front_m, defaults, params_document
@@ -1477,6 +1849,7 @@ def main(argv=None):
                 pair_friction,
                 platform_tol,
                 step_front_m,
+                rear_geometry=rear_geometry,
             )
             verdict = judge.judge_case(judge_table, params)
             verdict["timestep_s"] = float(tier_model.opt.timestep)
@@ -1647,6 +2020,7 @@ def main(argv=None):
                 "status": status_token(base_tier["verdict"]),
                 "trigger_source": base_tier["trigger_source"],
                 "crossing": base_tier["verdict"]["metrics"].get("crossing"),
+                "ramp": base_tier["verdict"]["metrics"].get("ramp"),
                 "friction_readback": base_tier["friction_readback"],
                 "repeats": repeat_results,
                 "regression": regression,
