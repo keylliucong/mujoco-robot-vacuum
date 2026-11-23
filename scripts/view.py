@@ -60,23 +60,11 @@ import run_cases  # noqa: E402
 # 先存下来：下面 import run_oomwoo 会把这两项改成试跑口径。
 PLAIN_LEDGER_PATH = run_cases.LEDGER_PATH
 PLAIN_RUNNER_DEFAULTS = run_cases.RUNNER_DEFAULTS
-# v1.10.0 给判定加了 end_hold_s / end_duty_* / lateral_margin_body_half，
-# 但 cases/_runner_oomwoo.json（试跑口径）还没补齐这几个键；run_cases.build_judge_params
-# 直接下标取，缺键会 KeyError。这里只保存基准 runner 的数值，供缺键时补齐（见 Session）。
-PLAIN_RUNNER_DEFAULTS_DOC = run_cases.read_json(PLAIN_RUNNER_DEFAULTS)
 
 import run_oomwoo  # noqa: E402  试跑级补丁：台账路径、runner 常量
 
 OOMWOO_RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
 _RUNNER_MACHINE = None
-
-# run_cases.build_judge_params 必取、但 cases/_runner_oomwoo.json 尚未提供的判定键。
-JUDGE_DEFAULTS_KEYS = (
-    "end_hold_s",
-    "end_duty_min",
-    "end_duty_ambiguous",
-    "lateral_margin_body_half",
-)
 
 CONTACT_READOUT = (
     "mj_contactForce + contact.frame（G1：res 在接触帧内，世界分量 = frame.T @ res[0:3]，对 geom2 为正）"
@@ -393,18 +381,10 @@ class Session:
             if config["scenario"]["kind"] == "step"
             else 0.0
         )
-        # oomwoo runner 尚未补 v1.10.0 的判定键：只从基准 _runner.json 补缺键，不改已有值。
-        # （批运行 run_oomwoo.py 同样会缺键，需在 cases/_runner_oomwoo.json 单独补齐。）
+        # 各 runner 的默认层统一由 run_cases.load_runner_defaults 合成：
+        # cases/_runner_oomwoo.json 声明 kind=runner_delta，读到时已与
+        # cases/_runner.json 合并成完整默认层，判定键不会缺。
         self.judge_defaults = dict(self.defaults)
-        missing = [key for key in JUDGE_DEFAULTS_KEYS if key not in self.judge_defaults]
-        for key in missing:
-            self.judge_defaults[key] = PLAIN_RUNNER_DEFAULTS_DOC[key]
-        if missing:
-            print(
-                "[view] 注意: runner 缺判定键 "
-                + ", ".join(missing)
-                + "，已按 cases/_runner.json 补齐（仅判定常量，不动物理）"
-            )
 
         # 从动轮体名随模型版本变（caster_front / caster_rear），有的模型干脆没有；
         # HUD 按实际存在的体名取行，缺体就明说 n/a，不硬编码。

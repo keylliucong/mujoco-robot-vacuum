@@ -1,0 +1,40 @@
+# v1.10.1 复核轮的结构自检与冒烟（Windows，worktree `E:\mujoco-robot-vacuum-wt-v1101`）
+
+- 分支 / 提交：`docs/g3-v1101` / `6108dc9`（detached worktree，`outputs` 为指向主工作区 `outputs` 的目录联接）
+- 环境：`.venv\Scripts\python.exe`，Python 3.13.0 / MuJoCo 4.0.1
+- 命令与结果：
+
+```text
+> .venv\Scripts\python.exe scripts\verify_structure.py --run
+...
+[PASS] S25: 契约 10 枚举 == run_cases == judge，取名顺序一致，每项都有 flags.append 产出点；invalid 词表 7 项均有 invalid_reason 产出点；展示标签未入输出口
+[PASS] S26: ①末帧前一帧零接触不翻转；②占空比 0.65 → invalid:end_state_ambiguous；②b 横向 1.2 m → invalid:lateral_exit_step_width；②c 15° 放大横移 → invalid:lateral_drift_untrusted（不越台架）；②d 30° 干净斜向不误判；③台架半宽 0.02 + 15° 整批拒 0 且无 summary.csv
+...
+33 项检查，0 项失败
+EXIT=0
+```
+
+```text
+> .venv\Scripts\python.exe scripts\check_param_ids.py --budget docs\不确定度预算.csv --counts
+OK docs\参数溯源.csv: 314 行（own=40, prototype=122, oomwoo=152）
+EXIT=0
+```
+
+```text
+> .venv\Scripts\python.exe scripts\view.py --headless 9 --case flat
+[view] 模型自检 A1–A5 + 台账比对：通过
+最终 outcome: cleared
+停止原因: 判定窗口结束
+EXIT=0
+
+> .venv\Scripts\python.exe scripts\view.py --headless 0.2 --case step_10mm
+工况: step_10mm（cases\oomwoo_step10_dt2ms.json）  参数集: oomwoo_g25
+最终 outcome: invalid（never_contacted）  # 0.2 s 冒烟，未到判定窗口
+EXIT=0
+```
+
+- `view.py` 兜底删除的核实：`run_cases.load_runner_defaults` 在 v1.10.1 已把 `cases/_runner_oomwoo.json`
+  （`kind=runner_delta`）与 `cases/_runner.json` 合成完整默认层；`cases/_runner.json` 含
+  `end_hold_s` / `end_duty_min` / `end_duty_ambiguous` / `lateral_margin_body_half` 全部键，
+  原 `missing` 列表恒为空，逐键补齐分支为死代码。删除后 flat（prototype）与 step_10mm（oomwoo delta）
+  两条入口均无 `KeyError` 且退出 0。
