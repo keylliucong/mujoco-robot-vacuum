@@ -59,7 +59,7 @@ def derive_ledger(config_path: Path) -> tuple[Path, list[tuple[str, str, str]]]:
             raise run_cases.ContractError(f"台账缺 contact 行：{param_id}")
         target = float(spec["friction"][0])
         current = float(by_id[param_id]["value"])
-        if abs(current - target) > 1e-12:
+        if abs(current - target) > 1e-12:  # contract-tolerance：台账值与目标值的浮点等效判据（float64 相对误差约 1e-16，1e-12 留 4 个量级余量）
             by_id[param_id]["value"] = repr(target)
             changes.append((param_id, repr(current), repr(target)))
 
