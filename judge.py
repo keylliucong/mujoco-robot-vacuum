@@ -1,9 +1,11 @@
 """G2 判定模块：只吃时程 + 阈值，不 import mujoco，不读模型或配置对象（S04/S09）。
 
-契约版本：v1.10.0（文档）；判据集在 v1.7 基础上吸收 v1.8.2 的
+契约版本：v1.10.1（文档）；判据集在 v1.7 基础上吸收 v1.8.2 的
 `t_trigger` 口径（首次任一机体-台阶接触），按 v1.9.0 增加 `belly_contact`
-与 `cross_fail` 失败模式，并按 v1.10.0 把末态改为窗口占空比、横向越界改为
-`invalid`（契约正文已同步）。
+与 `cross_fail` 失败模式，按 v1.10.0 把末态改为窗口占空比、横向越界改为
+`invalid`，并按 v1.10.1 增加 `invalid:lateral_drift_untrusted`（扣掉航向
+几何横移后的横向漂移不可信）；`lateral_exit_step_width` 仍只表示几何出界
+（契约正文已同步）。
 本文件是唯一写 `passed` / `failure_*` 的地方；输入是 CSV 列字典（字符串原样，
 空串表示无数据）与一份扁平的数值参数字典。参数键集封闭，出现未知键即 raise，
 因此配置无法夹带期望结果（S09）。
@@ -14,7 +16,7 @@ from __future__ import annotations
 import math
 from bisect import bisect_left, bisect_right
 
-CONTRACT_VERSION = "1.10.0"
+CONTRACT_VERSION = "1.10.1"
 
 FAILURE_PRIORITY = (
     "topple",
@@ -56,6 +58,7 @@ REQUIRED_PARAMS = frozenset(
         "end_hold_s",
         "end_duty_min",
         "end_duty_ambiguous",
+        "lateral_drift_untrusted_ratio",
         "heading_rad",
         "com_offset_x_m",
         "contact_gap_tol_s",
@@ -325,6 +328,17 @@ def judge_case(columns, params):
         ended_on_platform = end_duty >= params["end_duty_min"]
         # 横向越界不是能力失败，是试验条件问题（运行时兜底；前置校验在 runner）。
         lateral_exit = abs(end_lat) > params["step_half_width_m"]
+        # v1.10.1：横向漂移不可信（运行时兜底乙）。先扣掉航向本身的几何横向
+        # 分量 advance·tan|ψ|——30° 斜向爬升本来就有 0.58×前进距离的横移，
+        # 不扣会把正常斜向整组误判成异常。扣完仍超过前进距离的一定比例，
+        # 说明这次运行的横向行为不能代表机型能力（航向控制或轮-地各向异性
+        # 摩擦尚未具备），判 invalid 而非能力失败。
+        advance_positive = max(advance, 0.0)
+        drift_excess = abs(end_lat) - advance_positive * math.tan(
+            abs(params["heading_rad"])
+        )
+        drift_ratio = drift_excess / max(advance_positive, params["min_advance_m"])
+        drift_untrusted = drift_ratio >= params["lateral_drift_untrusted_ratio"]
         # 从首触到质心越过前缘，机体-台阶接触允许的空档不超过上限；
         # 空档越大越像"飞过去"或"绕过去"，不是跨越。
         cross_index = end_index
@@ -364,6 +378,9 @@ def judge_case(columns, params):
             "end_frames": end_frames,
             "end_state_ambiguous": end_state_ambiguous,
             "lateral_exit": lateral_exit,
+            "lateral_drift_excess_m": drift_excess,
+            "lateral_drift_ratio": drift_ratio,
+            "lateral_drift_untrusted": drift_untrusted,
             "reached_platform": reached_platform,
             "crossed_front": crossed_front,
             "contact_gap_max_s": contact_gap_max,
@@ -453,11 +470,22 @@ def judge_case(columns, params):
         "crossing": crossing,
     }
     # v1.10.0：invalid 不是失败类别——不写 failure_primary / failure_flags，
-    # 也不进通过率分母。运行时横向兜底优先于灰带（几何已确定的先报）。
+    # 也不进通过率分母。运行时横向兜底优先于灰带（几何已确定的先报）；
+    # v1.10.1 的两条横向兜底同序：几何出界 → 漂移不可信 → 末态灰带。
     if crossing is not None and crossing["lateral_exit"]:
         invalid = _result(
             status="invalid",
             invalid_reason="lateral_exit_step_width",
+            flags=[],
+            params=params,
+            metrics=metrics,
+        )
+        invalid["trigger_source"] = trigger_source
+        return invalid
+    if crossing is not None and crossing["lateral_drift_untrusted"]:
+        invalid = _result(
+            status="invalid",
+            invalid_reason="lateral_drift_untrusted",
             flags=[],
             params=params,
             metrics=metrics,

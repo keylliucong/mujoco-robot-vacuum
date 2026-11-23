@@ -7,8 +7,10 @@
    不校验文件名，所以同一张台账里放 prototype 与 oomwoo 两套同名 param_id 会
    互相覆盖/比对失败。试跑因此用独立台账
    ``docs/试跑/参数溯源-oomwoo.csv``，并把路径注入本模块，不改上游脚本。
-2. OOMWOO 的 runner 常量单独放在 ``cases/_runner_oomwoo.json``，本模块只切换
-   该路径。
+2. OOMWOO 的 runner 常量放在 ``cases/_runner_oomwoo.json``，用
+   ``kind="runner_delta"`` 声明为 delta（只写与 ``cases/_runner.json``
+   不同的键）；run_cases 读 runner 默认层时按 kind 合成
+   ``{**base, **delta}``，未写出的键一律继承 base 的取值与台账 provenance。
 
 几何观测（``body_length()`` / ``chassis_min_z()``）已修回 ``model_checks``
 （box / cylinder / sphere / capsule / ellipsoid 统一按几何与姿态取支撑），
@@ -34,9 +36,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_cases  # noqa: E402
 
 LEDGER = REPO_ROOT / "docs" / "试跑" / "参数溯源-oomwoo.csv"
+OOMWOO_RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
 
 run_cases.LEDGER_PATH = LEDGER
-run_cases.RUNNER_DEFAULTS = REPO_ROOT / "cases" / "_runner_oomwoo.json"
+run_cases.RUNNER_DEFAULTS = OOMWOO_RUNNER_DEFAULTS
 
 
 def build_judge_params(*args, **kwargs):

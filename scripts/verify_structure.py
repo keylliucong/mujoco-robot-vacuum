@@ -25,7 +25,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-CONTRACT_VERSION = "1.10.0"
+CONTRACT_VERSION = "1.10.1"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
 PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
@@ -1142,7 +1142,12 @@ def check_s24():
 
 
 def check_s25():
-    """S25（v1.9.0）：契约枚举 / 取名顺序与代码三处一致，展示标签不入输出列。"""
+    """S25（v1.9.0/v1.10.1）：契约枚举 / 取名顺序与代码三处一致；invalid 词表也查活。
+
+    失败枚举与取名顺序对表之外，invalid 词表里每一项必须在 judge.py 或
+    run_cases.py 有产出点（`invalid_reason="…"` 字面量）；只有词条没有产出
+    点就是死值，不算一致。
+    """
     import judge
     import run_cases
 
@@ -1189,6 +1194,36 @@ def check_s25():
         problems.append(f"失败枚举项无 flags.append 产出点（死值）：{dead}")
     if extra:
         problems.append(f"judge 产出点不在失败枚举内：{extra}")
+
+    # v1.10.1：invalid 词表同样要查活。词表写在契约 §3，产出点可以是
+    # judge.py（运行时判定）或 run_cases.py（配置级 fail-fast）。
+    reason_match = re.search(
+        r"固定词表（v[0-9.]+ 起 (\d+) 项）：((?:`[^`]+`、?)+)", doc
+    )
+    if not reason_match:
+        problems.append("契约缺 §3 invalid 词表句")
+    else:
+        declared = int(reason_match.group(1))
+        contract_reasons = re.findall(r"`([^`]+)`", reason_match.group(2))
+        if len(contract_reasons) != declared:
+            problems.append(
+                f"契约 invalid 词表声明 {declared} 项、实际列出 {len(contract_reasons)} 项"
+            )
+        produced_reasons = set()
+        for path in (REPO_ROOT / "judge.py", SCRIPTS_DIR / "run_cases.py"):
+            produced_reasons.update(
+                re.findall(r'invalid_reason\s*=\s*"([a-z0-9_]+)"', read_text(path))
+            )
+        dead_reasons = sorted(set(contract_reasons) - produced_reasons)
+        extra_reasons = sorted(produced_reasons - set(contract_reasons))
+        if dead_reasons:
+            problems.append(
+                f"invalid 词表项无 invalid_reason 产出点（死值）：{dead_reasons}"
+            )
+        if extra_reasons:
+            problems.append(f"invalid_reason 产出点不在契约词表内：{extra_reasons}")
+        if "lateral_drift_untrusted" not in contract_reasons:
+            problems.append("契约 §3 invalid 词表缺 lateral_drift_untrusted（v1.10.1）")
     for label in ("cleared", "blocked", "lift_fail", "slip_stall"):
         if label in run_cases.SUMMARY_COLUMNS or label in run_cases.TIMESERIES_COLUMNS:
             problems.append(f"展示标签 {label!r} 进了输出列")
@@ -1196,7 +1231,8 @@ def check_s25():
     add(
         "S25",
         not problems,
-        "契约 10 枚举 == run_cases == judge，取名顺序一致，每项都有 flags.append 产出点；展示标签未入输出列"
+        "契约 10 枚举 == run_cases == judge，取名顺序一致，每项都有 flags.append 产出点；"
+        "invalid 词表 7 项均有 invalid_reason 产出点；展示标签未入输出列"
         if not problems
         else "；".join(problems),
     )
@@ -1205,16 +1241,24 @@ def check_s25():
 def check_s26():
     """S26（v1.10.0/抽查 20）：末态窗口占空比、灰带 invalid、前置台架宽度 fail-fast。
 
-    三条回归：
+    三条回归 + 两条横向漂移回归：
     ① 末帧前一帧零接触、末帧接触 → 结论不得翻转；
     ② 末 50 ms 占空比 0.65 → invalid:end_state_ambiguous；
-    ③ 台架半宽 0.02 + 15° → 整批非 0 退出且无 summary.csv。
+    ③ 台架半宽 0.02 + 15° → 整批非 0 退出且无 summary.csv；
+    ④ 15° 放大横移（扣 advance·tan|ψ| 后仍超门）→ invalid:lateral_drift_untrusted；
+    ⑤ 30° 干净斜向（横移 ≈ advance·tan30°）→ 不得误判。
     """
     import judge
 
     problems = []
     defaults = json.loads(read_text(CASES_DIR / "_runner.json"))
-    for key in ("end_hold_s", "end_duty_min", "end_duty_ambiguous", "lateral_margin_body_half"):
+    for key in (
+        "end_hold_s",
+        "end_duty_min",
+        "end_duty_ambiguous",
+        "lateral_margin_body_half",
+        "lateral_drift_untrusted_ratio",
+    ):
         if key not in defaults:
             problems.append(f"cases/_runner.json 缺 {key}")
     if not problems and not (
@@ -1338,12 +1382,70 @@ def check_s26():
     ):
         problems.append("②b 横向 invalid 仍写了 passed/failure_*")
 
+    # ②c 15° 放大横移：末态仍在 0.6 m 台阶范围内（不落 lateral_exit），但扣掉
+    # advance·tan15° 后剩余漂移 ≥0.5×前进距离 → invalid:lateral_drift_untrusted。
+    drift, drift_params = synthetic_case([], False)
+    drift_params["heading_rad"] = math.radians(15.0)
+    for i, t in enumerate(drift["t_s"]):
+        if t >= 1.0:
+            drift["pos_y_m"][i] = 0.30  # arithmetic：横移约为前进距离的 2 倍
+    drift_verdict = judge.judge_case(drift, drift_params)
+    drift_cross = drift_verdict["metrics"].get("crossing") or {}
+    drift_ratio = drift_cross.get("lateral_drift_ratio")
+    if (
+        drift_verdict["status"] != "invalid"
+        or drift_verdict["invalid_reason"] != "lateral_drift_untrusted"
+        or drift_cross.get("lateral_drift_untrusted") is not True
+    ):
+        problems.append(
+            "②c 15° 放大横移未判 invalid:lateral_drift_untrusted："
+            f"status={drift_verdict['status']} reason={drift_verdict['invalid_reason']} "
+            f"ratio={drift_ratio} lat={drift_cross.get('end_lateral_m')}"
+        )
+    if drift_cross.get("lateral_exit") is not False:
+        problems.append(
+            "②c 构造应只触发漂移兜底、不越出台架几何："
+            f"lateral_exit={drift_cross.get('lateral_exit')}"
+        )
+    if drift_ratio is None or drift_ratio < float(
+        defaults["lateral_drift_untrusted_ratio"]
+    ):
+        problems.append(f"②c 构造的 drift_ratio={drift_ratio} 未越过判定门，回归无效")
+    if (
+        drift_verdict["passed"] is not None
+        or drift_verdict["failure_primary"]
+        or drift_verdict["failure_flags"]
+    ):
+        problems.append("②c 漂移 invalid 仍写了 passed/failure_*")
+
+    # ②d 30° 干净斜向：pos_y = pos_x·tan30°，横移正好是航向的几何分量，
+    # 扣完应为负；不得被误判成漂移（这正是必须扣 advance·tan|ψ| 的原因）。
+    oblique, oblique_params = synthetic_case([], False)
+    degree30 = math.radians(30.0)
+    oblique_params["heading_rad"] = degree30
+    for i, x in enumerate(oblique["pos_x_m"]):
+        oblique["pos_y_m"][i] = x * math.tan(degree30)
+    oblique_verdict = judge.judge_case(oblique, oblique_params)
+    oblique_cross = oblique_verdict["metrics"].get("crossing") or {}
+    if oblique_verdict["status"] != "ok":
+        problems.append(
+            "②d 30° 干净斜向被误判："
+            f"status={oblique_verdict['status']} reason={oblique_verdict['invalid_reason']} "
+            f"ratio={oblique_cross.get('lateral_drift_ratio')}"
+        )
+    if oblique_cross.get("lateral_drift_untrusted") is not False:
+        problems.append(
+            "②d 30° 干净斜向触发了 lateral_drift_untrusted："
+            f"ratio={oblique_cross.get('lateral_drift_ratio')}"
+        )
+
     # ③ 台架半宽不足：整批非 0 退出、不产 summary.csv
     if not HAVE_MUJOCO:
         add(
             "S26",
             None if not problems else False,
-            "① 单帧不翻转、② 0.65 灰带 invalid 通过；③ SKIP：需要 MuJoCo"
+            "① 单帧不翻转、② 0.65 灰带/②b 几何越界/②c 漂移不可信/②d 30° 干净斜向通过；"
+            "③ SKIP：需要 MuJoCo"
             if not problems
             else "；".join(problems) + "；③ SKIP：需要 MuJoCo",
         )
@@ -1411,7 +1513,10 @@ def check_s26():
     add(
         "S26",
         not problems,
-        "① 末帧前一帧零接触不翻转；② 占空比 0.65 → invalid:end_state_ambiguous；②b 横向 1.2 m → invalid:lateral_exit_step_width；③ 台架半宽 0.02 + 15° 整批非 0 且无 summary.csv"
+        "① 末帧前一帧零接触不翻转；② 占空比 0.65 → invalid:end_state_ambiguous；"
+        "②b 横向 1.2 m → invalid:lateral_exit_step_width；"
+        "②c 15° 放大横移 → invalid:lateral_drift_untrusted（不越台架）；"
+        "②d 30° 干净斜向不误判；③ 台架半宽 0.02 + 15° 整批非 0 且无 summary.csv"
         if not problems
         else "；".join(problems),
     )
@@ -1499,6 +1604,7 @@ def synthetic_case(flags, bottom_out):
         "end_hold_s": 0.05,
         "end_duty_min": 0.8,
         "end_duty_ambiguous": 0.5,
+        "lateral_drift_untrusted_ratio": 0.5,
         "heading_rad": 0.0,
         "com_offset_x_m": 0.0,
         "contact_gap_tol_s": 0.05,
@@ -1561,13 +1667,14 @@ def check_judge_unit_tests():
         problems.append(f"topple 仍被追加 timeout：{verdict_tilt['failure_flags']}")
 
     # 负例 2：末帧回到地面、台阶接触中断（纵向绕行形态）不得 passed。
-    # 横向位移保持 0.2 m（< 台阶半宽 0.6 m），否则按 v1.10.0 先判
-    # invalid:lateral_exit_step_width，测不到 cross_fail。
+    # 横向位移保持 0.05 m（< 台阶半宽 0.6 m，且扣航向分量后
+    # 0.05/0.15≈0.33 < lateral_drift_untrusted_ratio=0.5），否则先判
+    # invalid（v1.10.1 漂移兜底或 v1.10.0 几何兜底），测不到 cross_fail。
     detour = {name: list(values) for name, values in columns.items()}
     for i, t in enumerate(detour["t_s"]):
         if t >= 1.0:
             detour["pos_z_m"][i] = 0.0
-            detour["pos_y_m"][i] = 0.2
+            detour["pos_y_m"][i] = 0.05
             for prefix in ("wheel_L--step", "wheel_R--step"):
                 detour[f"contact_{prefix}_active"][i] = "0"
                 detour[f"contact_{prefix}_normal_n"][i] = ""

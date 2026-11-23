@@ -1,44 +1,4 @@
 {
-  "schema_version": "1.0",
-  "kind": "runner_defaults",
-  "notes": "oomwoo / G2.5 试跑专用 runner 常量。OOMWOO 无悬挂（has_suspension=0），susp_* 列整列为空、judge 不产生 suspension_bottom；susp_bottom_rel 仅为参数字典封闭保留，不参与本机型判定。其余与 cases/_runner.json 相同。",
-  "drive": {
-    "speed_kp_nm_per_mps": 6.0,
-    "yaw_damping_nm_per_radps": 0.2,
-    "update_period_s": 0.002
-  },
-  "obstacle_half_width_m": 0.6,
-  "creep": {
-    "settle_s": 1.0,
-    "window_s": 10.0,
-    "residual_tail_s": 0.5,
-    "max_residual_speed_mps": 0.001,
-    "max_drift_m": 0.0005,
-    "downgrade_tiers_s": [
-      0.001,
-      0.0005
-    ]
-  },
-  "time": {
-    "settle_check_window_s": 0.2,
-    "approach_margin_s": 5.0,
-    "max_sim_s": 40.0,
-    "recover_tail_s": 0.2
-  },
-  "tolerances": {
-    "slip_eps_mps": 0.02,
-    "torque_saturation_rel": 1e-06,
-    "susp_bottom_rel": 0.999,
-    "climb_height_ratio": 0.9,
-    "climb_hold_s": 0.2,
-    "platform_height_tol_m": 0.006,
-    "step_contact_gap_tol_s": 0.1
-  },
-  "repeat": {
-    "key_metrics_tol": 0.0
-  },
-  "end_hold_s": 0.05,
-  "end_duty_min": 0.8,
-  "end_duty_ambiguous": 0.5,
-  "lateral_margin_body_half": 1.0
+  "kind": "runner_delta",
+  "notes": "oomwoo / G2.5 试跑专用 runner delta：kind=runner_delta 声明本文件只写与 cases/_runner.json 不同的键，run_cases.load_runner_defaults 读到时合成 {**base, **delta}；未列出的键一律继承 base（含 end_hold_s / end_duty_min / end_duty_ambiguous / lateral_margin_body_half / lateral_drift_untrusted_ratio 与 drive / creep / tolerances）。OOMWOO 无悬挂（has_suspension=0），susp_* 列整列为空、judge 不产生 suspension_bottom；susp_bottom_rel 仅为参数字典封闭保留，不参与本机型判定。"
 }
