@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -63,7 +64,7 @@ def derive_ledger(config_path: Path) -> tuple[Path, list[tuple[str, str, str]]]:
             changes.append((param_id, repr(current), repr(target)))
 
     fd, name = tempfile.mkstemp(prefix="g3b2-ledger-", suffix=".csv")
-    Path(name).unlink(missing_ok=True)
+    os.close(fd)
     tmp_path = Path(name)
     with tmp_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
