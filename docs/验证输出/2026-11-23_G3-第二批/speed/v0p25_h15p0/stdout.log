@@ -1,0 +1,8 @@
+batch v0p25_h15p0
+contract 1.10.1
+git {'commit': 'a691bed8564ba8eb83803e7732d491e67336fa52', 'branch': 'trial/g3-sweep', 'dirty': False}
+model models/oomwoo.xml 0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e
+config E:\mj-g3b2\cases\g3-b2\g3_b2_speed_0p25_h15p0.json 6c141ef38e456aab8918c2e027834fa249104c6faf054892cf208d5b4797e174
+scenario_xml_sha256 59497385b0fc9bada1bd6ae1d09ba5fc55d4f6ba9cb2ba9d63de1ea659b67be2
+repeat_consistent True
+conclusion_level mechanism

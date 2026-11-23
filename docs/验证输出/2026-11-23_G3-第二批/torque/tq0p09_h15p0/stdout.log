@@ -1,0 +1,8 @@
+batch tq0p09_h15p0
+contract 1.10.1
+git {'commit': 'a691bed8564ba8eb83803e7732d491e67336fa52', 'branch': 'trial/g3-sweep', 'dirty': False}
+model models/oomwoo.xml 0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e
+config E:\mj-g3b2\cases\g3-b2\g3_b2_torque_0p09_h15p0.json 4da2c5cbf5e82d4d97c06ea043f98366a5e5b7c58b8fbf8387a95f0413b19e79
+scenario_xml_sha256 59497385b0fc9bada1bd6ae1d09ba5fc55d4f6ba9cb2ba9d63de1ea659b67be2
+repeat_consistent True
+conclusion_level mechanism

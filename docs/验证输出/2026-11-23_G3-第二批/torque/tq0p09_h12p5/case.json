@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "case_id": "g3_b2_torque_0p09_h12p5",
+  "model": {
+    "path": "models/oomwoo.xml",
+    "sha256": "0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e"
+  },
+  "scenario": {
+    "kind": "step",
+    "obstacle": {
+      "shape": "box",
+      "height_m": 0.0125,
+      "edge_radius_m": 0.003,
+      "top_width_m": 1.2
+    },
+    "heading_deg": 0.0,
+    "approach": {
+      "speed_mps": 0.15,
+      "start_distance_m": 0.5,
+      "settle_s": 1.0,
+      "settle_tol_mps": 0.02
+    }
+  },
+  "environment": {
+    "pairs": {
+      "wheel_L--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_R--floor": {
+        "friction": [
+          0.8,
+          0.8,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_L--step": {
+        "friction": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "wheel_R--step": {
+        "friction": [
+          0.6,
+          0.6,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "caster--floor": {
+        "friction": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "caster--step": {
+        "friction": [
+          0.3,
+          0.3,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--floor": {
+        "friction": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      },
+      "chassis--step": {
+        "friction": [
+          0.5,
+          0.5,
+          0.001,
+          0.0001,
+          0.0001
+        ],
+        "condim": 3
+      }
+    }
+  },
+  "drive": {
+    "channels": {
+      "wheel_L": {
+        "torque_limit_nm": 0.09
+      },
+      "wheel_R": {
+        "torque_limit_nm": 0.09
+      }
+    }
+  },
+  "numerics": {
+    "timestep_s": 0.002,
+    "integrator": "implicitfast",
+    "solver": "Newton",
+    "cone": "pyramidal",
+    "iterations": 100
+  },
+  "judge": {
+    "window_s": 8.0,
+    "fail_on": [
+      "topple",
+      "belly_contact",
+      "retreat",
+      "timeout",
+      "stall",
+      "cross_fail"
+    ],
+    "min_advance_body_lengths": 1.0,
+    "recover_speed_ratio": 0.8,
+    "recover_hold_s": 0.3,
+    "stall": {
+      "speed_mps": 0.01,
+      "duration_s": 1.0
+    },
+    "tilt": {
+      "pitch_deg": 25.0,
+      "roll_deg": 15.0
+    },
+    "slip_ratio": 0.3,
+    "contact_normal_min_n": 0.5
+  },
+  "seed": 0,
+  "notes": "G3 第二批·限扭维：轮端限扭 0.09 N·m = 0.6 × 0.15 N·m；0.15 N·m 取自 cases/oomwoo_step10_lowtorque.json 现用低扭值（该机型失速扭矩 0.5 N·m 的 30%）。摩擦保持基准（wheel--floor=0.8、wheel--step=0.6），其余不变。高度 h=12.5 mm；approach speed 0.15 m/s。2 ms 物理步、控制周期 2 ms；模型/判据沿用 cases/oomwoo_g25_step12p5.json（models/oomwoo.xml，config_id=oomwoo_g25）。结论封顶 sensitivity/assumption，非实机实测。"
+}
