@@ -12,7 +12,7 @@
 | `makerspet/oomwoo` | `0218857b2ecc53fb8e289b097b3bdf7a9e184386` | BOM、设计文档、架构、part-specs |
 | `makerspet/oomwoo-one` | `a630d1c77255072d280a2a41a7a2bd1a1c98cadd` | URDF/Gazebo；整机几何与占位质量 |
 | `makerspet/oomwoo-cad` | `266210a47cab931c5891a07c9a29d48388a54b0c` | `lib/` 零件 STEP；agentic 实验整机 STEP |
-| 上游尺寸表（组件） | `docs/基准机型/oomwoo-drive-wheel-dimensions.md`（工作区，未入库） | 驱动轮轮体 B-rep 质量属性 |
+| 上游尺寸表（组件） | `docs/基准机型/oomwoo-drive-wheel-dimensions.md`（已入库，随本 PR） | 驱动轮轮体 B-rep 质量属性 |
 
 > 每条 `ref` 的格式：`machine=oomwoo; source=…; retrieved=2026-11-22; rev=<sha>#<path>（<节>）`。有 `rev` 才写 `path`；不写行号。
 
@@ -35,18 +35,18 @@
 
 ### 3.1 上游组件尺寸表（驱动轮轮体）
 
-表：`docs/基准机型/oomwoo-drive-wheel-dimensions.md`（工作区 untracked）
-表头声明（2026-11-22 复核）：`generated_by=script@bdf5be2…`、`table_rev=0b73eda…`（这是尺寸表 CSV 的 blob sha，不是 commit）、`input_sha256=101bd1ef…`、`method=brep_exact`、`env=Python 3.13.18/gmsh 4.15.2/NumPy 2.5.5`。表本体在 `b996dc0`。
+表：`docs/基准机型/oomwoo-drive-wheel-dimensions.md`（已入库，随本 PR）
+表头声明（2026-11-23 复核）：`generated_by=script@32faa7d…`、`table_rev=0b73eda…`（尺寸表 CSV 的 blob sha，**非 commit**；表头已显式注明）、`input_sha256=101bd1ef…`、`method=brep_exact`、`env=Python 3.13.18/gmsh 4.15.2/NumPy 2.5.5`。表本体在本分支已入库（rebase 后的表提交为 `3ae9af8`，注记随本 PR 最新提交；具体 SHA 以 PR head 为准）。
 
 | S17 项 | 核查结果 | 证据/缺口 | 判定 |
 |---|---|---|---|
-| ① 推导脚本 | 有 | `step_component_properties.py` 在 `oomwoo-baseline` 的提交 `bdf5be2` 中存在，且随 `b996dc0` 推送 | 通过 |
+| ① 推导脚本 | 有 | `step_component_properties.py` 在 `keylliucong/oomwoo-baseline-params@32faa7d` 中存在（rebase 后；旧记录 `bdf5be2`），并随表提交推送 | 通过 |
 | ② 输入 `sha256` | 有 | 按 `oomwoo-cad@266210a:lib/roborock/OOM-W01-drive-wheel-assembly.stp` 重算：`101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2`，829,986 bytes | 通过 |
-| ③ 输出尺寸表 | 有 | 表在 `keylliucong/oomwoo-baseline-params@b996dc0`，已推送；引用 `rev=b996dc0#docs/基准机型/oomwoo-drive-wheel-dimensions.md` 可解析；表头 `table_rev=0b73eda` 是 CSV 的 blob sha，不是 commit（语义待修正，不影响表本体可读） | 通过（表头元数据待修正） |
+| ③ 输出尺寸表 | 有 | 表在 `keylliucong/oomwoo-baseline-params` 已入库、引用可解析（具体 SHA 以 PR head 为准）；表头 `table_rev=0b73eda` 已注明是 CSV 的 blob sha、**非 commit** | 通过 |
 | ④ 运行环境声明 | 有 | 解释器/库版本、OCC 由 gmsh 内置、`brep_exact`、无 mesh、`chord_tol/angle_tol=N/A` | 通过 |
 | 附加：mesh 豁免 | 不适用 | 方法为 B-rep 精确积分，未导出 mesh；没有“漂移÷容差”可算 | 不适用 |
 
-**结论**：S17 四项齐备且可复核（脚本 @bdf5be2、输入 sha256 已重算、表 @b996dc0、环境已声明）。几何量可记【图纸推算】；质量因 STEP 无材料密度、ρ 是显式假设，仍记【工程假设】。表头 `table_rev` 用 CSV 的 blob sha 而非 commit，是元数据缺陷，需上游修正，但不影响本次四项判定。
+**结论**：S17 四项齐备且可复核（脚本 @32faa7d、输入 sha256 已重算、表已入库、环境已声明）。几何量可记【图纸推算】；质量因 STEP 无材料密度、ρ 是显式假设，仍记【工程假设】。表头 `table_rev` 是 CSV 的 blob sha、**非 commit**，已显式注明；这是内容寻址的写法，不是缺陷，不影响四项判定。
 
 ### 3.2 组件值（临时，待表入库后复核）
 
