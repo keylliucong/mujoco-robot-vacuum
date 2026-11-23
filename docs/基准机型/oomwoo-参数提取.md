@@ -191,8 +191,8 @@ OOMWOO 能提供的是一套**设计阶段的公开几何、URDF 质量占位值
 
 | 项 | 值 |
 |---|---|
-| 脚本 | `docs/基准机型/scripts/step_component_properties.py@bdf5be26c68206f972d09f1c1e6d526366fc5b33` |
-| 尺寸表 table_rev | `0b73edaad9a4929bc945f358c31dcc427d738d27`（CSV blob SHA，内容寻址；最终提交 SHA 见 PR） |
+| 脚本 | `docs/基准机型/scripts/step_component_properties.py@32faa7d9fb0e4cb27971ddbd98c96b2132e60513`（rebase 后的脚本提交；旧记录 `bdf5be2`） |
+| 尺寸表 table_rev | `0b73edaad9a4929bc945f358c31dcc427d738d27`（尺寸表 CSV 的 blob sha，**非 commit**；内容寻址；表本体提交以 PR head 为准） |
 | 输入 | `lib/roborock/OOM-W01-drive-wheel-assembly.stp`，829,986 bytes |
 | 输入 sha256 | `101bd1ef763c3b11fe60dd31274b58afc26cd071d1205c8a210f7c74020e2fe2` |
 | 选中实体 | tag 3（3 个实体中的轮体） |
@@ -201,7 +201,7 @@ OOMWOO 能提供的是一套**设计阶段的公开几何、URDF 质量占位值
 | 环境 | Python 3.13.18；gmsh 4.15.2；NumPy 2.5.5；Open CASCADE 由 gmsh 内置（gmsh API 不暴露 OCC 精确版本） |
 | 密度 | ρ=1100 kg/m³（主，橡胶/TPU 量级假设）；ρ=1240 kg/m³（对照，PLA） |
 
-> `table_rev` 取尺寸表 CSV 的 blob SHA（内容寻址，避免“表头写自己的提交 SHA”的自指问题）；尺寸表最终提交 SHA 见 PR。
+> `table_rev` 取尺寸表 CSV 的 blob sha（内容寻址，避免“表头写自己的提交 SHA”的自指问题），**不是 commit**；表本体提交以 PR head 为准。
 
 | 量 | 值 | 单位 | 备注 |
 |---|---:|---|---|
@@ -274,6 +274,8 @@ OOMWOO 能提供的是一套**设计阶段的公开几何、URDF 质量占位值
 
 **建议**：基准几何用 U 套（它是唯一完整的整机参数化描述）；轮径/轮端扭矩用 L 套做上下界和敏感性，不要用 L 套的 71.61 mm 去替换 U 套的 68 mm 后不记录。任何混用都要在模型 / 台账里逐行写来源。
 
+> **当前模型的落地情况与本节建议不同，读之前先看[尺寸表 §“与当前 MuJoCo 模型的关系”](oomwoo-drive-wheel-dimensions.md)**：main 的 `models/oomwoo.xml` 已经是「U 套整机布局 + L 套轮端几何」——驱动轮 R=35.805 mm（Ø71.61，STEP 值）已采用，URDF 的 68 mm **没有**进模型。本节仍是候选输入的说明，不描述模型现状。
+
 ## 6. 复现命令与文件清单
 
 ```bash
@@ -294,8 +296,10 @@ python docs/基准机型/scripts/step_component_properties.py \
   --name oomwoo-drive-wheel \
   --source 'oomwoo-cad@266210a:lib/roborock/OOM-W01-drive-wheel-assembly.stp' \
   --outdir docs/基准机型 \
-  --script-rev bdf5be26c68206f972d09f1c1e6d526366fc5b33 \
+  --script-rev 32faa7d9fb0e4cb27971ddbd98c96b2132e60513 \
   --table-rev 0b73edaad9a4929bc945f358c31dcc427d738d27
+# 注意：--table-rev 是尺寸表 CSV 的 blob sha（内容寻址），不是 commit。
+# 表头的 `table_rev_note` 一行是人工注记（脚本不生成），重算时保留。
 ```
 
 文件：
