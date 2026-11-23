@@ -1,0 +1,8 @@
+batch mu0p5_h15p0
+contract 1.10.1
+git {'commit': 'a691bed8564ba8eb83803e7732d491e67336fa52', 'branch': 'trial/g3-sweep', 'dirty': False}
+model models/oomwoo.xml 0bb889f505f4ed73cb573ff8a88ea119c5f9e6138a4ed6e6cfacf17cdf9b0c8e
+config E:\mj-g3b2\cases\g3-b2\g3_b2_friction_mu0p5_h15p0.json 8a8bdaec6eae579bbf33893895859c47b2ead756342d0957aa70ad8df0fd057c
+scenario_xml_sha256 b8ef29c2b2abe7ab4e4531c58909f9c8fe36b58b08d4e8d7ae9aa6d45c3b59c9
+repeat_consistent True
+conclusion_level mechanism
