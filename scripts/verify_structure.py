@@ -25,7 +25,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-CONTRACT_VERSION = "1.10.1"
+CONTRACT_VERSION = "1.11.0"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = REPO_ROOT / "models" / "baseline.xml"
 PARAMS_PATH = REPO_ROOT / "params" / "prototype.json"
@@ -1232,7 +1232,7 @@ def check_s25():
         "S25",
         not problems,
         "契约 10 枚举 == run_cases == judge，取名顺序一致，每项都有 flags.append 产出点；"
-        "invalid 词表 7 项均有 invalid_reason 产出点；展示标签未入输出列"
+        "invalid 词表 6 项均有 invalid_reason 产出点；展示标签未入输出列"
         if not problems
         else "；".join(problems),
     )
@@ -1496,13 +1496,16 @@ def check_s26():
             timeout=300,
         )
         summary_exists = (out_dir / "summary.csv").exists()
+        rejected_exists = (out_dir / "rejected.json").exists()
         ok = (
             result.returncode != 0
             and "step_too_narrow_for_heading" in result.stderr
             and not summary_exists
+            and rejected_exists
         )
         detail = (
-            f"③ rc={result.returncode}、报 step_too_narrow_for_heading、无 summary.csv "
+            f"③ rc={result.returncode}、报 step_too_narrow_for_heading、"
+            f"rejected.json={rejected_exists}、无 summary.csv "
             f"（need/actual：{result.stderr.strip().splitlines()[-1][:160] if result.stderr.strip() else '无 stderr'}）"
         )
         if not ok:
@@ -1520,6 +1523,331 @@ def check_s26():
         if not problems
         else "；".join(problems),
     )
+
+
+def _derived_literal_violations():
+    """S27：派生量（required_platform / ramp_start_side_tol_m / L_rear）不得写死字面量。"""
+    names = {
+        "required_platform",
+        "ramp_start_side_tol_m",
+        "l_rear",
+        "L_rear",
+    }
+    offenders = []
+    for path in (
+        REPO_ROOT / "judge.py",
+        SCRIPTS_DIR / "run_cases.py",
+        SCRIPTS_DIR / "rejudge_cases.py",
+    ):
+        tree = ast.parse(read_text(path))
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Assign, ast.AnnAssign)):
+                targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+                for target in targets:
+                    if (
+                        isinstance(target, ast.Name)
+                        and target.id in names
+                        and isinstance(node.value, ast.Constant)
+                        and isinstance(node.value.value, (int, float))
+                    ):
+                        offenders.append(f"{path.name}:{node.lineno} {target.id}=字面量")
+            if isinstance(node, ast.Dict):
+                for key, value in zip(node.keys, node.values):
+                    if (
+                        isinstance(key, ast.Constant)
+                        and key.value in names
+                        and isinstance(value, ast.Constant)
+                        and isinstance(value.value, (int, float))
+                    ):
+                        offenders.append(f"{path.name}:{node.lineno} {key.value}=字面量")
+    return offenders
+
+
+def check_s27():
+    """S27（v1.11.0）：拒绝码表 / rejected.json 互斥 / 派生量无字面量。"""
+    problems = []
+    doc = read_text(REPO_ROOT / "docs" / "契约" / "G2-接口契约.md")
+    code_lines = [line for line in doc.splitlines() if "配置拒绝码" in line]
+    if not code_lines:
+        problems.append("契约缺配置拒绝码句")
+        contract_codes = set()
+    else:
+        contract_codes = {
+            token
+            for token in re.findall(r"`([^`]+)`", code_lines[0])
+            if re.fullmatch(r"[a-z0-9_]+", token)
+        }
+    if HAVE_MUJOCO:
+        import run_cases
+
+        if contract_codes != set(run_cases.REJECT_CODES):
+            problems.append(
+                "契约拒绝码表 != run_cases.REJECT_CODES："
+                f"契约多 {sorted(contract_codes - set(run_cases.REJECT_CODES))}，"
+                f"代码多 {sorted(set(run_cases.REJECT_CODES) - contract_codes)}"
+            )
+        code_text = read_text(SCRIPTS_DIR / "run_cases.py")
+        for code in sorted(contract_codes):
+            if code not in code_text:
+                problems.append(f"拒绝码 {code} 在 run_cases.py 无产出点")
+        produced = set()
+        for path in (REPO_ROOT / "judge.py", SCRIPTS_DIR / "run_cases.py"):
+            produced.update(
+                re.findall(r'invalid_reason\s*=\s*"([a-z0-9_]+)"', read_text(path))
+            )
+        leaked = sorted(contract_codes & produced)
+        if leaked:
+            problems.append(f"拒绝码被写成 invalid_reason：{leaked}")
+        if "invalid:step_too_narrow_for_heading" in read_text(
+            SCRIPTS_DIR / "rejudge_cases.py"
+        ):
+            problems.append("rejudge_cases 仍把 step_too_narrow_for_heading 写成 invalid")
+
+        # 互斥：两个写出函数都必须拒绝对方的文件已存在。
+        temp_root = Path(tempfile.mkdtemp(prefix="g2-s27-"))
+        try:
+            (temp_root / "rejected.json").write_text("{}", encoding="utf-8")
+            try:
+                run_cases.write_summary(
+                    temp_root / "summary.csv", [], {}, "", "", "sensitivity"
+                )
+                problems.append("rejected.json 已存在时 write_summary 未拒绝")
+            except run_cases.ContractError:
+                pass
+            other = temp_root / "other"
+            other.mkdir()
+            (other / "summary.csv").write_text("", encoding="utf-8")
+            try:
+                run_cases.write_rejected(
+                    other,
+                    CASES_DIR / "ramp_10deg.json",
+                    {},
+                    REPO_ROOT / "models" / "baseline.xml",
+                    "0" * 64,
+                    run_cases.RejectError(
+                        "ramp_angle_out_of_range",
+                        "test",
+                        {"min_deg": 3.0, "max_deg": 15.0},
+                        {"angle_deg": 20.0},
+                    ),
+                    "now",
+                )
+                problems.append("summary.csv 已存在时 write_rejected 未拒绝")
+            except run_cases.ContractError:
+                pass
+
+            # 派生量字面量扫描
+            problems.extend(_derived_literal_violations())
+
+            # 后缘换量：baseline x_rear_B=0.170 m，两条算法互校，且高度项必须生效。
+            import judge
+            import model_checks
+
+            rendered = rendered_model()
+            model = mujoco.MjModel.from_xml_string(rendered["text"])
+            geometry = run_cases.rear_edge_geometry(model)
+            if abs(float(geometry["x_rear_B_m"]) - 0.170) > 1e-3:  # contract-tolerance
+                problems.append(
+                    f"baseline x_rear_B={geometry['x_rear_B_m']:.6f} m != 0.170 m"
+                )
+            if abs(float(geometry["derivation_relative"])) > 0.02:  # contract-tolerance
+                problems.append(
+                    "rear_edge 两条算法偏差 "
+                    f"{geometry['derivation_relative']:.6f} > 2%"
+                )
+            columns, params = synthetic_case([], False)
+            rear_params = dict(params)
+            rear_params["x_rear_B_m"] = geometry["x_rear_B_m"]
+            rear_verdict = judge.judge_case(columns, rear_params)
+            rear_cross = rear_verdict["metrics"].get("crossing") or {}
+            if rear_cross.get("crossed_front") is not False:
+                problems.append(
+                    "后缘换量未生效：质心已过前缘时后缘仍被判为越过 "
+                    f"(com={rear_cross.get('com_progress_m')}, "
+                    f"s_rear={rear_cross.get('s_rear_m')})"
+                )
+            if abs(float(rear_cross.get("L_rear_m", 0.0)) - geometry["x_rear_B_m"]) > 1e-9:  # contract-tolerance
+                problems.append("pitch=0 时 L_rear 不等于 x_rear_B")
+            tilted_columns, tilted_params = synthetic_case([], False)
+            tilted_params = dict(tilted_params)
+            tilted_params["x_rear_B_m"] = 0.17  # contract-tolerance：构造值
+            tilted_params["z_rear_m"] = 0.0
+            tilted_params["z_cg_m"] = 0.05
+            tilted_columns["pitch_rad"] = [math.radians(15.0)] * len(
+                tilted_columns["t_s"]
+            )
+            tilted_cross = (
+                judge.judge_case(tilted_columns, tilted_params)["metrics"].get("crossing")
+                or {}
+            )
+            expected_l = 0.17 * math.cos(math.radians(15.0)) + 0.05 * math.sin(
+                math.radians(15.0)
+            )
+            if abs(float(tilted_cross.get("L_rear_m", 0.0)) - expected_l) > 1e-9:  # contract-tolerance
+                problems.append(
+                    "L_rear 高度项未生效："
+                    f"{tilted_cross.get('L_rear_m')} != {expected_l}"
+                )
+        finally:
+            shutil.rmtree(temp_root, ignore_errors=True)
+    add(
+        "S27",
+        not problems,
+        "拒绝码表与代码一致、拒绝码不进 invalid_reason、rejected/summary 互斥、"
+        "派生量无字面量；baseline x_rear_B=0.170 m，两算法互校，L_rear 含高度项"
+        if not problems
+        else "；".join(problems),
+    )
+
+
+def check_pick22():
+    """抽查 22（v1.11.0）：被拒批次留 rejected.json（无 summary），护栏双向拒绝。"""
+    if not HAVE_MUJOCO:
+        add("抽查22", None, "SKIP：需要 MuJoCo 才能跑 fail-fast 拒绝")
+        return
+    import run_cases
+
+    problems = []
+    temp_root = Path(tempfile.mkdtemp(prefix="g2-pick22-"))
+    required_fields = {
+        "contract_version",
+        "schema_version",
+        "batch_id",
+        "config",
+        "model",
+        "reject_code",
+        "required",
+        "actual",
+        "message",
+        "git",
+        "argv",
+        "started_utc",
+    }
+
+    def run_reject(name, config, expected_code, model_path=None):
+        case_path = temp_root / f"{name}.json"
+        case_path.write_text(json.dumps(config, ensure_ascii=False), encoding="utf-8")
+        out_dir = temp_root / f"{name}_out"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPTS_DIR / "run_cases.py"),
+                "--config",
+                str(case_path),
+                "--out",
+                str(out_dir),
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=300,
+        )
+        if result.returncode == 0:
+            problems.append(f"{name}: 未非 0 退出")
+            return
+        if (out_dir / "summary.csv").exists():
+            problems.append(f"{name}: 被拒批次仍产 summary.csv")
+            return
+        payload_path = out_dir / "rejected.json"
+        if not payload_path.exists():
+            problems.append(
+                f"{name}: 缺 rejected.json；rc={result.returncode}，"
+                f"stderr={(result.stderr or result.stdout)[-500:]}"
+            )
+            return
+        payload = json.loads(read_text(payload_path))
+        missing = required_fields - set(payload)
+        if missing:
+            problems.append(f"{name}: rejected.json 缺 {sorted(missing)}")
+        if payload.get("reject_code") != expected_code:
+            problems.append(
+                f"{name}: reject_code={payload.get('reject_code')} != {expected_code}"
+            )
+        if expected_code not in str(payload.get("message", "")):
+            problems.append(f"{name}: 报错文案未含 {expected_code}")
+        if expected_code not in result.stderr:
+            problems.append(f"{name}: stderr 未含 {expected_code}")
+        if payload.get("config", {}).get("sha256") != run_cases.sha256_file(case_path):
+            problems.append(f"{name}: config.sha256 与文件不符")
+        expected_model = (
+            model_path
+            if model_path is not None
+            else REPO_ROOT / config["model"]["path"]
+        )
+        if payload.get("model", {}).get("sha256") != run_cases.sha256_file(
+            expected_model
+        ):
+            problems.append(f"{name}: model.sha256 与文件不符")
+        for key in ("commit", "branch", "dirty"):
+            if key not in payload.get("git", {}):
+                problems.append(f"{name}: git 缺 {key}")
+        if not isinstance(payload.get("argv"), list) or not payload.get("argv"):
+            problems.append(f"{name}: argv 不是非空列表")
+        if not payload.get("started_utc"):
+            problems.append(f"{name}: started_utc 为空")
+
+    template = json.loads(read_text(CASES_DIR / "ramp_10deg.json"))
+
+    angle = json.loads(json.dumps(template))
+    angle["case_id"] = "ramp_angle_20"
+    angle["scenario"]["ramp"]["angle_deg"] = 20.0
+    run_reject("angle", angle, "ramp_angle_out_of_range")
+
+    platform = json.loads(json.dumps(template))
+    platform["case_id"] = "ramp_platform_short"
+    platform["scenario"]["ramp"]["top_platform_m"] = 0.12
+    run_reject("platform", platform, "ramp_platform_too_short_for_verdict")
+
+    short = json.loads(json.dumps(template))
+    short["case_id"] = "ramp_too_short"
+    short["scenario"]["ramp"]["length_m"] = 0.1
+    short["scenario"]["ramp"]["top_platform_m"] = 0.6
+    run_reject("short", short, "ramp_too_short_for_verdict")
+
+    missing_rail = json.loads(json.dumps(template))
+    missing_rail["case_id"] = "ramp_missing_guardrail"
+    missing_rail["scenario"]["ramp"]["guardrail"] = "both"
+    run_reject("missing_rail", missing_rail, "missing_guardrail_geometry")
+
+    # 声明 none 而模型有 guardrail_*：临时模型注入护栏 geom。
+    rendered = rendered_model()
+    rail_geom = (
+        '<geom name="guardrail_left" type="box" size="0.2 0.02 0.05" '
+        'pos="0.6 0.62 0.05" material="shell"/>\n  '
+    )
+    model_text = rendered["text"].replace("</worldbody>", rail_geom + "</worldbody>", 1)
+    rail_root = temp_root / "undeclared" / "models"
+    rail_root.mkdir(parents=True)
+    params_copy = temp_root / "undeclared" / "params"
+    params_copy.mkdir(parents=True)
+    shutil.copyfile(REPO_ROOT / "params" / "prototype.json", params_copy / "prototype.json")
+    rail_model = rail_root / "guardrail_model.xml"
+    rail_model.write_text(model_text, encoding="utf-8")
+    undeclared = json.loads(json.dumps(template))
+    undeclared["case_id"] = "ramp_undeclared_guardrail"
+    undeclared["scenario"]["ramp"]["guardrail"] = "none"
+    undeclared["model"] = {
+        "path": str(rail_model),
+        "sha256": run_cases.sha256_file(rail_model),
+    }
+    run_reject(
+        "undeclared",
+        undeclared,
+        "undeclared_guardrail_geometry",
+        model_path=rail_model,
+    )
+
+    shutil.rmtree(temp_root, ignore_errors=True)
+    add(
+        "抽查22",
+        not problems,
+        "坡角 20°/平台过短/坡长过短/缺护栏/未声明护栏五类均非 0 退出、"
+        "rejected.json 字段齐全且无 summary.csv"
+        if not problems
+        else "；".join(problems),
+    )
+
 
 
 def check_negative_configs():
@@ -1621,6 +1949,21 @@ def synthetic_case(flags, bottom_out):
         "wheel_step_pairs": ["wheel_L--step", "wheel_R--step"],
         "bottom_out_pairs": ["chassis--step"],
         "all_pairs": pairs,
+        # v1.11.0：后缘与坡道字段；合成基线取 0，保持旧回归几何不变，
+        # 后缘换量另有专项断言（S27 / 抽查 21）。
+        "x_rear_B_m": 0.0,
+        "z_rear_m": 0.0,
+        "z_cg_m": 0.0,
+        "ramp_angle_rad": 0.0,
+        "ramp_length_m": 0.0,
+        "ramp_width_m": 0.0,
+        "ramp_top_platform_m": 0.0,
+        "ramp_top_front_m": 0.0,
+        "ramp_start_m": 0.0,
+        "ramp_start_side_tol_m": 0.0,
+        "ramp_top_duty": 0.8,
+        "post_cross_window_s": 0.05,
+        "ramp_detach_hold_s": 0.2,
     }
     return columns, params
 
@@ -1999,6 +2342,8 @@ def main():
     check_s24()
     check_s25()
     check_s26()
+    check_s27()
+    check_pick22()
     check_negative_configs()
     check_judge_unit_tests()
     if args.run:
