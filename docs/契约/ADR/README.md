@@ -24,6 +24,7 @@ ADR（Architecture Decision Record，架构决策记录）把契约裁定从个�
 | ADR-016 | 受阻要有名字：`belly_contact` / `cross_fail` | 已采纳 | v1.9.0（开版触发①） | [ADR-016-受阻要有名字-belly-contact与越过五条件.md](ADR-016-受阻要有名字-belly-contact与越过五条件.md) |
 | ADR-017 | 台账键形三段 `<machine>.<config_id>.<量名>` | 已采纳 | v1.9.1（开版触发①） | [ADR-017-台账键形三段-config_id.md](ADR-017-台账键形三段-config_id.md) |
 | ADR-018 | 单帧与几何边界不该当判据 | 已采纳 | v1.10.0（开版触发①） | [ADR-018-单帧与几何边界不该当判据.md](ADR-018-单帧与几何边界不该当判据.md) |
+| ADR-019 | 坡道结构与后缘越过 | 已采纳 | v1.11.0（开版触发①） | [ADR-019-坡道结构与后缘越过.md](ADR-019-坡道结构与后缘越过.md) |
 | ADR-017 | 台账键形归架构师，形状定为三段（`machine.config_id.量名`） | 已采纳 | v1.9.1（开版触发①，取代 ADR-014 的两段式） | [ADR-017-台账键形三段-config_id.md](ADR-017-台账键形三段-config_id.md) |
 
 
