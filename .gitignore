@@ -10,7 +10,16 @@ outputs/
 MUJOCO_LOG.TXT
 logs/
 data/private/
-refs/
+# 文献原件：仓库只收公开许可的 6 篇 PDF；其余 PDF 与非公开原件一律不入库
+refs/*.pdf
+!refs/Dreame_CN117958664B.pdf
+!refs/Dyson_GB2611795A.pdf
+!refs/Fan_2025_Machines_wheeled_climbing.pdf
+!refs/Seo_Kang_2024_Biomimetics_curved_spoke_stair.pdf
+!refs/Won_2022_SciRep_2DOF_wheel.pdf
+!refs/Wilhelm_2007_thesis.pdf
+refs/_private/
+refs/relay-result.txt
 
 # Local configuration and credentials
 .env
