@@ -1,4 +1,4 @@
-# 枚举值比正文更容易漏：outcome、failure_mode 的枚举里不许出现「通过/满足/合格/pass/fail」这类词。
+# 枚举值比正文更容易漏：`status`、`passed`、`failure_primary` 的枚举里不许出现「通过/满足/合格/pass/fail」这类词。
 通过高度
 可通过高度
 最大越障高度
